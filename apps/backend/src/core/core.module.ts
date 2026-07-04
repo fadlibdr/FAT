@@ -23,6 +23,9 @@ import { WorkflowService } from "./workflow/workflow.service";
 import { WorkflowController } from "./workflow/workflow.controller";
 import { VersionListener } from "./audit/version.listener";
 import { UploadController } from "./uploads/upload.controller";
+import { DoctypeAdminController } from "./admin/doctype-admin.controller";
+import { WebhookListener } from "./webhooks/webhook.listener";
+import { OpenApiController } from "./openapi/openapi.controller";
 import { PermissionService } from "./permissions/permission.service";
 
 /**
@@ -50,6 +53,8 @@ import { PermissionService } from "./permissions/permission.service";
     PrintController,
     WorkflowController,
     UploadController,
+    DoctypeAdminController,
+    OpenApiController,
   ],
   providers: [
     DoctypeRegistryService,
@@ -62,6 +67,7 @@ import { PermissionService } from "./permissions/permission.service";
     PermissionService,
     WorkflowService,
     VersionListener,
+    WebhookListener,
   ],
   exports: [
     DoctypeRegistryService,

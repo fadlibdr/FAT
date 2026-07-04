@@ -10,6 +10,20 @@ export interface DocTypeListItem {
   is_submittable: boolean;
 }
 
+export function useSaveDocType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (def: unknown) => api.post<{ data: { name: string } }>("/api/admin/doctype", def),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["meta-list"] }),
+  });
+}
+
+export function useGenerateApiKey() {
+  return useMutation({
+    mutationFn: () => api.post<{ api_key: string; api_secret: string }>("/api/auth/api-key"),
+  });
+}
+
 export function useDocTypeList() {
   return useQuery({
     queryKey: ["meta-list"],

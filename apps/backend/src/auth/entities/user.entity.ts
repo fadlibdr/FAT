@@ -18,6 +18,12 @@ export class UserEntity {
   @Column({ type: "smallint", default: 1 })
   enabled!: number;
 
+  @Column({ type: "varchar", length: 64, nullable: true })
+  api_key!: string | null;
+
+  @Column({ type: "varchar", length: 128, nullable: true })
+  api_secret!: string | null;
+
   @Column({ type: "timestamptz", default: () => "now()" })
   creation!: Date;
 }

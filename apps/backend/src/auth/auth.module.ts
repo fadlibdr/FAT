@@ -6,6 +6,7 @@ import { UserEntity } from "./entities/user.entity";
 import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { JwtStrategy } from "./jwt.strategy";
+import { ApiKeyService } from "./api-key.service";
 import { CoreModule } from "../core/core.module";
 import { loadConfig } from "../config";
 
@@ -17,7 +18,7 @@ import { loadConfig } from "../config";
     CoreModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, ApiKeyService],
+  exports: [AuthService, ApiKeyService],
 })
 export class AuthModule {}

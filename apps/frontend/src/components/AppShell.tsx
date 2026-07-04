@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { LoginForm } from "./LoginForm";
 import { Nav } from "./Nav";
@@ -25,6 +26,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 sticky top-0 z-10">
           <GlobalSearch />
           <div className="flex items-center gap-3 text-sm">
+            <Link href="/settings" className="text-slate-500 hover:text-brand-600">
+              Settings
+            </Link>
             <span className="text-slate-600">{user.full_name ?? user.email}</span>
             <button
               onClick={logout}
