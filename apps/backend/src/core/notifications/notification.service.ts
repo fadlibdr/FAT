@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { DoctypeRegistryService } from "../doctype/doctype-registry.service";
 import { DocumentService } from "../doctype/document.service";
 import { systemContext } from "../permissions/system-context";
+import { MailerService } from "./mailer.service";
 
 export interface NewNotification {
   user: string;
@@ -18,6 +19,7 @@ export class NotificationService {
   constructor(
     private readonly registry: DoctypeRegistryService,
     private readonly documents: DocumentService,
+    private readonly mailer: MailerService,
   ) {}
 
   async notify(n: NewNotification): Promise<void> {
@@ -32,6 +34,8 @@ export class NotificationService {
         ref_doctype: n.ref_doctype ?? null,
         ref_name: n.ref_name ?? null,
       });
+      // Best-effort email (no-op unless MAIL_ENABLED). User name is the email.
+      await this.mailer.send({ to: n.user, subject: n.subject, text: n.message });
     } catch (err) {
       this.logger.warn(`Notification failed: ${(err as Error).message}`);
     }

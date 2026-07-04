@@ -30,6 +30,7 @@ import { RealtimeService } from "./realtime/realtime.service";
 import { RealtimeController } from "./realtime/realtime.controller";
 import { NotificationService } from "./notifications/notification.service";
 import { NotificationListener } from "./notifications/notification.listener";
+import { MailerService } from "./notifications/mailer.service";
 import { ScheduledTasksService } from "./scheduler/scheduled-tasks.service";
 import { SchedulerController } from "./scheduler/scheduler.controller";
 import { RegistrySyncService } from "./registry-sync/registry-sync.service";
@@ -80,6 +81,7 @@ import { PermissionService } from "./permissions/permission.service";
     RealtimeService,
     NotificationService,
     NotificationListener,
+    MailerService,
     ScheduledTasksService,
     RegistrySyncService,
   ],

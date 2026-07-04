@@ -3,6 +3,21 @@
 import { useEffect } from "react";
 import { FieldType } from "@fat/shared";
 import { useDocTypeMeta, useDocument, usePrintFormat } from "@/lib/meta-client";
+import { API_URL, getToken } from "@/lib/api-client";
+
+async function downloadPdf(doctype: string, name: string) {
+  const res = await fetch(
+    `${API_URL}/api/print/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/pdf`,
+    { headers: { Authorization: `Bearer ${getToken() ?? ""}` } },
+  );
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${doctype}-${name}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function PrintPage({
   params,
@@ -30,12 +45,20 @@ export default function PrintPage({
     return (
       <div className="max-w-2xl mx-auto bg-white p-8 print:p-0">
         <div dangerouslySetInnerHTML={{ __html: customHtml }} />
-        <button
-          onClick={() => window.print()}
-          className="print:hidden mt-4 rounded-lg bg-brand-600 text-white px-4 py-2 text-sm"
-        >
-          Print
-        </button>
+        <div className="print:hidden mt-4 flex gap-2">
+          <button
+            onClick={() => window.print()}
+            className="rounded-lg bg-brand-600 text-white px-4 py-2 text-sm"
+          >
+            Print
+          </button>
+          <button
+            onClick={() => downloadPdf(doctype, name)}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50"
+          >
+            Download PDF
+          </button>
+        </div>
       </div>
     );
   }
