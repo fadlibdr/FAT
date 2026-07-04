@@ -9,6 +9,7 @@
     { "fieldname": "item_group", "label": "Item Group", "fieldtype": "Link", "options": "Item Group", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "stock_uom", "label": "Default UOM", "fieldtype": "Link", "options": "UOM" },
     { "fieldname": "standard_rate", "label": "Standard Rate", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "valuation_method", "label": "Valuation Method", "fieldtype": "Select", "options": "Moving Average\nFIFO", "default": "Moving Average" },
     { "fieldname": "is_stock_item", "label": "Maintain Stock", "fieldtype": "Check", "default": "1" }
   ],
   "permissions": [

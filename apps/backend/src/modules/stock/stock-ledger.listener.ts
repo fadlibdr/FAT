@@ -43,6 +43,15 @@ export class StockLedgerListener {
     return Number(rows[0]?.r ?? 0);
   }
 
+  private async itemMethod(item: string): Promise<string> {
+    const rows = await this.dataSource.query(
+      `SELECT ${quoteIdent("valuation_method")} AS m FROM ${quoteIdent(tableNameFor("Item"))}
+       WHERE ${quoteIdent("name")} = $1`,
+      [item],
+    );
+    return rows[0]?.m ?? "Moving Average";
+  }
+
   private async post(
     ctx: UserContext,
     m: Movement,
@@ -53,24 +62,59 @@ export class StockLedgerListener {
     const sle = this.registry.get("Stock Ledger Entry");
     if (!sle || !m.warehouse) return;
     const binKey = `${m.item}::${m.warehouse}`;
+    const method = await this.itemMethod(m.item);
 
     const bin = (
       await this.dataSource.query(
         `SELECT ${quoteIdent("actual_qty")} AS qty, ${quoteIdent("valuation_rate")} AS rate,
-                ${quoteIdent("stock_value")} AS value FROM ${quoteIdent(tableNameFor("Bin"))}
-         WHERE ${quoteIdent("name")} = $1`,
+                ${quoteIdent("stock_value")} AS value, ${quoteIdent("fifo_queue")} AS fifo
+         FROM ${quoteIdent(tableNameFor("Bin"))} WHERE ${quoteIdent("name")} = $1`,
         [binKey],
       )
     )[0];
     const qty0 = Number(bin?.qty ?? 0);
     const rate0 = Number(bin?.rate ?? 0);
     const value0 = Number(bin?.value ?? 0);
+    let layers: Array<{ qty: number; rate: number }> = [];
+    try {
+      layers = bin?.fifo ? JSON.parse(bin.fifo) : [];
+    } catch {
+      layers = [];
+    }
 
-    const rateUsed = m.delta > 0 ? (m.incomingRate ?? rate0) : rate0;
+    let rateUsed: number;
+    let newValue: number;
+    let newLayers = layers.map((l) => ({ ...l }));
+
+    if (method === "FIFO") {
+      if (m.delta > 0) {
+        rateUsed = m.incomingRate ?? rate0 ?? 0;
+        newLayers.push({ qty: m.delta, rate: rateUsed });
+      } else {
+        let toConsume = -m.delta;
+        let consumedValue = 0;
+        let consumedQty = 0;
+        while (toConsume > 1e-9 && newLayers.length) {
+          const layer = newLayers[0];
+          const take = Math.min(layer.qty, toConsume);
+          consumedValue += take * layer.rate;
+          consumedQty += take;
+          layer.qty -= take;
+          toConsume -= take;
+          if (layer.qty <= 1e-9) newLayers.shift();
+        }
+        rateUsed = consumedQty ? consumedValue / consumedQty : rate0;
+      }
+      newValue = newLayers.reduce((s, l) => s + l.qty * l.rate, 0);
+    } else {
+      rateUsed = m.delta > 0 ? (m.incomingRate ?? rate0) : rate0;
+      newValue = value0 + m.delta * rateUsed;
+      newLayers = [];
+    }
+
     const deltaValue = m.delta * rateUsed;
     const newQty = qty0 + m.delta;
-    const newValue = value0 + deltaValue;
-    const newRate = m.delta > 0 && newQty > 0 ? newValue / newQty : rate0 || rateUsed;
+    const newRate = newQty > 0 ? newValue / newQty : rate0 || rateUsed;
 
     await this.documents.create(sle, ctx, {
       posting_date: postingDate ?? null,
@@ -89,13 +133,13 @@ export class StockLedgerListener {
       `INSERT INTO ${quoteIdent(tableNameFor("Bin"))}
         (${quoteIdent("name")}, ${quoteIdent("item_code")}, ${quoteIdent("warehouse")},
          ${quoteIdent("actual_qty")}, ${quoteIdent("valuation_rate")}, ${quoteIdent("stock_value")},
-         ${quoteIdent("owner")}, ${quoteIdent("creation")}, ${quoteIdent("modified")},
-         ${quoteIdent("modified_by")}, ${quoteIdent("docstatus")}, ${quoteIdent("idx")})
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$8,$7,0,0)
+         ${quoteIdent("fifo_queue")}, ${quoteIdent("owner")}, ${quoteIdent("creation")},
+         ${quoteIdent("modified")}, ${quoteIdent("modified_by")}, ${quoteIdent("docstatus")}, ${quoteIdent("idx")})
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$8,0,0)
        ON CONFLICT (${quoteIdent("name")}) DO UPDATE SET
          ${quoteIdent("actual_qty")} = $4, ${quoteIdent("valuation_rate")} = $5,
-         ${quoteIdent("stock_value")} = $6, ${quoteIdent("modified")} = $8`,
-      [binKey, m.item, m.warehouse, newQty, newRate, newValue, ctx.name, now],
+         ${quoteIdent("stock_value")} = $6, ${quoteIdent("fifo_queue")} = $7, ${quoteIdent("modified")} = $9`,
+      [binKey, m.item, m.warehouse, newQty, newRate, newValue, JSON.stringify(newLayers), ctx.name, now],
     );
   }
 

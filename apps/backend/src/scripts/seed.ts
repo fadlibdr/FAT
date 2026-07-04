@@ -111,6 +111,17 @@ async function main() {
   await create("Account", { account_name: "Sales", account_type: "Income", company: "FAT Demo Co" });
   await create("Account", { account_name: "Cash", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Creditors", account_type: "Liability", company: "FAT Demo Co" });
+  await create("Account", { account_name: "VAT", account_type: "Liability", company: "FAT Demo Co" });
+  await create("Currency", { currency_name: "EUR", symbol: "€", fraction: "Cent" });
+  await create("Item", {
+    item_code: "WIDGET-F",
+    item_name: "FIFO Widget",
+    item_group: "Products",
+    stock_uom: "Nos",
+    standard_rate: 20,
+    valuation_method: "FIFO",
+    is_stock_item: 1,
+  });
   // Warehouses for stock ledger postings.
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });

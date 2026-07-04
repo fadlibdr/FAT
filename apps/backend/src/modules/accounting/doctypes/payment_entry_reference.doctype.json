@@ -1,0 +1,14 @@
+{
+  "name": "Payment Entry Reference",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "reference_doctype", "label": "Type", "fieldtype": "Select", "options": "Sales Invoice", "default": "Sales Invoice", "in_list_view": true },
+    { "fieldname": "reference_name", "label": "Invoice", "fieldtype": "Link", "options": "Sales Invoice", "reqd": true, "in_list_view": true },
+    { "fieldname": "allocated_amount", "label": "Allocated", "fieldtype": "Currency", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}
