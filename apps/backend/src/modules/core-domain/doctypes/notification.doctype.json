@@ -1,0 +1,20 @@
+{
+  "name": "Notification",
+  "module": "Core",
+  "naming_rule": "series:NOTIF-.######",
+  "title_field": "subject",
+  "fields": [
+    { "fieldname": "user", "label": "User", "fieldtype": "Data", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "subject", "label": "Subject", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "message", "label": "Message", "fieldtype": "Text" },
+    { "fieldname": "is_read", "label": "Read", "fieldtype": "Check", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "ref_doctype", "label": "Document Type", "fieldtype": "Data" },
+    { "fieldname": "ref_name", "label": "Document", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "if_owner": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "if_owner": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "if_owner": 1 }
+  ]
+}

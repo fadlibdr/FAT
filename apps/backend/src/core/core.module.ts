@@ -26,6 +26,12 @@ import { UploadController } from "./uploads/upload.controller";
 import { DoctypeAdminController } from "./admin/doctype-admin.controller";
 import { WebhookListener } from "./webhooks/webhook.listener";
 import { OpenApiController } from "./openapi/openapi.controller";
+import { RealtimeService } from "./realtime/realtime.service";
+import { RealtimeController } from "./realtime/realtime.controller";
+import { NotificationService } from "./notifications/notification.service";
+import { NotificationListener } from "./notifications/notification.listener";
+import { ScheduledTasksService } from "./scheduler/scheduled-tasks.service";
+import { SchedulerController } from "./scheduler/scheduler.controller";
 import { PermissionService } from "./permissions/permission.service";
 
 /**
@@ -55,6 +61,8 @@ import { PermissionService } from "./permissions/permission.service";
     UploadController,
     DoctypeAdminController,
     OpenApiController,
+    RealtimeController,
+    SchedulerController,
   ],
   providers: [
     DoctypeRegistryService,
@@ -68,6 +76,10 @@ import { PermissionService } from "./permissions/permission.service";
     WorkflowService,
     VersionListener,
     WebhookListener,
+    RealtimeService,
+    NotificationService,
+    NotificationListener,
+    ScheduledTasksService,
   ],
   exports: [
     DoctypeRegistryService,

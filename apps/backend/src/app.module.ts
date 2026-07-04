@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
+import { ScheduleModule } from "@nestjs/schedule";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { buildDataSourceOptions } from "./data-source";
 import { CoreModule } from "./core/core.module";
@@ -19,6 +20,7 @@ import { HrModule } from "./modules/hr/hr.module";
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(buildDataSourceOptions()),
     CoreModule,
     JobsModule,
