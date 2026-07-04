@@ -14,6 +14,7 @@ interface Movement {
   warehouse: string;
   delta: number; // +receipt / -issue
   incomingRate?: number; // valuation rate for receipts
+  batch?: string | null;
 }
 
 /**
@@ -124,6 +125,7 @@ export class StockLedgerListener {
       valuation_rate: rateUsed,
       qty_after_transaction: newQty,
       stock_value: deltaValue,
+      batch_no: m.batch ?? null,
       voucher_type: voucherType,
       voucher_no: voucherNo,
     });
@@ -178,14 +180,15 @@ export class StockLedgerListener {
       const qty = Number(row.qty ?? 0);
       if (!qty) continue;
       const item = String(row.item_code);
+      const batch = (row.batch_no as string) || null;
       const moves: Movement[] = [];
       if (purpose === "Material Receipt") {
-        moves.push({ item, warehouse: String(row.t_warehouse ?? ""), delta: qty, incomingRate: await this.itemRate(item) });
+        moves.push({ item, warehouse: String(row.t_warehouse ?? ""), delta: qty, incomingRate: await this.itemRate(item), batch });
       } else if (purpose === "Material Issue") {
-        moves.push({ item, warehouse: String(row.s_warehouse ?? ""), delta: -qty });
+        moves.push({ item, warehouse: String(row.s_warehouse ?? ""), delta: -qty, batch });
       } else {
-        if (row.s_warehouse) moves.push({ item, warehouse: String(row.s_warehouse), delta: -qty });
-        if (row.t_warehouse) moves.push({ item, warehouse: String(row.t_warehouse), delta: qty, incomingRate: await this.itemRate(item) });
+        if (row.s_warehouse) moves.push({ item, warehouse: String(row.s_warehouse), delta: -qty, batch });
+        if (row.t_warehouse) moves.push({ item, warehouse: String(row.t_warehouse), delta: qty, incomingRate: await this.itemRate(item), batch });
       }
       for (const m of moves) {
         try {

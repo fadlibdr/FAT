@@ -1,0 +1,16 @@
+{
+  "name": "Budget",
+  "module": "Accounting",
+  "naming_rule": "series:BUDG-.#####",
+  "title_field": "cost_center",
+  "fields": [
+    { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Link", "options": "Cost Center", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "account", "label": "Account", "fieldtype": "Link", "options": "Account", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "fiscal_year", "label": "Fiscal Year", "fieldtype": "Link", "options": "Fiscal Year", "in_standard_filter": true },
+    { "fieldname": "budget_amount", "label": "Budget Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

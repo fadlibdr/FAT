@@ -6,6 +6,10 @@ import { useQueryReport } from "@/lib/meta-client";
 const TITLES: Record<string, string> = {
   "trial-balance": "Trial Balance",
   "stock-balance": "Stock Balance",
+  "profit-and-loss": "Profit & Loss",
+  "balance-sheet": "Balance Sheet",
+  "budget-variance": "Budget vs Actual",
+  "batch-stock-balance": "Batch Stock Balance",
 };
 
 function fmt(v: unknown): string {

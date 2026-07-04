@@ -19,6 +19,7 @@ interface Line {
   debit: number;
   credit: number;
   against: string;
+  cost_center?: string | null;
 }
 
 /**
@@ -55,6 +56,7 @@ export class GlPostingListener {
         debit: l.debit,
         credit: l.credit,
         against: l.against,
+        cost_center: l.cost_center ?? null,
       });
     }
   }
@@ -86,17 +88,18 @@ export class GlPostingListener {
     const net = Number(doc.total ?? 0);
     const grand = Number(doc.grand_total ?? net);
     const against = String(doc.customer ?? "");
+    const cc = (doc.cost_center as string) || null;
     const ctx = systemContext(payload.user);
 
     const lines: Line[] = [
-      { account: DEBTORS, debit: grand * conv, credit: 0, against },
-      { account: SALES, debit: 0, credit: net * conv, against },
+      { account: DEBTORS, debit: grand * conv, credit: 0, against, cost_center: cc },
+      { account: SALES, debit: 0, credit: net * conv, against, cost_center: cc },
     ];
     for (const t of (doc.taxes as Array<Record<string, unknown>>) ?? []) {
       const amt = Number(t.tax_amount ?? 0);
       if (!amt) continue;
       const acct = (t.account_head as string) || SALES;
-      lines.push({ account: acct, debit: 0, credit: amt * conv, against });
+      lines.push({ account: acct, debit: 0, credit: amt * conv, against, cost_center: cc });
     }
     try {
       await this.postLines(ctx, "Sales Invoice", String(doc.name), doc.posting_date, lines);

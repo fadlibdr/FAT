@@ -1,0 +1,14 @@
+{
+  "name": "Cost Center",
+  "module": "Accounting",
+  "naming_rule": "field:cost_center_name",
+  "title_field": "cost_center_name",
+  "fields": [
+    { "fieldname": "cost_center_name", "label": "Cost Center", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
