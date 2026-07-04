@@ -9,7 +9,9 @@
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "due_date", "label": "Due Date", "fieldtype": "Date" },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Sales Invoice Item" },
-    { "fieldname": "total", "label": "Total", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "total", "label": "Net Total", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "taxes", "label": "Taxes and Charges", "fieldtype": "Table", "options": "Sales Taxes and Charges" },
+    { "fieldname": "total_taxes_and_charges", "label": "Total Taxes", "fieldtype": "Currency", "read_only": true },
     { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nUnpaid\nPaid\nCancelled", "default": "Draft", "in_list_view": true, "in_standard_filter": true }
   ],

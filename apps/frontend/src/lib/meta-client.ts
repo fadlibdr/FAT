@@ -60,6 +60,29 @@ export function useReport(
   });
 }
 
+export interface QueryReportResult {
+  columns: { key: string; label: string }[];
+  rows: Record<string, unknown>[];
+}
+
+export function useQueryReportList() {
+  return useQuery({
+    queryKey: ["query-report-list"],
+    queryFn: () =>
+      api.get<{ data: { name: string; columns: { key: string; label: string }[] }[] }>(
+        "/api/query-report",
+      ),
+  });
+}
+
+export function useQueryReport(name: string) {
+  return useQuery({
+    queryKey: ["query-report", name],
+    queryFn: () => api.get<{ data: QueryReportResult }>(`/api/query-report/${name}`),
+    enabled: !!name,
+  });
+}
+
 export function useDocument(doctype: string, name: string) {
   return useQuery({
     queryKey: ["doc", doctype, name],

@@ -1,0 +1,15 @@
+{
+  "name": "Purchase Taxes and Charges",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "description", "label": "Description", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "account_head", "label": "Account", "fieldtype": "Link", "options": "Account", "in_list_view": true },
+    { "fieldname": "rate", "label": "Rate (%)", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "tax_amount", "label": "Amount", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

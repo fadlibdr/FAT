@@ -15,6 +15,7 @@ import { HooksService } from "./doctype/hooks.service";
 import { DocumentService } from "./doctype/document.service";
 import { DocumentController } from "./doctype/document.controller";
 import { ReportController } from "./doctype/report.controller";
+import { QueryReportController } from "./doctype/query-report.controller";
 import { MetaController } from "./meta/meta.controller";
 import { PermissionService } from "./permissions/permission.service";
 
@@ -34,7 +35,7 @@ import { PermissionService } from "./permissions/permission.service";
       HasRoleEntity,
     ]),
   ],
-  controllers: [DocumentController, ReportController, MetaController],
+  controllers: [DocumentController, ReportController, QueryReportController, MetaController],
   providers: [
     DoctypeRegistryService,
     SchemaSyncService,

@@ -109,6 +109,8 @@ async function main() {
   // Chart-of-accounts stubs used by GL posting on Sales Invoice submit.
   await create("Account", { account_name: "Debtors", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Sales", account_type: "Income", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Cash", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Creditors", account_type: "Liability", company: "FAT Demo Co" });
   // Warehouses for stock ledger postings.
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });

@@ -13,9 +13,10 @@ const JOB = "recompute_totals";
 
 /**
  * Registers (and triggers) the `recompute_totals` background job: for any
- * document that has an `items` child table and a `total` field, it sums the
- * line amounts (falling back to qty * rate) and writes `total` / `grand_total`.
- * Demonstrates the JobService abstraction end-to-end.
+ * document with an `items` child table and a `total` field, it computes each
+ * line's amount (qty * rate), the net total, taxes (rate % of net, or explicit
+ * tax_amount), and writes total / total_taxes_and_charges / grand_total —
+ * updating the child rows in place. Demonstrates the JobService abstraction.
  */
 @Injectable()
 export class RecomputeTotalsJob implements OnModuleInit {
@@ -57,6 +58,27 @@ export class RecomputeTotalsJob implements OnModuleInit {
     void this.jobs.enqueue(JOB, { doctype: payload.doctype, name: payload.doc.name });
   }
 
+  private childTableOf(doctype: string, fieldname: string): string | undefined {
+    const dt = this.registry.get(doctype);
+    const field = dt?.fields.find(
+      (f) => f.fieldname === fieldname && (f.fieldtype as FieldType) === FieldType.Table,
+    );
+    return field?.options;
+  }
+
+  private async setChildValue(
+    childDoctype: string,
+    rowName: string,
+    col: string,
+    value: number,
+  ): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor(childDoctype))} SET ${quoteIdent(col)} = $1
+       WHERE ${quoteIdent("name")} = $2`,
+      [value, rowName],
+    );
+  }
+
   private async handle(payload: Record<string, unknown>): Promise<void> {
     const doctype = String(payload.doctype);
     const name = String(payload.name);
@@ -64,29 +86,54 @@ export class RecomputeTotalsJob implements OnModuleInit {
     if (!dt) return;
 
     const doc = await this.documents.get(dt, name);
+
+    // 1) Line amounts -> net total.
+    const itemChild = this.childTableOf(doctype, "items");
     const items = (doc.items as Array<Record<string, unknown>>) ?? [];
-    let total = 0;
+    let net = 0;
     for (const row of items) {
-      const amount =
-        row.amount !== undefined && row.amount !== null
-          ? Number(row.amount)
-          : Number(row.qty ?? 0) * Number(row.rate ?? 0);
-      if (!Number.isNaN(amount)) total += amount;
+      const qty = Number(row.qty ?? 0);
+      const rate = Number(row.rate ?? 0);
+      const amount = qty && rate ? qty * rate : Number(row.amount ?? 0);
+      if (!Number.isNaN(amount)) net += amount;
+      if (itemChild && row.name && qty && rate) {
+        await this.setChildValue(itemChild, String(row.name), "amount", amount);
+      }
     }
 
-    const hasGrand = dt.fields.some((f) => f.fieldname === "grand_total");
-    const sets = [`${quoteIdent("total")} = $1`];
-    const params: unknown[] = [total];
-    if (hasGrand) {
-      sets.push(`${quoteIdent("grand_total")} = $2`);
-      params.push(total);
+    // 2) Taxes -> total taxes (rate % of net, else explicit tax_amount).
+    const taxChild = this.childTableOf(doctype, "taxes");
+    const taxes = (doc.taxes as Array<Record<string, unknown>>) ?? [];
+    let totalTaxes = 0;
+    for (const row of taxes) {
+      const rate = Number(row.rate ?? 0);
+      const amount = rate ? (net * rate) / 100 : Number(row.tax_amount ?? 0);
+      if (!Number.isNaN(amount)) totalTaxes += amount;
+      if (taxChild && row.name && rate) {
+        await this.setChildValue(taxChild, String(row.name), "tax_amount", amount);
+      }
     }
+
+    // 3) Parent totals.
+    const has = (fn: string) => dt.fields.some((f) => f.fieldname === fn);
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    const push = (col: string, val: number) => {
+      params.push(val);
+      sets.push(`${quoteIdent(col)} = $${params.length}`);
+    };
+    if (has("total")) push("total", net);
+    if (has("total_taxes_and_charges")) push("total_taxes_and_charges", totalTaxes);
+    if (has("grand_total")) push("grand_total", net + totalTaxes);
+    if (sets.length === 0) return;
     params.push(name);
     await this.dataSource.query(
       `UPDATE ${quoteIdent(tableNameFor(doctype))} SET ${sets.join(", ")}
        WHERE ${quoteIdent("name")} = $${params.length}`,
       params,
     );
-    this.logger.log(`Recomputed total for ${doctype} ${name} = ${total}`);
+    this.logger.log(
+      `Recomputed ${doctype} ${name}: net=${net} taxes=${totalTaxes} grand=${net + totalTaxes}`,
+    );
   }
 }
