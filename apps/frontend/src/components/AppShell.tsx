@@ -3,6 +3,7 @@
 import { useAuth } from "@/lib/auth";
 import { LoginForm } from "./LoginForm";
 import { Nav } from "./Nav";
+import { GlobalSearch } from "./GlobalSearch";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
@@ -22,7 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Nav />
       <div className="flex-1 flex flex-col">
         <header className="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 sticky top-0 z-10">
-          <span className="text-sm text-slate-500">Modular-monolith ERP</span>
+          <GlobalSearch />
           <div className="flex items-center gap-3 text-sm">
             <span className="text-slate-600">{user.full_name ?? user.email}</span>
             <button

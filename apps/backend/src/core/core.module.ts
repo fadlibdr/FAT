@@ -17,6 +17,8 @@ import { DocumentController } from "./doctype/document.controller";
 import { ReportController } from "./doctype/report.controller";
 import { QueryReportController } from "./doctype/query-report.controller";
 import { MetaController } from "./meta/meta.controller";
+import { SearchController } from "./meta/search.controller";
+import { PrintController } from "./doctype/print.controller";
 import { WorkflowService } from "./workflow/workflow.service";
 import { WorkflowController } from "./workflow/workflow.controller";
 import { VersionListener } from "./audit/version.listener";
@@ -44,6 +46,8 @@ import { PermissionService } from "./permissions/permission.service";
     ReportController,
     QueryReportController,
     MetaController,
+    SearchController,
+    PrintController,
     WorkflowController,
     UploadController,
   ],

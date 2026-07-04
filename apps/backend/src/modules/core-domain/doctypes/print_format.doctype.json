@@ -1,0 +1,15 @@
+{
+  "name": "Print Format",
+  "module": "Core",
+  "naming_rule": "field:print_format_name",
+  "title_field": "print_format_name",
+  "fields": [
+    { "fieldname": "print_format_name", "label": "Print Format Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "document_type", "label": "Document Type", "fieldtype": "Data", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "is_active", "label": "Is Active", "fieldtype": "Check", "default": "1", "in_list_view": true },
+    { "fieldname": "html", "label": "HTML Template", "fieldtype": "Code", "description": "Use {{ fieldname }} placeholders" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

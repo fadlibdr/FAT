@@ -133,6 +133,16 @@ async function main() {
     designation: "Engineer",
     status: "Active",
   });
+  await create("Print Format", {
+    print_format_name: "Sales Invoice Standard",
+    document_type: "Sales Invoice",
+    is_active: 1,
+    html:
+      "<div style='font-family:sans-serif'><h1 style='color:#4f46e5'>Invoice {{ name }}</h1>" +
+      "<p><b>Customer:</b> {{ customer }}</p><p><b>Posting Date:</b> {{ posting_date }}</p>" +
+      "<hr/><p>Net Total: {{ total }}</p><p>Taxes: {{ total_taxes_and_charges }}</p>" +
+      "<h2>Grand Total: {{ grand_total }}</h2></div>",
+  });
   await create("Workflow", {
     workflow_name: "Leave Approval",
     document_type: "Leave Application",

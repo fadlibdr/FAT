@@ -17,6 +17,31 @@ export function useDocTypeList() {
   });
 }
 
+export interface SearchHit {
+  doctype: string;
+  name: string;
+  title: string;
+}
+
+export function useSearch(q: string) {
+  return useQuery({
+    queryKey: ["search", q],
+    queryFn: () => api.get<{ data: SearchHit[] }>(`/api/search?q=${encodeURIComponent(q)}`),
+    enabled: q.trim().length >= 2,
+  });
+}
+
+export function usePrintFormat(doctype: string, name: string) {
+  return useQuery({
+    queryKey: ["print", doctype, name],
+    queryFn: () =>
+      api.get<{ data: { html: string | null } }>(
+        `/api/print/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
+      ),
+    enabled: !!doctype && !!name && name !== "new",
+  });
+}
+
 export function useDocTypeMeta(doctype: string) {
   return useQuery({
     queryKey: ["meta", doctype],
