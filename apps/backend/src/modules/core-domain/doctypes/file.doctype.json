@@ -1,0 +1,20 @@
+{
+  "name": "File",
+  "module": "Core",
+  "naming_rule": "series:FILE-.######",
+  "title_field": "file_name",
+  "fields": [
+    { "fieldname": "file_name", "label": "File Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "ref_doctype", "label": "Document Type", "fieldtype": "Data", "in_standard_filter": true },
+    { "fieldname": "ref_name", "label": "Document", "fieldtype": "Data", "in_standard_filter": true },
+    { "fieldname": "file_url", "label": "URL", "fieldtype": "Data", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1 },
+    { "role": "Purchase User", "read": 1, "write": 1, "create": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1 }
+  ]
+}

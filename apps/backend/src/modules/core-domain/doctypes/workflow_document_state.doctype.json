@@ -1,0 +1,14 @@
+{
+  "name": "Workflow Document State",
+  "module": "Core",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "state", "label": "State", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "doc_status", "label": "Doc Status", "fieldtype": "Select", "options": "0\n1\n2", "default": "0", "in_list_view": true },
+    { "fieldname": "allow_edit", "label": "Allow Edit (Role)", "fieldtype": "Data", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

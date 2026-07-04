@@ -6,8 +6,15 @@ import { useRouter } from "next/navigation";
 import type { DocTypeMeta, FatDocument } from "@fat/shared";
 import { FieldType } from "@fat/shared";
 import { renderField } from "./fields";
-import { useSaveDocument, useDeleteDocument, useDocAction } from "@/lib/meta-client";
+import {
+  useSaveDocument,
+  useDeleteDocument,
+  useDocAction,
+  useWorkflowActions,
+  useApplyWorkflowAction,
+} from "@/lib/meta-client";
 import { ApiError } from "@/lib/api-client";
+import { ActivityPanel } from "./ActivityPanel";
 
 interface Props {
   meta: DocTypeMeta;
@@ -38,6 +45,8 @@ export function DynamicForm({ meta, doc }: Props) {
   const save = useSaveDocument(meta.name);
   const del = useDeleteDocument(meta.name);
   const action = useDocAction(meta.name);
+  const wf = useWorkflowActions(meta.name, doc?.name ?? "new");
+  const applyWf = useApplyWorkflowAction(meta.name, doc?.name ?? "new");
 
   const isNew = !doc;
   const docstatus = (doc?.docstatus as number) ?? 0;
@@ -154,8 +163,32 @@ export function DynamicForm({ meta, doc }: Props) {
               Print
             </Link>
           )}
+          {!isNew &&
+            (wf.data?.actions ?? []).map((act) => (
+              <button
+                key={act}
+                onClick={async () => {
+                  setError(null);
+                  try {
+                    await applyWf.mutateAsync(act);
+                    router.refresh();
+                  } catch (err) {
+                    setError((err as Error).message);
+                  }
+                }}
+                className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700"
+              >
+                {act}
+              </button>
+            ))}
         </div>
       </div>
+      {!isNew && wf.data?.state && (
+        <div className="mb-4 text-sm">
+          <span className="text-slate-500">Workflow state: </span>
+          <span className="font-medium text-indigo-700">{wf.data.state}</span>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2">
@@ -197,6 +230,12 @@ export function DynamicForm({ meta, doc }: Props) {
           );
         })}
       </div>
+
+      {!isNew && doc && (
+        <div className="mt-6">
+          <ActivityPanel doctype={meta.name} name={doc.name} />
+        </div>
+      )}
     </div>
   );
 }

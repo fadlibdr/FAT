@@ -151,6 +151,22 @@ export class PermissionService {
     return new Set(rows.map((r) => r.permlevel));
   }
 
+  /**
+   * True when the user's read access to a DocType is granted ONLY via if_owner
+   * perms (so they may see only rows they own). Super users are never limited.
+   */
+  async isOwnerOnly(ctx: UserContext, doctype: string): Promise<boolean> {
+    if (ctx.isSuper || ctx.roles.length === 0) return false;
+    const rows = await this.permRepo
+      .createQueryBuilder("p")
+      .where("p.parent = :dt", { dt: doctype })
+      .andWhere("p.permlevel = 0")
+      .andWhere("p.can_read = 1")
+      .andWhere("p.role IN (:...roles)", { roles: ctx.roles })
+      .getMany();
+    return rows.length > 0 && rows.every((r) => r.if_owner === 1);
+  }
+
   static empty(): DocTypePermissions {
     return { ...NO_PERMISSIONS };
   }

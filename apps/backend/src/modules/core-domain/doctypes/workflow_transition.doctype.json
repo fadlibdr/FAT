@@ -1,0 +1,15 @@
+{
+  "name": "Workflow Transition",
+  "module": "Core",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "state", "label": "From State", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "action", "label": "Action", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "next_state", "label": "Next State", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "allowed", "label": "Allowed Role", "fieldtype": "Data", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

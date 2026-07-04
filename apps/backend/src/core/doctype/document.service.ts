@@ -84,6 +84,9 @@ export class DocumentService {
         return false;
       }
     }
+    if (await this.permissions.isOwnerOnly(ctx, dt.name)) {
+      if (doc.owner !== ctx.name) return false;
+    }
     return true;
   }
 
@@ -135,6 +138,12 @@ export class DocumentService {
         return `$${params.length}`;
       });
       where.push(`${quoteIdent(column)} IN (${placeholders.join(", ")})`);
+    }
+
+    // if_owner: restrict to documents owned by the user.
+    if (await this.permissions.isOwnerOnly(ctx, dt.name)) {
+      params.push(ctx.name);
+      where.push(`${quoteIdent("owner")} = $${params.length}`);
     }
 
     const orderBy = opts.orderBy && valid.has(opts.orderBy) ? opts.orderBy : "modified";

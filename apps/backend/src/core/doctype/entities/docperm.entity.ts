@@ -40,4 +40,7 @@ export class DocPermEntity {
 
   @Column({ type: "smallint", default: 0 })
   can_report!: number;
+
+  @Column({ type: "smallint", default: 0 })
+  if_owner!: number;
 }

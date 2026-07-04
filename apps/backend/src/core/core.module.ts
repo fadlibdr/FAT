@@ -17,6 +17,10 @@ import { DocumentController } from "./doctype/document.controller";
 import { ReportController } from "./doctype/report.controller";
 import { QueryReportController } from "./doctype/query-report.controller";
 import { MetaController } from "./meta/meta.controller";
+import { WorkflowService } from "./workflow/workflow.service";
+import { WorkflowController } from "./workflow/workflow.controller";
+import { VersionListener } from "./audit/version.listener";
+import { UploadController } from "./uploads/upload.controller";
 import { PermissionService } from "./permissions/permission.service";
 
 /**
@@ -35,7 +39,14 @@ import { PermissionService } from "./permissions/permission.service";
       HasRoleEntity,
     ]),
   ],
-  controllers: [DocumentController, ReportController, QueryReportController, MetaController],
+  controllers: [
+    DocumentController,
+    ReportController,
+    QueryReportController,
+    MetaController,
+    WorkflowController,
+    UploadController,
+  ],
   providers: [
     DoctypeRegistryService,
     SchemaSyncService,
@@ -45,6 +56,8 @@ import { PermissionService } from "./permissions/permission.service";
     HooksService,
     DocumentService,
     PermissionService,
+    WorkflowService,
+    VersionListener,
   ],
   exports: [
     DoctypeRegistryService,
@@ -52,6 +65,7 @@ import { PermissionService } from "./permissions/permission.service";
     DocumentService,
     PermissionService,
     HooksService,
+    WorkflowService,
     TypeOrmModule,
   ],
 })

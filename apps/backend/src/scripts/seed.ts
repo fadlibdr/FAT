@@ -126,6 +126,29 @@ async function main() {
     priority: "Medium",
   });
 
+  // HR demo + workflow.
+  await create("Employee", {
+    employee_name: "Jordan Lee",
+    company: "FAT Demo Co",
+    designation: "Engineer",
+    status: "Active",
+  });
+  await create("Workflow", {
+    workflow_name: "Leave Approval",
+    document_type: "Leave Application",
+    is_active: 1,
+    workflow_state_field: "workflow_state",
+    states: [
+      { state: "Open", doc_status: "0" },
+      { state: "Approved", doc_status: "1" },
+      { state: "Rejected", doc_status: "0" },
+    ],
+    transitions: [
+      { state: "Open", action: "Approve", next_state: "Approved", allowed: "HR User" },
+      { state: "Open", action: "Reject", next_state: "Rejected", allowed: "HR User" },
+    ],
+  });
+
   await app.close();
   logger.log("Seed complete.");
 }
