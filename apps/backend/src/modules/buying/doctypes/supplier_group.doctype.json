@@ -1,0 +1,13 @@
+{
+  "name": "Supplier Group",
+  "module": "Buying",
+  "naming_rule": "field:supplier_group_name",
+  "title_field": "supplier_group_name",
+  "fields": [
+    { "fieldname": "supplier_group_name", "label": "Supplier Group", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Purchase User", "read": 1, "report": 1 }
+  ]
+}

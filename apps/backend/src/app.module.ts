@@ -4,6 +4,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { buildDataSourceOptions } from "./data-source";
 import { CoreModule } from "./core/core.module";
+import { JobsModule } from "./core/jobs/jobs.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard } from "./auth/jwt-auth.guard";
 import { HealthController } from "./health.controller";
@@ -20,6 +21,7 @@ import { HrModule } from "./modules/hr/hr.module";
     EventEmitterModule.forRoot(),
     TypeOrmModule.forRoot(buildDataSourceOptions()),
     CoreModule,
+    JobsModule,
     AuthModule,
     // Order matters for readable startup logs; Link validation is runtime, not
     // load-time, so masters need not strictly precede dependents.

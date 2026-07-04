@@ -1,0 +1,16 @@
+{
+  "name": "Delivery Note Item",
+  "module": "Stock",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "qty", "label": "Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "rate", "label": "Rate", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

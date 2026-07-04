@@ -1,0 +1,16 @@
+{
+  "name": "Item Price",
+  "module": "Selling",
+  "naming_rule": "series:IPR-.#####",
+  "title_field": "item_code",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "price_list", "label": "Price List", "fieldtype": "Select", "options": "Standard Selling\nStandard Buying", "default": "Standard Selling", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "rate", "label": "Rate", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "valid_from", "label": "Valid From", "fieldtype": "Date" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

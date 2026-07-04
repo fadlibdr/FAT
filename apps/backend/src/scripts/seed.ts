@@ -106,6 +106,13 @@ async function main() {
     is_stock_item: 1,
   });
 
+  // Chart-of-accounts stubs used by GL posting on Sales Invoice submit.
+  await create("Account", { account_name: "Debtors", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Sales", account_type: "Income", company: "FAT Demo Co" });
+  // Warehouses for stock ledger postings.
+  await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
+  await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });
+
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
     status: "Open",

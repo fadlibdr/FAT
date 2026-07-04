@@ -1,0 +1,18 @@
+{
+  "name": "Payment Entry",
+  "module": "Accounting",
+  "naming_rule": "series:PE-.#####",
+  "is_submittable": true,
+  "title_field": "party",
+  "fields": [
+    { "fieldname": "payment_type", "label": "Payment Type", "fieldtype": "Select", "options": "Receive\nPay", "default": "Receive", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "party", "label": "Party", "fieldtype": "Data", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "paid_amount", "label": "Paid Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "reference_no", "label": "Reference No", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

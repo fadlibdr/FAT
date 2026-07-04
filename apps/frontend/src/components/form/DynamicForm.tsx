@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { DocTypeMeta, FatDocument } from "@fat/shared";
 import { FieldType } from "@fat/shared";
@@ -144,6 +145,14 @@ export function DynamicForm({ meta, doc }: Props) {
             >
               Delete
             </button>
+          )}
+          {!isNew && doc && (
+            <Link
+              href={`/app/${encodeURIComponent(meta.name)}/${encodeURIComponent(doc.name)}/print`}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50"
+            >
+              Print
+            </Link>
           )}
         </div>
       </div>

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Post,
@@ -51,7 +52,7 @@ export class DocumentController {
       orderBy: query.order_by,
       orderDir: query.order_dir === "asc" ? "ASC" : "DESC",
     };
-    const data = await this.documents.list(dt, opts);
+    const data = await this.documents.list(dt, user, opts);
     return { data };
   }
 
@@ -63,7 +64,11 @@ export class DocumentController {
   ) {
     const dt = this.registry.getOrThrow(doctype);
     await this.permissions.assertPerm(user, doctype, PermType.Read);
-    return { data: await this.documents.get(dt, name) };
+    const doc = await this.documents.get(dt, name);
+    if (!(await this.documents.canAccessRow(dt, user, doc))) {
+      throw new ForbiddenException(`No permission for ${doctype} ${name}`);
+    }
+    return { data: doc };
   }
 
   @Post()

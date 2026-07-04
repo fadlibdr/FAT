@@ -37,6 +37,29 @@ export function useDocuments(doctype: string, filters: Record<string, string> = 
   });
 }
 
+export interface ReportRow {
+  group: string | null;
+  value: number;
+}
+
+export function useReport(
+  doctype: string,
+  groupBy: string,
+  aggregate: "count" | "sum" = "count",
+  aggregateField?: string,
+) {
+  const params = new URLSearchParams({ group_by: groupBy, aggregate });
+  if (aggregateField) params.set("aggregate_field", aggregateField);
+  return useQuery({
+    queryKey: ["report", doctype, groupBy, aggregate, aggregateField],
+    queryFn: () =>
+      api.get<{ data: ReportRow[] }>(
+        `/api/report/${encodeURIComponent(doctype)}?${params.toString()}`,
+      ),
+    enabled: !!doctype && !!groupBy,
+  });
+}
+
 export function useDocument(doctype: string, name: string) {
   return useQuery({
     queryKey: ["doc", doctype, name],

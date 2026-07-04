@@ -96,13 +96,21 @@ const HANDLERS: Partial<Record<FieldType, FieldTypeHandler>> = {
   },
   [FieldType.Date]: {
     pgType: "date",
-    toColumn: (v) => (v === undefined || v === null || v === "" ? null : String(v)),
-    zodFor: () => z.string().nullish(),
+    toColumn: (v) => {
+      if (v === undefined || v === null || v === "") return null;
+      if (v instanceof Date) return v.toISOString().slice(0, 10);
+      return String(v);
+    },
+    zodFor: () => z.union([z.string(), z.date()]).nullish(),
   },
   [FieldType.Datetime]: {
     pgType: "timestamptz",
-    toColumn: (v) => (v === undefined || v === null || v === "" ? null : String(v)),
-    zodFor: () => z.string().nullish(),
+    toColumn: (v) => {
+      if (v === undefined || v === null || v === "") return null;
+      if (v instanceof Date) return v.toISOString();
+      return String(v);
+    },
+    zodFor: () => z.union([z.string(), z.date()]).nullish(),
   },
 };
 
