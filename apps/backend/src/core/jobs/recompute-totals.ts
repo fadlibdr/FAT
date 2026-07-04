@@ -122,9 +122,13 @@ export class RecomputeTotalsJob implements OnModuleInit {
       params.push(val);
       sets.push(`${quoteIdent(col)} = $${params.length}`);
     };
+    const grand = net + totalTaxes;
+    const conv = Number(doc.conversion_rate ?? 1) || 1;
     if (has("total")) push("total", net);
     if (has("total_taxes_and_charges")) push("total_taxes_and_charges", totalTaxes);
-    if (has("grand_total")) push("grand_total", net + totalTaxes);
+    if (has("grand_total")) push("grand_total", grand);
+    if (has("base_grand_total")) push("base_grand_total", grand * conv);
+    if (has("outstanding_amount")) push("outstanding_amount", grand);
     if (sets.length === 0) return;
     params.push(name);
     await this.dataSource.query(

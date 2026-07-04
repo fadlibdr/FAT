@@ -86,4 +86,12 @@ Accounting, and HR as metadata-defined modules.
 - **Developer platform** — an in-app DocType builder, webhooks, API keys
   (`Authorization: token <key>:<secret>`), and OpenAPI docs at `/api/docs`.
 
+## Phase 9
+
+- **Accounting realism** — multi-currency (base amounts), tax-split GL, payment
+  reconciliation (invoice outstanding → Paid/Unpaid), and FIFO valuation.
+- **Platform** — real-time SSE list refresh, scheduled jobs, in-app notifications,
+  and a visual workflow designer.
+- **Scale** — multi-instance metadata-cache coherence via Redis pub/sub.
+
 See `docs/ARCHITECTURE.md` for the full design.

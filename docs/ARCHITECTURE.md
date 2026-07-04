@@ -121,12 +121,27 @@ validated metadata.
   (`Authorization: token <key>:<secret>`), and an OpenAPI spec at
   `/api/openapi.json` with docs at `/api/docs`.
 
+## Phase 9 — realism, platform, scale
+
+- **Accounting realism.** Multi-currency (`conversion_rate` + base amounts; GL
+  posts in base), tax-account split in GL (Dr Debtors / Cr Sales / Cr tax
+  accounts), payment reconciliation (`Payment Entry Reference` → invoice
+  outstanding + Paid/Unpaid), and per-item **FIFO** valuation (layers on `Bin`)
+  alongside moving average.
+- **Platform.** Real-time updates over **SSE** (`GET /api/stream` →
+  `RealtimeBridge` invalidates React Query), **scheduled jobs** (`@nestjs/schedule`
+  + on-demand `POST /api/admin/run-scheduled`), in-app **Notifications** (bell +
+  listener + overdue sweep), and a **visual workflow designer** (`/desk/workflow`).
+- **Scale.** `RegistrySyncService` keeps every instance's metadata cache coherent
+  via Redis pub/sub — a DocType created on one node is picked up live by the
+  others (verified with two instances), closing the multi-instance gap.
+
 ## Known limitations (still open)
 
-- Metadata cache is per-process (multi-instance needs a pub/sub invalidation
-  channel; the `onInvalidate` seam exists).
-- GL/stock postings are single-account-pair and single-warehouse; valuation is
-  moving-average only (no FIFO, landed cost, or multi-currency).
+- Valuation is moving-average / FIFO (no landed cost or batch/serial tracking);
+  multi-currency has a single conversion rate (no revaluation).
+- SSE stream is unauthenticated (payload is only doctype + name); notifications
+  are in-app only (no email/SMS transport wired).
 - Version stores snapshots+diffs, not a full undo; webhooks/print are best-effort.
-- The DocType builder does not yet support editing child-table field layouts in
-  the UI (JSON/`registerDef` covers it).
+- The DocType builder does not yet edit child-table field layouts in the UI
+  (JSON/`registerDef` covers it).

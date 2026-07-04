@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { LoginForm } from "./LoginForm";
 import { Nav } from "./Nav";
 import { GlobalSearch } from "./GlobalSearch";
+import { NotificationBell } from "./NotificationBell";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
@@ -26,6 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="h-14 border-b border-slate-200 bg-white flex items-center justify-between px-6 sticky top-0 z-10">
           <GlobalSearch />
           <div className="flex items-center gap-3 text-sm">
+            <NotificationBell />
             <Link href="/settings" className="text-slate-500 hover:text-brand-600">
               Settings
             </Link>

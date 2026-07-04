@@ -132,53 +132,64 @@ export class DoctypeLoaderService {
     }
   }
 
+  /** Build a LoadedDocType from its DB rows (metadata tables). */
+  private async buildFromDb(name: string): Promise<LoadedDocType | null> {
+    const dt = await this.doctypeRepo.findOne({ where: { name } });
+    if (!dt) return null;
+    const fields = await this.fieldRepo.find({
+      where: { parent: dt.name },
+      order: { idx: "ASC" },
+    });
+    const perms = await this.permRepo.find({ where: { parent: dt.name } });
+    return {
+      name: dt.name,
+      module: dt.module,
+      naming_rule: dt.naming_rule,
+      istable: dt.istable === 1,
+      is_submittable: dt.is_submittable === 1,
+      title_field: dt.title_field,
+      fields: fields.map((f) => ({
+        fieldname: f.fieldname,
+        label: f.label ?? undefined,
+        fieldtype: f.fieldtype as DocFieldDef["fieldtype"],
+        options: f.options ?? undefined,
+        options_field: f.options_field ?? undefined,
+        reqd: f.reqd === 1,
+        unique: f.is_unique === 1,
+        read_only: f.read_only === 1,
+        hidden: f.hidden === 1,
+        in_list_view: f.in_list_view === 1,
+        in_standard_filter: f.in_standard_filter === 1,
+        default: f.default_value ?? undefined,
+        description: f.description ?? undefined,
+        permlevel: f.permlevel,
+      })),
+      perms: perms.map((p) => ({
+        role: p.role,
+        permlevel: p.permlevel,
+        read: p.can_read === 1,
+        write: p.can_write === 1,
+        create: p.can_create === 1,
+        delete: p.can_delete === 1,
+        submit: p.can_submit === 1,
+        cancel: p.can_cancel === 1,
+        report: p.can_report === 1,
+      })),
+    };
+  }
+
+  /** Reload a single DocType's metadata from the DB into the registry. */
+  async reloadFromDb(name: string): Promise<void> {
+    const loaded = await this.buildFromDb(name);
+    if (!loaded) return;
+    this.registry.register(loaded);
+    await this.schemaSync.syncDocType(loaded);
+  }
+
   /** Rebuild the in-memory registry from the DB and ensure tables exist. */
   async loadAllFromDb(): Promise<void> {
     const doctypes = await this.doctypeRepo.find();
-    for (const dt of doctypes) {
-      const fields = await this.fieldRepo.find({
-        where: { parent: dt.name },
-        order: { idx: "ASC" },
-      });
-      const perms = await this.permRepo.find({ where: { parent: dt.name } });
-      const loaded: LoadedDocType = {
-        name: dt.name,
-        module: dt.module,
-        naming_rule: dt.naming_rule,
-        istable: dt.istable === 1,
-        is_submittable: dt.is_submittable === 1,
-        title_field: dt.title_field,
-        fields: fields.map((f) => ({
-          fieldname: f.fieldname,
-          label: f.label ?? undefined,
-          fieldtype: f.fieldtype as DocFieldDef["fieldtype"],
-          options: f.options ?? undefined,
-          options_field: f.options_field ?? undefined,
-          reqd: f.reqd === 1,
-          unique: f.is_unique === 1,
-          read_only: f.read_only === 1,
-          hidden: f.hidden === 1,
-          in_list_view: f.in_list_view === 1,
-          in_standard_filter: f.in_standard_filter === 1,
-          default: f.default_value ?? undefined,
-          description: f.description ?? undefined,
-          permlevel: f.permlevel,
-        })),
-        perms: perms.map((p) => ({
-          role: p.role,
-          permlevel: p.permlevel,
-          read: p.can_read === 1,
-          write: p.can_write === 1,
-          create: p.can_create === 1,
-          delete: p.can_delete === 1,
-          submit: p.can_submit === 1,
-          cancel: p.can_cancel === 1,
-          report: p.can_report === 1,
-        })),
-      };
-      this.registry.register(loaded);
-      await this.schemaSync.syncDocType(loaded);
-    }
+    for (const dt of doctypes) await this.reloadFromDb(dt.name);
     this.logger.log(`Loaded ${doctypes.length} DocTypes from database`);
   }
 }

@@ -8,7 +8,8 @@
     { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "actual_qty", "label": "Actual Qty", "fieldtype": "Float", "in_list_view": true },
     { "fieldname": "valuation_rate", "label": "Valuation Rate", "fieldtype": "Currency", "in_list_view": true },
-    { "fieldname": "stock_value", "label": "Stock Value", "fieldtype": "Currency", "in_list_view": true }
+    { "fieldname": "stock_value", "label": "Stock Value", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "fifo_queue", "label": "FIFO Layers", "fieldtype": "Long Text" }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
