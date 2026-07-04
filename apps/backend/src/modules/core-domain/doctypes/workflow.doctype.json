@@ -1,0 +1,17 @@
+{
+  "name": "Workflow",
+  "module": "Core",
+  "naming_rule": "field:workflow_name",
+  "title_field": "workflow_name",
+  "fields": [
+    { "fieldname": "workflow_name", "label": "Workflow Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "document_type", "label": "Document Type", "fieldtype": "Data", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "is_active", "label": "Is Active", "fieldtype": "Check", "default": "1", "in_list_view": true },
+    { "fieldname": "workflow_state_field", "label": "State Field", "fieldtype": "Data", "default": "workflow_state" },
+    { "fieldname": "states", "label": "States", "fieldtype": "Table", "options": "Workflow Document State" },
+    { "fieldname": "transitions", "label": "Transitions", "fieldtype": "Table", "options": "Workflow Transition" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

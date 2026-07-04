@@ -105,6 +105,7 @@ export class DoctypeLoaderService {
         can_submit: bit(p.submit),
         can_cancel: bit(p.cancel),
         can_report: bit(p.report),
+        if_owner: bit(p.if_owner),
       }),
     );
     if (permEntities.length) await this.permRepo.save(permEntities);

@@ -1,0 +1,14 @@
+{
+  "name": "Version",
+  "module": "Core",
+  "naming_rule": "series:VER-.######",
+  "title_field": "ref_name",
+  "fields": [
+    { "fieldname": "ref_doctype", "label": "Document Type", "fieldtype": "Data", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "ref_name", "label": "Document", "fieldtype": "Data", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "data", "label": "Data", "fieldtype": "Long Text" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

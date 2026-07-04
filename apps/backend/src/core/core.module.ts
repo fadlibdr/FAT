@@ -15,7 +15,17 @@ import { HooksService } from "./doctype/hooks.service";
 import { DocumentService } from "./doctype/document.service";
 import { DocumentController } from "./doctype/document.controller";
 import { ReportController } from "./doctype/report.controller";
+import { QueryReportController } from "./doctype/query-report.controller";
 import { MetaController } from "./meta/meta.controller";
+import { SearchController } from "./meta/search.controller";
+import { PrintController } from "./doctype/print.controller";
+import { WorkflowService } from "./workflow/workflow.service";
+import { WorkflowController } from "./workflow/workflow.controller";
+import { VersionListener } from "./audit/version.listener";
+import { UploadController } from "./uploads/upload.controller";
+import { DoctypeAdminController } from "./admin/doctype-admin.controller";
+import { WebhookListener } from "./webhooks/webhook.listener";
+import { OpenApiController } from "./openapi/openapi.controller";
 import { PermissionService } from "./permissions/permission.service";
 
 /**
@@ -34,7 +44,18 @@ import { PermissionService } from "./permissions/permission.service";
       HasRoleEntity,
     ]),
   ],
-  controllers: [DocumentController, ReportController, MetaController],
+  controllers: [
+    DocumentController,
+    ReportController,
+    QueryReportController,
+    MetaController,
+    SearchController,
+    PrintController,
+    WorkflowController,
+    UploadController,
+    DoctypeAdminController,
+    OpenApiController,
+  ],
   providers: [
     DoctypeRegistryService,
     SchemaSyncService,
@@ -44,6 +65,9 @@ import { PermissionService } from "./permissions/permission.service";
     HooksService,
     DocumentService,
     PermissionService,
+    WorkflowService,
+    VersionListener,
+    WebhookListener,
   ],
   exports: [
     DoctypeRegistryService,
@@ -51,6 +75,7 @@ import { PermissionService } from "./permissions/permission.service";
     DocumentService,
     PermissionService,
     HooksService,
+    WorkflowService,
     TypeOrmModule,
   ],
 })

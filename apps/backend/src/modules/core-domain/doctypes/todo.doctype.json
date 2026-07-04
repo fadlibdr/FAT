@@ -11,6 +11,7 @@
     { "fieldname": "allocated_to", "label": "Allocated To", "fieldtype": "Data" }
   ],
   "permissions": [
-    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "if_owner": 1 }
   ]
 }

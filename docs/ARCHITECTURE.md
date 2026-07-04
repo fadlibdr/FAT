@@ -102,11 +102,31 @@ validated metadata.
   specific records; `DocumentService.list`/`canAccessRow` filter list results and
   block direct reads of disallowed rows.
 
+## Phase 8 — depth, workflow, analytics, developer platform
+
+- **Accounting/Stock depth.** Sales/Purchase tax child tables feed the
+  `recompute_totals` job (net → taxes → grand_total). A `Bin` DocType holds
+  per-item-per-warehouse moving-average valuation, maintained by the stock ledger
+  listener; Delivery Note / Purchase Receipt / Payment Entry all post via the
+  event bus. `GET /api/query-report/:name` serves Trial Balance & Stock Balance.
+- **Workflow & audit.** `WorkflowService` runs role-gated state machines
+  (`/api/workflow/...`) that submit/cancel documents; `VersionListener` records a
+  diff on every update; Comment/File DocTypes + `POST /api/upload` (served at
+  `/files`); `if_owner` perms scope reads to the owner.
+- **UX & analytics.** Home dashboard (report-driven charts), `GET /api/search`
+  global search, per-DocType saved filters, and a Print Format engine
+  (`GET /api/print/...` renders `{{ field }}` templates).
+- **Developer platform.** In-app DocType builder (`POST /api/admin/doctype` →
+  live table), `Webhook` DocType + listener, API keys
+  (`Authorization: token <key>:<secret>`), and an OpenAPI spec at
+  `/api/openapi.json` with docs at `/api/docs`.
+
 ## Known limitations (still open)
 
 - Metadata cache is per-process (multi-instance needs a pub/sub invalidation
   channel; the `onInvalidate` seam exists).
-- GL/stock postings are single-account-pair and single-warehouse; no valuation,
-  taxes, or multi-currency yet.
-- `if_owner` permissions are modelled but not yet enforced.
-- No print-format designer (the print view is a fixed layout).
+- GL/stock postings are single-account-pair and single-warehouse; valuation is
+  moving-average only (no FIFO, landed cost, or multi-currency).
+- Version stores snapshots+diffs, not a full undo; webhooks/print are best-effort.
+- The DocType builder does not yet support editing child-table field layouts in
+  the UI (JSON/`registerDef` covers it).

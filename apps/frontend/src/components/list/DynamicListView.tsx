@@ -1,13 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { DocTypeMeta } from "@fat/shared";
 import { FieldType } from "@fat/shared";
 import { useDocuments } from "@/lib/meta-client";
 
 export function DynamicListView({ meta }: { meta: DocTypeMeta }) {
+  const storageKey = `fat_filters_${meta.name}`;
   const [filters, setFilters] = useState<Record<string, string>>({});
+
+  // Persist filters per DocType (a lightweight "saved view").
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        setFilters(JSON.parse(saved));
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [storageKey]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(storageKey, JSON.stringify(filters));
+  }, [storageKey, filters]);
   const { data, isLoading, error } = useDocuments(meta.name, filters);
 
   const columns = meta.fields.filter(

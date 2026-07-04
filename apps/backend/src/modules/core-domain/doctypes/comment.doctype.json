@@ -1,0 +1,19 @@
+{
+  "name": "Comment",
+  "module": "Core",
+  "naming_rule": "series:CMT-.######",
+  "title_field": "content",
+  "fields": [
+    { "fieldname": "ref_doctype", "label": "Document Type", "fieldtype": "Data", "reqd": true, "in_standard_filter": true },
+    { "fieldname": "ref_name", "label": "Document", "fieldtype": "Data", "reqd": true, "in_standard_filter": true },
+    { "fieldname": "content", "label": "Comment", "fieldtype": "Text", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1 },
+    { "role": "Purchase User", "read": 1, "write": 1, "create": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1 }
+  ]
+}

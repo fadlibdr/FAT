@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { FieldType } from "@fat/shared";
-import { useDocTypeMeta, useDocument } from "@/lib/meta-client";
+import { useDocTypeMeta, useDocument, usePrintFormat } from "@/lib/meta-client";
 
 export default function PrintPage({
   params,
@@ -13,7 +13,9 @@ export default function PrintPage({
   const name = decodeURIComponent(params.name);
   const { data: meta } = useDocTypeMeta(doctype);
   const { data: docRes } = useDocument(doctype, name);
+  const { data: pf } = usePrintFormat(doctype, name);
   const doc = docRes?.data;
+  const customHtml = pf?.data.html ?? null;
 
   useEffect(() => {
     if (doc && meta) {
@@ -23,6 +25,20 @@ export default function PrintPage({
   }, [doc, meta]);
 
   if (!meta || !doc) return <p className="text-slate-400">Loading…</p>;
+
+  if (customHtml) {
+    return (
+      <div className="max-w-2xl mx-auto bg-white p-8 print:p-0">
+        <div dangerouslySetInnerHTML={{ __html: customHtml }} />
+        <button
+          onClick={() => window.print()}
+          className="print:hidden mt-4 rounded-lg bg-brand-600 text-white px-4 py-2 text-sm"
+        >
+          Print
+        </button>
+      </div>
+    );
+  }
 
   const fields = meta.fields.filter(
     (f) =>

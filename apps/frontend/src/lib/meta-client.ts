@@ -10,10 +10,49 @@ export interface DocTypeListItem {
   is_submittable: boolean;
 }
 
+export function useSaveDocType() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (def: unknown) => api.post<{ data: { name: string } }>("/api/admin/doctype", def),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["meta-list"] }),
+  });
+}
+
+export function useGenerateApiKey() {
+  return useMutation({
+    mutationFn: () => api.post<{ api_key: string; api_secret: string }>("/api/auth/api-key"),
+  });
+}
+
 export function useDocTypeList() {
   return useQuery({
     queryKey: ["meta-list"],
     queryFn: () => api.get<DocTypeListItem[]>("/api/meta"),
+  });
+}
+
+export interface SearchHit {
+  doctype: string;
+  name: string;
+  title: string;
+}
+
+export function useSearch(q: string) {
+  return useQuery({
+    queryKey: ["search", q],
+    queryFn: () => api.get<{ data: SearchHit[] }>(`/api/search?q=${encodeURIComponent(q)}`),
+    enabled: q.trim().length >= 2,
+  });
+}
+
+export function usePrintFormat(doctype: string, name: string) {
+  return useQuery({
+    queryKey: ["print", doctype, name],
+    queryFn: () =>
+      api.get<{ data: { html: string | null } }>(
+        `/api/print/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
+      ),
+    enabled: !!doctype && !!name && name !== "new",
   });
 }
 
@@ -60,6 +99,29 @@ export function useReport(
   });
 }
 
+export interface QueryReportResult {
+  columns: { key: string; label: string }[];
+  rows: Record<string, unknown>[];
+}
+
+export function useQueryReportList() {
+  return useQuery({
+    queryKey: ["query-report-list"],
+    queryFn: () =>
+      api.get<{ data: { name: string; columns: { key: string; label: string }[] }[] }>(
+        "/api/query-report",
+      ),
+  });
+}
+
+export function useQueryReport(name: string) {
+  return useQuery({
+    queryKey: ["query-report", name],
+    queryFn: () => api.get<{ data: QueryReportResult }>(`/api/query-report/${name}`),
+    enabled: !!name,
+  });
+}
+
 export function useDocument(doctype: string, name: string) {
   return useQuery({
     queryKey: ["doc", doctype, name],
@@ -94,6 +156,51 @@ export function useDeleteDocument(doctype: string) {
         `/api/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["docs", doctype] }),
+  });
+}
+
+export function useWorkflowActions(doctype: string, name: string) {
+  return useQuery({
+    queryKey: ["workflow", doctype, name],
+    queryFn: () =>
+      api.get<{ state: string | null; actions: string[] }>(
+        `/api/workflow/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/actions`,
+      ),
+    enabled: !!doctype && !!name && name !== "new",
+  });
+}
+
+export function useApplyWorkflowAction(doctype: string, name: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (action: string) =>
+      api.post(`/api/workflow/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/action`, {
+        action,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workflow", doctype, name] });
+      qc.invalidateQueries({ queryKey: ["doc", doctype, name] });
+    },
+  });
+}
+
+export function useRefDocs(child: string, refDoctype: string, refName: string) {
+  return useQuery({
+    queryKey: [child, refDoctype, refName],
+    queryFn: () =>
+      api.get<{ data: FatDocument[] }>(
+        `/api/resource/${encodeURIComponent(child)}?ref_doctype=${encodeURIComponent(refDoctype)}&ref_name=${encodeURIComponent(refName)}`,
+      ),
+    enabled: !!refName && refName !== "new",
+  });
+}
+
+export function useAddComment(refDoctype: string, refName: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (content: string) =>
+      api.post("/api/resource/Comment", { ref_doctype: refDoctype, ref_name: refName, content }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["Comment", refDoctype, refName] }),
   });
 }
 

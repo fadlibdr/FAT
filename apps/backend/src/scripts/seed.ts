@@ -109,6 +109,8 @@ async function main() {
   // Chart-of-accounts stubs used by GL posting on Sales Invoice submit.
   await create("Account", { account_name: "Debtors", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Sales", account_type: "Income", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Cash", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Creditors", account_type: "Liability", company: "FAT Demo Co" });
   // Warehouses for stock ledger postings.
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });
@@ -122,6 +124,39 @@ async function main() {
     description: "Review the DocType engine in apps/backend/src/core",
     status: "Open",
     priority: "Medium",
+  });
+
+  // HR demo + workflow.
+  await create("Employee", {
+    employee_name: "Jordan Lee",
+    company: "FAT Demo Co",
+    designation: "Engineer",
+    status: "Active",
+  });
+  await create("Print Format", {
+    print_format_name: "Sales Invoice Standard",
+    document_type: "Sales Invoice",
+    is_active: 1,
+    html:
+      "<div style='font-family:sans-serif'><h1 style='color:#4f46e5'>Invoice {{ name }}</h1>" +
+      "<p><b>Customer:</b> {{ customer }}</p><p><b>Posting Date:</b> {{ posting_date }}</p>" +
+      "<hr/><p>Net Total: {{ total }}</p><p>Taxes: {{ total_taxes_and_charges }}</p>" +
+      "<h2>Grand Total: {{ grand_total }}</h2></div>",
+  });
+  await create("Workflow", {
+    workflow_name: "Leave Approval",
+    document_type: "Leave Application",
+    is_active: 1,
+    workflow_state_field: "workflow_state",
+    states: [
+      { state: "Open", doc_status: "0" },
+      { state: "Approved", doc_status: "1" },
+      { state: "Rejected", doc_status: "0" },
+    ],
+    transitions: [
+      { state: "Open", action: "Approve", next_state: "Approved", allowed: "HR User" },
+      { state: "Open", action: "Reject", next_state: "Rejected", allowed: "HR User" },
+    ],
   });
 
   await app.close();

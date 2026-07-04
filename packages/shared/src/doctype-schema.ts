@@ -42,6 +42,7 @@ export const DocPermSchema = z.object({
   submit: z.union([z.boolean(), z.number()]).optional(),
   cancel: z.union([z.boolean(), z.number()]).optional(),
   report: z.union([z.boolean(), z.number()]).optional(),
+  if_owner: z.union([z.boolean(), z.number()]).optional(),
   permlevel: z.number().int().min(0).optional().default(0),
 });
 

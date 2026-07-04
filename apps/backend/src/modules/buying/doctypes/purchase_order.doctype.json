@@ -8,7 +8,10 @@
     { "fieldname": "supplier", "label": "Supplier", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Purchase Order Item" },
-    { "fieldname": "total", "label": "Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+    { "fieldname": "total", "label": "Net Total", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "taxes", "label": "Taxes and Charges", "fieldtype": "Table", "options": "Purchase Taxes and Charges" },
+    { "fieldname": "total_taxes_and_charges", "label": "Total Taxes", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
