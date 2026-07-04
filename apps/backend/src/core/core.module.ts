@@ -32,6 +32,7 @@ import { NotificationService } from "./notifications/notification.service";
 import { NotificationListener } from "./notifications/notification.listener";
 import { ScheduledTasksService } from "./scheduler/scheduled-tasks.service";
 import { SchedulerController } from "./scheduler/scheduler.controller";
+import { RegistrySyncService } from "./registry-sync/registry-sync.service";
 import { PermissionService } from "./permissions/permission.service";
 
 /**
@@ -80,6 +81,7 @@ import { PermissionService } from "./permissions/permission.service";
     NotificationService,
     NotificationListener,
     ScheduledTasksService,
+    RegistrySyncService,
   ],
   exports: [
     DoctypeRegistryService,
