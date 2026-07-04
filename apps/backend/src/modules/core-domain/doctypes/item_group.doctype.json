@@ -1,0 +1,12 @@
+{
+  "name": "Item Group",
+  "module": "Core",
+  "naming_rule": "field:item_group_name",
+  "title_field": "item_group_name",
+  "fields": [
+    { "fieldname": "item_group_name", "label": "Item Group", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

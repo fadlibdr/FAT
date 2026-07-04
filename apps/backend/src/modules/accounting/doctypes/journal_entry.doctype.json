@@ -1,0 +1,19 @@
+{
+  "name": "Journal Entry",
+  "module": "Accounting",
+  "naming_rule": "series:JV-.#####",
+  "is_submittable": true,
+  "title_field": "posting_date",
+  "fields": [
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "user_remark", "label": "Remark", "fieldtype": "Text" },
+    { "fieldname": "accounts", "label": "Accounting Entries", "fieldtype": "Table", "options": "Journal Entry Account" },
+    { "fieldname": "total_debit", "label": "Total Debit", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "total_credit", "label": "Total Credit", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

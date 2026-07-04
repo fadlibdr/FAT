@@ -1,0 +1,16 @@
+{
+  "name": "Opportunity",
+  "module": "CRM",
+  "naming_rule": "series:OPP-.#####",
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nQuotation\nConverted\nLost\nClosed", "default": "Open", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "opportunity_amount", "label": "Amount", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "expected_closing", "label": "Expected Closing", "fieldtype": "Date" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

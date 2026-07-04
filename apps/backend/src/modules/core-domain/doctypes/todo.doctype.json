@@ -1,0 +1,16 @@
+{
+  "name": "ToDo",
+  "module": "Core",
+  "naming_rule": "hash",
+  "title_field": "description",
+  "fields": [
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nClosed\nCancelled", "default": "Open", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "priority", "label": "Priority", "fieldtype": "Select", "options": "Low\nMedium\nHigh", "default": "Medium", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Text", "reqd": true, "in_list_view": true },
+    { "fieldname": "date", "label": "Due Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "allocated_to", "label": "Allocated To", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

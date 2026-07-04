@@ -1,0 +1,17 @@
+{
+  "name": "Contact",
+  "module": "CRM",
+  "naming_rule": "field:first_name",
+  "title_field": "first_name",
+  "fields": [
+    { "fieldname": "first_name", "label": "First Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "last_name", "label": "Last Name", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "email_id", "label": "Email", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" },
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

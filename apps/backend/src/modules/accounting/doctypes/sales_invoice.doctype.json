@@ -1,0 +1,20 @@
+{
+  "name": "Sales Invoice",
+  "module": "Accounting",
+  "naming_rule": "series:SINV-.#####",
+  "is_submittable": true,
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "due_date", "label": "Due Date", "fieldtype": "Date" },
+    { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Sales Invoice Item" },
+    { "fieldname": "total", "label": "Total", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nUnpaid\nPaid\nCancelled", "default": "Draft", "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

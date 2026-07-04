@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fat
+      POSTGRES_PASSWORD: fat
+      POSTGRES_DB: fat
+    ports:
+      - "5432:5432"
+    volumes:
+      - fat-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fat -d fat"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:4
+    container_name: fat-adminer
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+
+volumes:
+  fat-pgdata:

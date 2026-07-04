@@ -1,0 +1,389 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectDataSource } from "@nestjs/typeorm";
+import { DataSource, QueryRunner } from "typeorm";
+import { FieldType, STANDARD_COLUMNS, type FatDocument } from "@fat/shared";
+import { getFieldTypeHandler, hasColumn } from "../field-types/field-type.registry";
+import { DoctypeRegistryService, LoadedDocType } from "./doctype-registry.service";
+import { tableNameFor, quoteIdent } from "./schema-sync.service";
+import { NamingService } from "./naming.service";
+import { ValidationService } from "./validation.service";
+import { HooksService } from "./hooks.service";
+import type { UserContext } from "../permissions/permission.service";
+
+export interface ListOptions {
+  fields?: string[];
+  filters?: Record<string, unknown>;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  orderDir?: "ASC" | "DESC";
+}
+
+@Injectable()
+export class DocumentService {
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly registry: DoctypeRegistryService,
+    private readonly naming: NamingService,
+    private readonly validation: ValidationService,
+    private readonly hooks: HooksService,
+  ) {}
+
+  // ---- column helpers (all identifiers come from validated metadata) ----
+
+  private dataFields(dt: LoadedDocType) {
+    return dt.fields.filter((f) => hasColumn(f.fieldtype as FieldType));
+  }
+
+  private childFields(dt: LoadedDocType) {
+    return dt.fields.filter((f) => (f.fieldtype as FieldType) === FieldType.Table);
+  }
+
+  private validColumns(dt: LoadedDocType): Set<string> {
+    const cols = new Set<string>(STANDARD_COLUMNS as readonly string[]);
+    if (dt.istable) ["parent", "parenttype", "parentfield"].forEach((c) => cols.add(c));
+    for (const f of this.dataFields(dt)) cols.add(f.fieldname);
+    return cols;
+  }
+
+  // ---- read ----
+
+  async list(dt: LoadedDocType, opts: ListOptions): Promise<FatDocument[]> {
+    const table = tableNameFor(dt.name);
+    const valid = this.validColumns(dt);
+
+    const selectCols = [...valid].map((c) => quoteIdent(c)).join(", ");
+
+    const params: unknown[] = [];
+    const where: string[] = [];
+    if (opts.filters) {
+      for (const [k, v] of Object.entries(opts.filters)) {
+        if (!valid.has(k)) continue;
+        params.push(v);
+        where.push(`${quoteIdent(k)} = $${params.length}`);
+      }
+    }
+
+    const orderBy = opts.orderBy && valid.has(opts.orderBy) ? opts.orderBy : "modified";
+    const orderDir = opts.orderDir === "ASC" ? "ASC" : "DESC";
+    const limit = Math.min(Math.max(opts.limit ?? 50, 1), 500);
+    const offset = Math.max(opts.offset ?? 0, 0);
+
+    const sql =
+      `SELECT ${selectCols} FROM ${quoteIdent(table)}` +
+      (where.length ? ` WHERE ${where.join(" AND ")}` : "") +
+      ` ORDER BY ${quoteIdent(orderBy)} ${orderDir} NULLS LAST` +
+      ` LIMIT ${limit} OFFSET ${offset}`;
+
+    return this.dataSource.query(sql, params);
+  }
+
+  async get(dt: LoadedDocType, name: string): Promise<FatDocument> {
+    const table = tableNameFor(dt.name);
+    const rows: FatDocument[] = await this.dataSource.query(
+      `SELECT * FROM ${quoteIdent(table)} WHERE ${quoteIdent("name")} = $1`,
+      [name],
+    );
+    if (rows.length === 0) {
+      throw new NotFoundException(`${dt.name} ${name} not found`);
+    }
+    const doc = rows[0];
+    // Attach child tables.
+    for (const cf of this.childFields(dt)) {
+      const childName = cf.options;
+      if (!childName || !this.registry.has(childName)) continue;
+      const childTable = tableNameFor(childName);
+      doc[cf.fieldname] = await this.dataSource.query(
+        `SELECT * FROM ${quoteIdent(childTable)}
+         WHERE ${quoteIdent("parent")} = $1 AND ${quoteIdent("parentfield")} = $2
+         ORDER BY ${quoteIdent("idx")} ASC`,
+        [name, cf.fieldname],
+      );
+    }
+    return doc;
+  }
+
+  // ---- write ----
+
+  private buildRow(
+    dt: LoadedDocType,
+    data: Record<string, unknown>,
+  ): { cols: string[]; vals: unknown[] } {
+    const cols: string[] = [];
+    const vals: unknown[] = [];
+    for (const f of this.dataFields(dt)) {
+      if (!Object.prototype.hasOwnProperty.call(data, f.fieldname)) continue;
+      const handler = getFieldTypeHandler(f.fieldtype as FieldType);
+      if (!handler) continue;
+      cols.push(f.fieldname);
+      vals.push(handler.toColumn(data[f.fieldname]));
+    }
+    return { cols, vals };
+  }
+
+  private async validateLinks(
+    dt: LoadedDocType,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    for (const f of dt.fields) {
+      if ((f.fieldtype as FieldType) !== FieldType.Link) continue;
+      const target = f.options;
+      const value = data[f.fieldname];
+      if (!target || value === undefined || value === null || value === "") continue;
+      if (!this.registry.has(target)) continue;
+      const rows = await this.dataSource.query(
+        `SELECT 1 FROM ${quoteIdent(tableNameFor(target))} WHERE ${quoteIdent("name")} = $1 LIMIT 1`,
+        [String(value)],
+      );
+      if (rows.length === 0) {
+        throw new BadRequestException(
+          `${f.label ?? f.fieldname}: '${String(value)}' does not exist in ${target}`,
+        );
+      }
+    }
+  }
+
+  private async writeChildren(
+    qr: QueryRunner,
+    dt: LoadedDocType,
+    parentName: string,
+    data: Record<string, unknown>,
+    replace: boolean,
+  ): Promise<void> {
+    for (const cf of this.childFields(dt)) {
+      const childName = cf.options;
+      if (!childName || !this.registry.has(childName)) continue;
+      const childDt = this.registry.getOrThrow(childName);
+      const childTable = tableNameFor(childName);
+
+      if (!Object.prototype.hasOwnProperty.call(data, cf.fieldname) && !replace) {
+        continue;
+      }
+      if (replace) {
+        await qr.query(
+          `DELETE FROM ${quoteIdent(childTable)}
+           WHERE ${quoteIdent("parent")} = $1 AND ${quoteIdent("parentfield")} = $2`,
+          [parentName, cf.fieldname],
+        );
+      }
+      const rows = (data[cf.fieldname] as Array<Record<string, unknown>>) ?? [];
+      let idx = 0;
+      for (const row of rows) {
+        idx += 1;
+        const built = this.buildRow(childDt, row);
+        const now = new Date().toISOString();
+        const cols = [
+          "name",
+          "parent",
+          "parenttype",
+          "parentfield",
+          "idx",
+          "owner",
+          "creation",
+          "modified",
+          "modified_by",
+          "docstatus",
+          ...built.cols,
+        ];
+        const vals = [
+          `${parentName}-${cf.fieldname}-${idx}`,
+          parentName,
+          dt.name,
+          cf.fieldname,
+          idx,
+          parentName,
+          now,
+          now,
+          parentName,
+          0,
+          ...built.vals,
+        ];
+        const placeholders = vals.map((_, i) => `$${i + 1}`).join(", ");
+        await qr.query(
+          `INSERT INTO ${quoteIdent(childTable)} (${cols.map(quoteIdent).join(", ")})
+           VALUES (${placeholders})`,
+          vals,
+        );
+      }
+    }
+  }
+
+  async create(
+    dt: LoadedDocType,
+    ctx: UserContext,
+    data: Record<string, unknown>,
+  ): Promise<FatDocument> {
+    this.validation.validate(dt, data, true);
+    await this.validateLinks(dt, data);
+
+    const name = await this.naming.generateName(dt, data);
+    const now = new Date().toISOString();
+    const { cols, vals } = this.buildRow(dt, data);
+
+    const allCols = ["name", "owner", "creation", "modified", "modified_by", "docstatus", "idx", ...cols];
+    const allVals = [name, ctx.name, now, now, ctx.name, 0, 0, ...vals];
+    const placeholders = allVals.map((_, i) => `$${i + 1}`).join(", ");
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      await qr.query(
+        `INSERT INTO ${quoteIdent(tableNameFor(dt.name))} (${allCols.map(quoteIdent).join(", ")})
+         VALUES (${placeholders})`,
+        allVals,
+      );
+      await this.writeChildren(qr, dt, name, data, false);
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+      if ((err as { code?: string }).code === "23505") {
+        throw new ConflictException(`${dt.name} '${name}' already exists`);
+      }
+      throw err;
+    } finally {
+      await qr.release();
+    }
+
+    const doc = await this.get(dt, name);
+    this.hooks.emit("after_insert", { doctype: dt.name, doc, user: ctx.name });
+    return doc;
+  }
+
+  async update(
+    dt: LoadedDocType,
+    ctx: UserContext,
+    name: string,
+    data: Record<string, unknown>,
+  ): Promise<FatDocument> {
+    const existing = await this.get(dt, name);
+    if ((existing.docstatus ?? 0) === 1 && !dt.is_submittable) {
+      // no-op guard; submittable handled below
+    }
+    if ((existing.docstatus ?? 0) === 1) {
+      throw new BadRequestException(`Cannot edit a submitted ${dt.name}`);
+    }
+
+    this.validation.validate(dt, data, false);
+    await this.validateLinks(dt, data);
+
+    const now = new Date().toISOString();
+    const { cols, vals } = this.buildRow(dt, data);
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      const setCols = ["modified", "modified_by", ...cols];
+      const setVals = [now, ctx.name, ...vals];
+      const setSql = setCols.map((c, i) => `${quoteIdent(c)} = $${i + 1}`).join(", ");
+      setVals.push(name);
+      await qr.query(
+        `UPDATE ${quoteIdent(tableNameFor(dt.name))} SET ${setSql}
+         WHERE ${quoteIdent("name")} = $${setVals.length}`,
+        setVals,
+      );
+      await this.writeChildren(qr, dt, name, data, true);
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+      throw err;
+    } finally {
+      await qr.release();
+    }
+
+    const doc = await this.get(dt, name);
+    this.hooks.emit("after_update", { doctype: dt.name, doc, user: ctx.name });
+    return doc;
+  }
+
+  async remove(dt: LoadedDocType, ctx: UserContext, name: string): Promise<void> {
+    const doc = await this.get(dt, name);
+    await this.assertNoInboundLinks(dt, name);
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      for (const cf of this.childFields(dt)) {
+        const childName = cf.options;
+        if (!childName || !this.registry.has(childName)) continue;
+        await qr.query(
+          `DELETE FROM ${quoteIdent(tableNameFor(childName))}
+           WHERE ${quoteIdent("parent")} = $1 AND ${quoteIdent("parentfield")} = $2`,
+          [name, cf.fieldname],
+        );
+      }
+      await qr.query(
+        `DELETE FROM ${quoteIdent(tableNameFor(dt.name))} WHERE ${quoteIdent("name")} = $1`,
+        [name],
+      );
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+      throw err;
+    } finally {
+      await qr.release();
+    }
+    this.hooks.emit("after_delete", { doctype: dt.name, doc, user: ctx.name });
+  }
+
+  /** Block deletes when other documents Link to this record (Frappe behaviour). */
+  private async assertNoInboundLinks(dt: LoadedDocType, name: string): Promise<void> {
+    for (const other of this.registry.list()) {
+      for (const f of other.fields) {
+        if ((f.fieldtype as FieldType) !== FieldType.Link) continue;
+        if (f.options !== dt.name) continue;
+        const rows = await this.dataSource.query(
+          `SELECT ${quoteIdent("name")} FROM ${quoteIdent(tableNameFor(other.name))}
+           WHERE ${quoteIdent(f.fieldname)} = $1 LIMIT 1`,
+          [name],
+        );
+        if (rows.length > 0) {
+          throw new ConflictException(
+            `Cannot delete ${dt.name} ${name}: linked with ${other.name} ${rows[0].name}`,
+          );
+        }
+      }
+    }
+  }
+
+  // ---- submit / cancel ----
+
+  async setDocStatus(
+    dt: LoadedDocType,
+    ctx: UserContext,
+    name: string,
+    docstatus: 1 | 2,
+  ): Promise<FatDocument> {
+    if (!dt.is_submittable) {
+      throw new BadRequestException(`${dt.name} is not submittable`);
+    }
+    const doc = await this.get(dt, name);
+    const current = doc.docstatus ?? 0;
+    if (docstatus === 1 && current !== 0) {
+      throw new BadRequestException(`${dt.name} ${name} is not in draft`);
+    }
+    if (docstatus === 2 && current !== 1) {
+      throw new BadRequestException(`${dt.name} ${name} is not submitted`);
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor(dt.name))}
+       SET ${quoteIdent("docstatus")} = $1, ${quoteIdent("modified")} = $2, ${quoteIdent("modified_by")} = $3
+       WHERE ${quoteIdent("name")} = $4`,
+      [docstatus, new Date().toISOString(), ctx.name, name],
+    );
+    const updated = await this.get(dt, name);
+    this.hooks.emit(docstatus === 1 ? "on_submit" : "on_cancel", {
+      doctype: dt.name,
+      doc: updated,
+      user: ctx.name,
+    });
+    return updated;
+  }
+}

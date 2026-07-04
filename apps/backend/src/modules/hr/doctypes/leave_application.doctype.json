@@ -1,0 +1,19 @@
+{
+  "name": "Leave Application",
+  "module": "HR",
+  "naming_rule": "series:LAP-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "leave_type", "label": "Leave Type", "fieldtype": "Select", "options": "Casual Leave\nSick Leave\nPrivilege Leave", "reqd": true, "in_list_view": true },
+    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nApproved\nRejected", "default": "Open", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "reason", "label": "Reason", "fieldtype": "Text" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
