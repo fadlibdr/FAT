@@ -29,14 +29,24 @@ export function DynamicListView({ meta }: { meta: DocTypeMeta }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">{meta.name}</h1>
-        {meta.permissions.create && (
-          <Link
-            href={`/app/${encodeURIComponent(meta.name)}/new`}
-            className="rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700"
-          >
-            + New {meta.name}
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {meta.permissions.report && (
+            <Link
+              href={`/report/${encodeURIComponent(meta.name)}`}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50"
+            >
+              Report
+            </Link>
+          )}
+          {meta.permissions.create && (
+            <Link
+              href={`/app/${encodeURIComponent(meta.name)}/new`}
+              className="rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700"
+            >
+              + New {meta.name}
+            </Link>
+          )}
+        </div>
       </div>
 
       {filterFields.length > 0 && (

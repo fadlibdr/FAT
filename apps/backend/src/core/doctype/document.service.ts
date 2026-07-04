@@ -13,6 +13,7 @@ import { tableNameFor, quoteIdent } from "./schema-sync.service";
 import { NamingService } from "./naming.service";
 import { ValidationService } from "./validation.service";
 import { HooksService } from "./hooks.service";
+import { PermissionService } from "../permissions/permission.service";
 import type { UserContext } from "../permissions/permission.service";
 
 export interface ListOptions {
@@ -24,6 +25,18 @@ export interface ListOptions {
   orderDir?: "ASC" | "DESC";
 }
 
+export interface ReportOptions {
+  groupBy: string;
+  aggregate?: "count" | "sum";
+  aggregateField?: string;
+  filters?: Record<string, unknown>;
+}
+
+export interface ReportRow {
+  group: string | null;
+  value: number;
+}
+
 @Injectable()
 export class DocumentService {
   constructor(
@@ -32,7 +45,47 @@ export class DocumentService {
     private readonly naming: NamingService,
     private readonly validation: ValidationService,
     private readonly hooks: HooksService,
+    private readonly permissions: PermissionService,
   ) {}
+
+  /**
+   * Row-level restrictions for a list query, derived from the user's User
+   * Permissions: restrict this DocType's own `name`, and any Link field that
+   * targets a restricted DocType, to the allowed values.
+   */
+  private rowFilters(
+    dt: LoadedDocType,
+    permMap: Map<string, Set<string>>,
+  ): Array<{ column: string; values: string[] }> {
+    const filters: Array<{ column: string; values: string[] }> = [];
+    if (permMap.size === 0) return filters;
+    if (permMap.has(dt.name)) {
+      filters.push({ column: "name", values: [...permMap.get(dt.name)!] });
+    }
+    for (const f of dt.fields) {
+      if ((f.fieldtype as FieldType) !== FieldType.Link || !f.options) continue;
+      if (permMap.has(f.options)) {
+        filters.push({ column: f.fieldname, values: [...permMap.get(f.options)!] });
+      }
+    }
+    return filters;
+  }
+
+  /** True if a single document satisfies the user's row-level restrictions. */
+  async canAccessRow(
+    dt: LoadedDocType,
+    ctx: UserContext,
+    doc: FatDocument,
+  ): Promise<boolean> {
+    const permMap = await this.permissions.getUserPermissionMap(ctx);
+    for (const { column, values } of this.rowFilters(dt, permMap)) {
+      const value = column === "name" ? doc.name : (doc[column] as string | null);
+      if (value === null || value === undefined || !values.includes(String(value))) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   // ---- column helpers (all identifiers come from validated metadata) ----
 
@@ -53,7 +106,11 @@ export class DocumentService {
 
   // ---- read ----
 
-  async list(dt: LoadedDocType, opts: ListOptions): Promise<FatDocument[]> {
+  async list(
+    dt: LoadedDocType,
+    ctx: UserContext,
+    opts: ListOptions,
+  ): Promise<FatDocument[]> {
     const table = tableNameFor(dt.name);
     const valid = this.validColumns(dt);
 
@@ -69,6 +126,17 @@ export class DocumentService {
       }
     }
 
+    // Apply row-level User Permission restrictions.
+    const permMap = await this.permissions.getUserPermissionMap(ctx);
+    for (const { column, values } of this.rowFilters(dt, permMap)) {
+      if (!valid.has(column)) continue;
+      const placeholders = values.map((v) => {
+        params.push(v);
+        return `$${params.length}`;
+      });
+      where.push(`${quoteIdent(column)} IN (${placeholders.join(", ")})`);
+    }
+
     const orderBy = opts.orderBy && valid.has(opts.orderBy) ? opts.orderBy : "modified";
     const orderDir = opts.orderDir === "ASC" ? "ASC" : "DESC";
     const limit = Math.min(Math.max(opts.limit ?? 50, 1), 500);
@@ -81,6 +149,59 @@ export class DocumentService {
       ` LIMIT ${limit} OFFSET ${offset}`;
 
     return this.dataSource.query(sql, params);
+  }
+
+  /**
+   * Grouped aggregation report: count of rows (or sum of a numeric field) per
+   * distinct value of `groupBy`. Honours user filters and row-level permissions.
+   */
+  async report(
+    dt: LoadedDocType,
+    ctx: UserContext,
+    opts: ReportOptions,
+  ): Promise<ReportRow[]> {
+    const valid = this.validColumns(dt);
+    if (!valid.has(opts.groupBy)) {
+      throw new BadRequestException(`Unknown group-by field: ${opts.groupBy}`);
+    }
+
+    let agg = "count(*)";
+    if (opts.aggregate === "sum") {
+      if (!opts.aggregateField || !valid.has(opts.aggregateField)) {
+        throw new BadRequestException("sum requires a valid aggregate field");
+      }
+      agg = `coalesce(sum(${quoteIdent(opts.aggregateField)}), 0)`;
+    }
+
+    const params: unknown[] = [];
+    const where: string[] = [];
+    if (opts.filters) {
+      for (const [k, v] of Object.entries(opts.filters)) {
+        if (!valid.has(k)) continue;
+        params.push(v);
+        where.push(`${quoteIdent(k)} = $${params.length}`);
+      }
+    }
+    const permMap = await this.permissions.getUserPermissionMap(ctx);
+    for (const { column, values } of this.rowFilters(dt, permMap)) {
+      if (!valid.has(column)) continue;
+      const ph = values.map((v) => {
+        params.push(v);
+        return `$${params.length}`;
+      });
+      where.push(`${quoteIdent(column)} IN (${ph.join(", ")})`);
+    }
+
+    const sql =
+      `SELECT ${quoteIdent(opts.groupBy)} AS "group", ${agg}::float8 AS "value" ` +
+      `FROM ${quoteIdent(tableNameFor(dt.name))}` +
+      (where.length ? ` WHERE ${where.join(" AND ")}` : "") +
+      ` GROUP BY ${quoteIdent(opts.groupBy)} ORDER BY "value" DESC`;
+    const rows: Array<{ group: string | null; value: number }> = await this.dataSource.query(
+      sql,
+      params,
+    );
+    return rows.map((r) => ({ group: r.group, value: Number(r.value) }));
   }
 
   async get(dt: LoadedDocType, name: string): Promise<FatDocument> {

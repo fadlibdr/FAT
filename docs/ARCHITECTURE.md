@@ -84,11 +84,29 @@ compile-time schema cannot express runtime-defined tables. All dynamic SQL uses
 parameterized values and an allowlist of column identifiers derived from
 validated metadata.
 
-## Known limitations (first iteration)
+## Ledgers, reports, jobs, and row-level permissions
+
+- **Ledgers.** On submit, Accounting posts balanced double-entry `GL Entry`
+  records (debit Debtors / credit Sales) and Stock posts `Stock Ledger Entry`
+  movements; both reverse on cancel. Implemented purely as event listeners
+  (`gl-posting.listener.ts`, `stock-ledger.listener.ts`) — no cross-module
+  service imports.
+- **Reports.** `GET /api/report/:doctype` returns group-by aggregations
+  (count / sum), honouring filters and row-level permissions. The frontend
+  `/report/[doctype]` renders a bar breakdown; a print view lives at
+  `/app/[doctype]/[name]/print`.
+- **Background jobs.** `JobService` runs jobs on a BullMQ queue when `REDIS_HOST`
+  is set, and inline otherwise — identical calling code either way. The
+  `recompute_totals` job sums child-table line amounts into `total`/`grand_total`.
+- **Row-level permissions.** `User Permission` records restrict a user to
+  specific records; `DocumentService.list`/`canAccessRow` filter list results and
+  block direct reads of disallowed rows.
+
+## Known limitations (still open)
 
 - Metadata cache is per-process (multi-instance needs a pub/sub invalidation
   channel; the `onInvalidate` seam exists).
-- Event listeners record effects (log) rather than posting full ledgers.
-- Row-level permissions (User Permissions / `if_owner`) are modelled but not yet
-  enforced.
-- No background job queue yet (BullMQ is planned for reports/heavy work).
+- GL/stock postings are single-account-pair and single-warehouse; no valuation,
+  taxes, or multi-currency yet.
+- `if_owner` permissions are modelled but not yet enforced.
+- No print-format designer (the print view is a fixed layout).

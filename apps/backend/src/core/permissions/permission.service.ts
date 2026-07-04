@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { InjectRepository, InjectDataSource } from "@nestjs/typeorm";
+import { DataSource, Repository } from "typeorm";
 import {
   PermType,
   SUPER_ROLES,
@@ -34,7 +34,35 @@ export class PermissionService {
     private readonly permRepo: Repository<DocPermEntity>,
     @InjectRepository(HasRoleEntity)
     private readonly hasRoleRepo: Repository<HasRoleEntity>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
+
+  /**
+   * Row-level restrictions for a user, as a map of DocType -> allowed record
+   * names (Frappe's "User Permission"). Empty for super users. Reads the
+   * `tabUser Permission` table if it has been provisioned.
+   */
+  async getUserPermissionMap(ctx: UserContext): Promise<Map<string, Set<string>>> {
+    const map = new Map<string, Set<string>>();
+    if (ctx.isSuper) return map;
+    const exists: Array<{ c: number }> = await this.dataSource.query(
+      `SELECT count(*)::int AS c FROM information_schema.tables
+       WHERE table_schema = current_schema() AND table_name = $1`,
+      ["tabUser Permission"],
+    );
+    if (exists[0].c === 0) return map;
+    const rows: Array<{ allow: string; for_value: string }> = await this.dataSource.query(
+      `SELECT "allow", "for_value" FROM "tabUser Permission" WHERE "user" = $1`,
+      [ctx.name],
+    );
+    for (const r of rows) {
+      if (!r.allow || !r.for_value) continue;
+      const set = map.get(r.allow) ?? new Set<string>();
+      set.add(r.for_value);
+      map.set(r.allow, set);
+    }
+    return map;
+  }
 
   async getRoles(userName: string): Promise<string[]> {
     const rows = await this.hasRoleRepo.find({ where: { parent: userName } });

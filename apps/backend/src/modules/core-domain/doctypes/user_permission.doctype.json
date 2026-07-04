@@ -1,0 +1,14 @@
+{
+  "name": "User Permission",
+  "module": "Core",
+  "naming_rule": "hash",
+  "title_field": "user",
+  "fields": [
+    { "fieldname": "user", "label": "User", "fieldtype": "Data", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "allow", "label": "Allow (DocType)", "fieldtype": "Data", "reqd": true, "in_list_view": true, "in_standard_filter": true, "description": "The DocType this restriction applies to, e.g. Company" },
+    { "fieldname": "for_value", "label": "For Value", "fieldtype": "Data", "reqd": true, "in_list_view": true, "description": "The single record the user is restricted to" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fat
+          POSTGRES_PASSWORD: fat
+          POSTGRES_DB: fat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fat -d fat"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_HOST: localhost
+      DATABASE_PORT: "5432"
+      DATABASE_USER: fat
+      DATABASE_PASSWORD: fat
+      DATABASE_NAME: fat
+      JWT_SECRET: ci-secret
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: admin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from package.json "packageManager"; do not also set
+      # `version` here or action-setup errors on the duplicate specification.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @fat/shared build
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Lint
+        run: pnpm -r lint
+
+      - name: Unit tests
+        run: pnpm --filter @fat/backend test
+
+      - name: Framework schema + seed
+        run: |
+          pnpm --filter @fat/backend migration:run
+          pnpm --filter @fat/backend seed
+
+      - name: Build backend
+        run: pnpm --filter @fat/backend build
+
+      - name: Build frontend
+        run: pnpm --filter @fat/frontend build

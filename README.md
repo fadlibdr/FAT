@@ -64,4 +64,14 @@ Adminer (DB browser) is at http://localhost:8080 (server `postgres`, user/pass
 Core framework + `core-domain` masters, plus CRM, Selling, Buying, Stock,
 Accounting, and HR as metadata-defined modules.
 
+## Beyond CRUD
+
+- **Ledgers** — submitting a Sales Invoice posts balanced GL entries; submitting a
+  Stock Entry posts stock ledger movements (both reverse on cancel), via events.
+- **Reports** — `GET /api/report/:doctype` group-by aggregations; a `/report/…`
+  UI and a printable document view at `/app/…/print`.
+- **Background jobs** — `JobService` runs on BullMQ when `REDIS_HOST` is set
+  (`docker compose up -d redis`), inline otherwise.
+- **Row-level access** — `User Permission` records restrict users to specific rows.
+
 See `docs/ARCHITECTURE.md` for the full design.

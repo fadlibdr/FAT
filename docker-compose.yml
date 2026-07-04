@@ -26,5 +26,13 @@ services:
     ports:
       - "8080:8080"
 
+  # Optional: enable background jobs by setting REDIS_HOST=localhost in .env.
+  redis:
+    image: redis:7-alpine
+    container_name: fat-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
 volumes:
   fat-pgdata:
