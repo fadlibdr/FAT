@@ -74,4 +74,16 @@ Accounting, and HR as metadata-defined modules.
   (`docker compose up -d redis`), inline otherwise.
 - **Row-level access** — `User Permission` records restrict users to specific rows.
 
+## Phase 8 (also merged/in progress)
+
+- **Accounting/Stock depth** — tax tables + grand totals, moving-average item
+  valuation (`Bin`), Delivery Note / Purchase Receipt / Payment Entry postings,
+  and Trial Balance + Stock Balance reports.
+- **Workflow & audit** — role-gated approval workflows, version history, comments,
+  file attachments, and `if_owner` permissions.
+- **Analytics & UX** — a dashboard, global search, saved filters, and a
+  print-format engine.
+- **Developer platform** — an in-app DocType builder, webhooks, API keys
+  (`Authorization: token <key>:<secret>`), and OpenAPI docs at `/api/docs`.
+
 See `docs/ARCHITECTURE.md` for the full design.
