@@ -1,0 +1,19 @@
+{
+  "name": "Item",
+  "module": "Selling",
+  "naming_rule": "field:item_code",
+  "title_field": "item_name",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item Code", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "item_name", "label": "Item Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "item_group", "label": "Item Group", "fieldtype": "Link", "options": "Item Group", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "stock_uom", "label": "Default UOM", "fieldtype": "Link", "options": "UOM" },
+    { "fieldname": "standard_rate", "label": "Standard Rate", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "is_stock_item", "label": "Maintain Stock", "fieldtype": "Check", "default": "1" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

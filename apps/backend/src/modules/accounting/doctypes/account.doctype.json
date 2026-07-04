@@ -1,0 +1,16 @@
+{
+  "name": "Account",
+  "module": "Accounting",
+  "naming_rule": "field:account_name",
+  "title_field": "account_name",
+  "fields": [
+    { "fieldname": "account_name", "label": "Account Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "account_type", "label": "Account Type", "fieldtype": "Select", "options": "Asset\nLiability\nEquity\nIncome\nExpense", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "is_group", "label": "Is Group", "fieldtype": "Check" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Employee",
+  "module": "HR",
+  "naming_rule": "series:EMP-.#####",
+  "title_field": "employee_name",
+  "fields": [
+    { "fieldname": "employee_name", "label": "Employee Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "designation", "label": "Designation", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "date_of_joining", "label": "Date of Joining", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Active\nInactive\nLeft", "default": "Active", "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

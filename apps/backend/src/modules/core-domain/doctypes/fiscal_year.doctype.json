@@ -1,0 +1,14 @@
+{
+  "name": "Fiscal Year",
+  "module": "Core",
+  "naming_rule": "field:year",
+  "title_field": "year",
+  "fields": [
+    { "fieldname": "year", "label": "Year", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "year_start_date", "label": "Start Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "year_end_date", "label": "End Date", "fieldtype": "Date", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

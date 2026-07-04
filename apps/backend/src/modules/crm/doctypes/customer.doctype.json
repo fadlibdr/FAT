@@ -1,0 +1,17 @@
+{
+  "name": "Customer",
+  "module": "CRM",
+  "naming_rule": "field:customer_name",
+  "title_field": "customer_name",
+  "fields": [
+    { "fieldname": "customer_name", "label": "Customer Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "customer_group", "label": "Customer Group", "fieldtype": "Link", "options": "Customer Group", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "territory", "label": "Territory", "fieldtype": "Link", "options": "Territory", "in_standard_filter": true },
+    { "fieldname": "email_id", "label": "Email", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

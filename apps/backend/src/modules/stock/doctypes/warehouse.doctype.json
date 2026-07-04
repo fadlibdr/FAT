@@ -1,0 +1,14 @@
+{
+  "name": "Warehouse",
+  "module": "Stock",
+  "naming_rule": "field:warehouse_name",
+  "title_field": "warehouse_name",
+  "fields": [
+    { "fieldname": "warehouse_name", "label": "Warehouse Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

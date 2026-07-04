@@ -1,0 +1,14 @@
+{
+  "name": "Currency",
+  "module": "Core",
+  "naming_rule": "field:currency_name",
+  "title_field": "currency_name",
+  "fields": [
+    { "fieldname": "currency_name", "label": "Currency Code", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "symbol", "label": "Symbol", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "fraction", "label": "Fraction", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}

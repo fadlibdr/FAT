@@ -1,0 +1,14 @@
+{
+  "name": "Journal Entry Account",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "account", "label": "Account", "fieldtype": "Link", "options": "Account", "reqd": true, "in_list_view": true },
+    { "fieldname": "debit", "label": "Debit", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "credit", "label": "Credit", "fieldtype": "Currency", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

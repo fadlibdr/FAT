@@ -1,0 +1,17 @@
+{
+  "name": "Stock Entry",
+  "module": "Stock",
+  "naming_rule": "series:STE-.#####",
+  "is_submittable": true,
+  "title_field": "purpose",
+  "fields": [
+    { "fieldname": "purpose", "label": "Purpose", "fieldtype": "Select", "options": "Material Receipt\nMaterial Issue\nMaterial Transfer", "default": "Material Receipt", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Stock Entry Detail" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

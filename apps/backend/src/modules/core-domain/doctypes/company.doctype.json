@@ -1,0 +1,15 @@
+{
+  "name": "Company",
+  "module": "Core",
+  "naming_rule": "field:company_name",
+  "title_field": "company_name",
+  "fields": [
+    { "fieldname": "company_name", "label": "Company Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "abbr", "label": "Abbreviation", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "default_currency", "label": "Default Currency", "fieldtype": "Link", "options": "Currency", "in_list_view": true },
+    { "fieldname": "country", "label": "Country", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}
