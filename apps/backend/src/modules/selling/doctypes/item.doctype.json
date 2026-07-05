@@ -11,6 +11,7 @@
     { "fieldname": "standard_rate", "label": "Standard Rate", "fieldtype": "Currency", "in_list_view": true },
     { "fieldname": "valuation_method", "label": "Valuation Method", "fieldtype": "Select", "options": "Moving Average\nFIFO", "default": "Moving Average" },
     { "fieldname": "has_batch_no", "label": "Has Batch No", "fieldtype": "Check" },
+    { "fieldname": "has_serial_no", "label": "Has Serial No", "fieldtype": "Check" },
     { "fieldname": "is_stock_item", "label": "Maintain Stock", "fieldtype": "Check", "default": "1" }
   ],
   "permissions": [

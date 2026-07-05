@@ -6,6 +6,7 @@
   "fields": [
     { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "batch_no", "label": "Batch", "fieldtype": "Data", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "actual_qty", "label": "Actual Qty", "fieldtype": "Float", "in_list_view": true },
     { "fieldname": "valuation_rate", "label": "Valuation Rate", "fieldtype": "Currency", "in_list_view": true },
     { "fieldname": "stock_value", "label": "Stock Value", "fieldtype": "Currency", "in_list_view": true },

@@ -15,6 +15,7 @@ interface Movement {
   delta: number; // +receipt / -issue
   incomingRate?: number; // valuation rate for receipts
   batch?: string | null;
+  serials?: string[];
 }
 
 /**
@@ -62,7 +63,9 @@ export class StockLedgerListener {
   ): Promise<void> {
     const sle = this.registry.get("Stock Ledger Entry");
     if (!sle || !m.warehouse) return;
-    const binKey = `${m.item}::${m.warehouse}`;
+    // Bin is keyed per item+warehouse+batch, so each batch is valued separately.
+    const batch = m.batch ?? "";
+    const binKey = `${m.item}::${m.warehouse}::${batch}`;
     const method = await this.itemMethod(m.item);
 
     const bin = (
@@ -126,6 +129,7 @@ export class StockLedgerListener {
       qty_after_transaction: newQty,
       stock_value: deltaValue,
       batch_no: m.batch ?? null,
+      serial_no: (m.serials ?? []).join("\n") || null,
       voucher_type: voucherType,
       voucher_no: voucherNo,
     });
@@ -134,28 +138,62 @@ export class StockLedgerListener {
     await this.dataSource.query(
       `INSERT INTO ${quoteIdent(tableNameFor("Bin"))}
         (${quoteIdent("name")}, ${quoteIdent("item_code")}, ${quoteIdent("warehouse")},
-         ${quoteIdent("actual_qty")}, ${quoteIdent("valuation_rate")}, ${quoteIdent("stock_value")},
-         ${quoteIdent("fifo_queue")}, ${quoteIdent("owner")}, ${quoteIdent("creation")},
-         ${quoteIdent("modified")}, ${quoteIdent("modified_by")}, ${quoteIdent("docstatus")}, ${quoteIdent("idx")})
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$8,0,0)
+         ${quoteIdent("batch_no")}, ${quoteIdent("actual_qty")}, ${quoteIdent("valuation_rate")},
+         ${quoteIdent("stock_value")}, ${quoteIdent("fifo_queue")}, ${quoteIdent("owner")},
+         ${quoteIdent("creation")}, ${quoteIdent("modified")}, ${quoteIdent("modified_by")},
+         ${quoteIdent("docstatus")}, ${quoteIdent("idx")})
+       VALUES ($1,$2,$3,$10,$4,$5,$6,$7,$8,$9,$9,$8,0,0)
        ON CONFLICT (${quoteIdent("name")}) DO UPDATE SET
          ${quoteIdent("actual_qty")} = $4, ${quoteIdent("valuation_rate")} = $5,
          ${quoteIdent("stock_value")} = $6, ${quoteIdent("fifo_queue")} = $7, ${quoteIdent("modified")} = $9`,
-      [binKey, m.item, m.warehouse, newQty, newRate, newValue, JSON.stringify(newLayers), ctx.name, now],
+      [binKey, m.item, m.warehouse, newQty, newRate, newValue, JSON.stringify(newLayers), ctx.name, now, batch || null],
     );
+
+    await this.handleSerials(m, voucherNo);
+  }
+
+  /** Create serial records on receipt; mark them delivered on issue. */
+  private async handleSerials(m: Movement, voucherNo: string): Promise<void> {
+    const serials = m.serials ?? [];
+    if (serials.length === 0 || !this.registry.has("Serial No")) return;
+    const now = new Date().toISOString();
+    for (const sn of serials) {
+      if (m.delta > 0) {
+        await this.dataSource.query(
+          `INSERT INTO ${quoteIdent(tableNameFor("Serial No"))}
+            (${quoteIdent("name")}, ${quoteIdent("serial_no")}, ${quoteIdent("item")},
+             ${quoteIdent("warehouse")}, ${quoteIdent("status")}, ${quoteIdent("voucher_no")},
+             ${quoteIdent("owner")}, ${quoteIdent("creation")}, ${quoteIdent("modified")},
+             ${quoteIdent("modified_by")}, ${quoteIdent("docstatus")}, ${quoteIdent("idx")})
+           VALUES ($1,$1,$2,$3,'Active',$4,'Administrator',$5,$5,'Administrator',0,0)
+           ON CONFLICT (${quoteIdent("name")}) DO UPDATE SET
+             ${quoteIdent("status")} = 'Active', ${quoteIdent("warehouse")} = $3,
+             ${quoteIdent("modified")} = $5`,
+          [sn, m.item, m.warehouse, voucherNo, now],
+        );
+      } else {
+        await this.dataSource.query(
+          `UPDATE ${quoteIdent(tableNameFor("Serial No"))}
+           SET ${quoteIdent("status")} = 'Delivered', ${quoteIdent("modified")} = $2
+           WHERE ${quoteIdent("name")} = $1`,
+          [sn, now],
+        );
+      }
+    }
   }
 
   private async reverse(voucherType: string, voucherNo: string): Promise<void> {
     if (!this.registry.has("Stock Ledger Entry") || !this.registry.has("Bin")) return;
     const sles = await this.dataSource.query(
       `SELECT ${quoteIdent("item_code")} AS item, ${quoteIdent("warehouse")} AS wh,
+              ${quoteIdent("batch_no")} AS batch,
               ${quoteIdent("actual_qty")} AS qty, ${quoteIdent("stock_value")} AS value
        FROM ${quoteIdent(tableNameFor("Stock Ledger Entry"))}
        WHERE ${quoteIdent("voucher_type")} = $1 AND ${quoteIdent("voucher_no")} = $2`,
       [voucherType, voucherNo],
     );
     for (const s of sles) {
-      const binKey = `${s.item}::${s.wh}`;
+      const binKey = `${s.item}::${s.wh}::${s.batch ?? ""}`;
       await this.dataSource.query(
         `UPDATE ${quoteIdent(tableNameFor("Bin"))}
          SET ${quoteIdent("actual_qty")} = ${quoteIdent("actual_qty")} - $1,
@@ -181,14 +219,15 @@ export class StockLedgerListener {
       if (!qty) continue;
       const item = String(row.item_code);
       const batch = (row.batch_no as string) || null;
+      const serials = String(row.serial_no ?? "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
       const moves: Movement[] = [];
       if (purpose === "Material Receipt") {
-        moves.push({ item, warehouse: String(row.t_warehouse ?? ""), delta: qty, incomingRate: await this.itemRate(item), batch });
+        moves.push({ item, warehouse: String(row.t_warehouse ?? ""), delta: qty, incomingRate: await this.itemRate(item), batch, serials });
       } else if (purpose === "Material Issue") {
-        moves.push({ item, warehouse: String(row.s_warehouse ?? ""), delta: -qty, batch });
+        moves.push({ item, warehouse: String(row.s_warehouse ?? ""), delta: -qty, batch, serials });
       } else {
-        if (row.s_warehouse) moves.push({ item, warehouse: String(row.s_warehouse), delta: -qty, batch });
-        if (row.t_warehouse) moves.push({ item, warehouse: String(row.t_warehouse), delta: qty, incomingRate: await this.itemRate(item), batch });
+        if (row.s_warehouse) moves.push({ item, warehouse: String(row.s_warehouse), delta: -qty, batch, serials });
+        if (row.t_warehouse) moves.push({ item, warehouse: String(row.t_warehouse), delta: qty, incomingRate: await this.itemRate(item), batch, serials });
       }
       for (const m of moves) {
         try {

@@ -39,10 +39,13 @@ const REPORTS: Record<string, QueryReport> = {
       { key: "stock_value", label: "Stock Value" },
     ],
     sql: `SELECT "item_code", "warehouse",
-                 "actual_qty"::float8 AS "actual_qty",
-                 "valuation_rate"::float8 AS "valuation_rate",
-                 "stock_value"::float8 AS "stock_value"
-          FROM "tabBin" WHERE "actual_qty" <> 0
+                 sum("actual_qty")::float8 AS "actual_qty",
+                 (CASE WHEN sum("actual_qty") <> 0
+                       THEN sum("stock_value") / sum("actual_qty") ELSE 0 END)::float8 AS "valuation_rate",
+                 sum("stock_value")::float8 AS "stock_value"
+          FROM "tabBin"
+          GROUP BY "item_code", "warehouse"
+          HAVING sum("actual_qty") <> 0
           ORDER BY "item_code", "warehouse"`,
   },
   "profit-and-loss": {
