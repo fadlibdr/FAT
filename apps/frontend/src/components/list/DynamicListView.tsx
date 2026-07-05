@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import type { DocTypeMeta } from "@fat/shared";
 import { FieldType } from "@fat/shared";
 import { useDocuments } from "@/lib/meta-client";
+import { api } from "@/lib/api-client";
 
 export function DynamicListView({ meta }: { meta: DocTypeMeta }) {
   const storageKey = `fat_filters_${meta.name}`;
@@ -27,6 +29,34 @@ export function DynamicListView({ meta }: { meta: DocTypeMeta }) {
     window.localStorage.setItem(storageKey, JSON.stringify(filters));
   }, [storageKey, filters]);
   const { data, isLoading, error } = useDocuments(meta.name, filters);
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function onExport() {
+    const res = await api.get<{ data: { csv: string; filename: string } }>(
+      `/api/resource/${encodeURIComponent(meta.name)}/export`,
+    );
+    const blob = new Blob([res.data.csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = res.data.filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function onImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const csv = await file.text();
+    const res = await api.post<{ data: { created: number; errors: unknown[] } }>(
+      `/api/resource/${encodeURIComponent(meta.name)}/import`,
+      { csv },
+    );
+    alert(`Imported ${res.data.created} row(s), ${res.data.errors.length} error(s).`);
+    qc.invalidateQueries({ queryKey: ["docs", meta.name] });
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
   const columns = meta.fields.filter(
     (f) => f.in_list_view && (f.fieldtype as FieldType) !== FieldType.Table,
@@ -48,6 +78,32 @@ export function DynamicListView({ meta }: { meta: DocTypeMeta }) {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">{meta.name}</h1>
         <div className="flex items-center gap-2">
+          <Link
+            href={`/app/${encodeURIComponent(meta.name)}/kanban`}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+          >
+            Kanban
+          </Link>
+          <Link
+            href={`/app/${encodeURIComponent(meta.name)}/calendar`}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+          >
+            Calendar
+          </Link>
+          <button onClick={onExport} className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">
+            Export
+          </button>
+          {meta.permissions.create && (
+            <>
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+              >
+                Import
+              </button>
+              <input ref={fileRef} type="file" accept=".csv" onChange={onImport} className="hidden" />
+            </>
+          )}
           {meta.permissions.report && (
             <Link
               href={`/report/${encodeURIComponent(meta.name)}`}

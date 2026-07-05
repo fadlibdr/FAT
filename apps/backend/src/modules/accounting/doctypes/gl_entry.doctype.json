@@ -11,6 +11,7 @@
     { "fieldname": "against", "label": "Against", "fieldtype": "Data" },
     { "fieldname": "voucher_type", "label": "Voucher Type", "fieldtype": "Data", "in_standard_filter": true },
     { "fieldname": "voucher_no", "label": "Voucher No", "fieldtype": "Data", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Data", "in_standard_filter": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true }
   ],
   "permissions": [

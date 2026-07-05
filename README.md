@@ -94,4 +94,13 @@ Accounting, and HR as metadata-defined modules.
   and a visual workflow designer.
 - **Scale** — multi-instance metadata-cache coherence via Redis pub/sub.
 
+## Phase 10
+
+- **Accounting completeness** — batch tracking, cost centers, budgets, and
+  Profit & Loss / Balance Sheet reports.
+- **Interop & views** — email notifications, CSV import/export, Kanban + calendar
+  views, and server-rendered PDF print.
+- **Hardening** — rate limiting, audit-log retention, an RBAC admin UI, and a
+  Playwright e2e suite in CI.
+
 See `docs/ARCHITECTURE.md` for the full design.

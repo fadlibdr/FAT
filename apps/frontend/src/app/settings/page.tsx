@@ -44,6 +44,9 @@ export default function SettingsPage() {
         <Link href="/desk/workflow" className="block text-sm text-brand-600 hover:underline">
           Workflow Designer →
         </Link>
+        <Link href="/desk/rbac" className="block text-sm text-brand-600 hover:underline">
+          Roles &amp; Permissions →
+        </Link>
         <a href={`${API_URL}/api/docs`} target="_blank" rel="noreferrer" className="block text-sm text-brand-600 hover:underline">
           API Documentation →
         </a>

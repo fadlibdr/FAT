@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { buildDataSourceOptions } from "./data-source";
 import { CoreModule } from "./core/core.module";
@@ -21,6 +22,9 @@ import { HrModule } from "./modules/hr/hr.module";
   imports: [
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot([
+      { ttl: 60_000, limit: Number(process.env.RATE_LIMIT ?? 120) },
+    ]),
     TypeOrmModule.forRoot(buildDataSourceOptions()),
     CoreModule,
     JobsModule,
@@ -36,6 +40,9 @@ import { HrModule } from "./modules/hr/hr.module";
     HrModule,
   ],
   controllers: [HealthController],
-  providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
 })
 export class AppModule {}

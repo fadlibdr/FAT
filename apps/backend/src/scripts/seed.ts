@@ -112,6 +112,10 @@ async function main() {
   await create("Account", { account_name: "Cash", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Creditors", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "VAT", account_type: "Liability", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Cost of Goods Sold", account_type: "Expense", company: "FAT Demo Co" });
+  await create("Cost Center", { cost_center_name: "Main", company: "FAT Demo Co" });
+  await create("Budget", { cost_center: "Main", account: "Sales", budget_amount: 10000 });
+  await create("Batch", { batch_id: "BATCH-A", item: "WIDGET-1" });
   await create("Currency", { currency_name: "EUR", symbol: "€", fraction: "Cent" });
   await create("Item", {
     item_code: "WIDGET-F",

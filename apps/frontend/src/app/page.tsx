@@ -72,12 +72,22 @@ export default function HomePage() {
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <h3 className="font-semibold mb-3">Financial & Stock Reports</h3>
         <div className="flex gap-3 flex-wrap">
-          <Link href="/query-report/trial-balance" className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50">
-            Trial Balance
-          </Link>
-          <Link href="/query-report/stock-balance" className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50">
-            Stock Balance
-          </Link>
+          {[
+            ["trial-balance", "Trial Balance"],
+            ["profit-and-loss", "Profit & Loss"],
+            ["balance-sheet", "Balance Sheet"],
+            ["budget-variance", "Budget vs Actual"],
+            ["stock-balance", "Stock Balance"],
+            ["batch-stock-balance", "Batch Stock Balance"],
+          ].map(([slug, label]) => (
+            <Link
+              key={slug}
+              href={`/query-report/${slug}`}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50"
+            >
+              {label}
+            </Link>
+          ))}
         </div>
       </div>
 

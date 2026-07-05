@@ -1,0 +1,16 @@
+{
+  "name": "Batch",
+  "module": "Stock",
+  "naming_rule": "field:batch_id",
+  "title_field": "batch_id",
+  "fields": [
+    { "fieldname": "batch_id", "label": "Batch ID", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "item", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "manufacturing_date", "label": "Manufacturing Date", "fieldtype": "Date" },
+    { "fieldname": "expiry_date", "label": "Expiry Date", "fieldtype": "Date", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

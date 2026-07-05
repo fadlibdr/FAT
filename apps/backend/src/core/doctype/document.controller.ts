@@ -9,10 +9,11 @@ import {
   Put,
   Query,
 } from "@nestjs/common";
-import { PermType } from "@fat/shared";
+import { FieldType, PermType, isDataFieldType } from "@fat/shared";
 import { DoctypeRegistryService } from "./doctype-registry.service";
 import { DocumentService, ListOptions } from "./document.service";
 import { PermissionService } from "../permissions/permission.service";
+import { toCsv, fromCsv } from "./csv.util";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../permissions/permission.service";
 
@@ -54,6 +55,44 @@ export class DocumentController {
     };
     const data = await this.documents.list(dt, user, opts);
     return { data };
+  }
+
+  /** CSV export of the (permission-filtered) list. Declared before :name. */
+  @Get("export")
+  async export(@CurrentUser() user: UserContext, @Param("doctype") doctype: string) {
+    const dt = this.registry.getOrThrow(doctype);
+    await this.permissions.assertPerm(user, doctype, PermType.Read);
+    const cols = [
+      "name",
+      ...dt.fields
+        .filter((f) => isDataFieldType(f.fieldtype as FieldType))
+        .map((f) => f.fieldname),
+    ];
+    const rows = await this.documents.list(dt, user, { limit: 500 });
+    return { data: { csv: toCsv(cols, rows), filename: `${doctype}.csv` } };
+  }
+
+  /** Bulk-create documents from CSV rows. */
+  @Post("import")
+  async import(
+    @CurrentUser() user: UserContext,
+    @Param("doctype") doctype: string,
+    @Body() body: { csv?: string },
+  ) {
+    const dt = this.registry.getOrThrow(doctype);
+    await this.permissions.assertPerm(user, doctype, PermType.Create);
+    const rows = fromCsv(body.csv ?? "");
+    let created = 0;
+    const errors: Array<{ row: number; error: string }> = [];
+    for (let i = 0; i < rows.length; i++) {
+      try {
+        await this.documents.create(dt, user, rows[i]);
+        created += 1;
+      } catch (err) {
+        errors.push({ row: i + 1, error: (err as Error).message });
+      }
+    }
+    return { data: { created, errors } };
   }
 
   @Get(":name")
