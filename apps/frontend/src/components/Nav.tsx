@@ -22,6 +22,16 @@ export function Nav() {
           FAT
         </Link>
         <p className="text-xs text-slate-400">Modular ERP</p>
+        <Link
+          href="/pos"
+          className={`mt-3 block rounded-md px-2 py-1.5 text-sm font-medium ${
+            pathname === "/pos"
+              ? "bg-brand-600 text-white"
+              : "bg-brand-50 text-brand-700 hover:bg-brand-100"
+          }`}
+        >
+          🛒 Point of Sale
+        </Link>
       </div>
       <div className="p-3 space-y-4">
         {isLoading && <p className="px-2 text-sm text-slate-400">Loading…</p>}
