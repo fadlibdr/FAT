@@ -136,12 +136,26 @@ validated metadata.
   via Redis pub/sub — a DocType created on one node is picked up live by the
   others (verified with two instances), closing the multi-instance gap.
 
+## Phase 10 — completeness, interop, hardening
+
+- **Accounting completeness.** Batch tracking (`Batch` DocType + `batch_no` on
+  stock movements/ledger + batch-wise stock balance), cost centers (stamped on
+  GL), budgets + Budget-vs-Actual, and **Profit & Loss / Balance Sheet**
+  query-reports (GL joined to `Account.account_type`).
+- **Platform interop/views.** Email transport for notifications (nodemailer;
+  log-only until SMTP), CSV **import/export** (`/api/resource/:doctype/export|import`),
+  **Kanban** (drag between Select columns) and month **Calendar** views, and
+  server-rendered **PDF** print (`/api/print/.../pdf` via the bundled Chromium).
+- **Hardening.** `@nestjs/throttler` rate limiting, an audit-log **retention**
+  sweep (`RETENTION_DAYS`), an **RBAC admin** UI/endpoints (`/desk/rbac`,
+  `/api/admin/rbac`), and a **Playwright e2e** suite (`apps/e2e`) wired into a
+  dedicated CI job that seeds + boots both apps and runs the specs.
+
 ## Known limitations (still open)
 
-- Valuation is moving-average / FIFO (no landed cost or batch/serial tracking);
+- Batch tracking is by batch id (no serial numbers or per-batch valuation);
   multi-currency has a single conversion rate (no revaluation).
-- SSE stream is unauthenticated (payload is only doctype + name); notifications
-  are in-app only (no email/SMS transport wired).
-- Version stores snapshots+diffs, not a full undo; webhooks/print are best-effort.
-- The DocType builder does not yet edit child-table field layouts in the UI
-  (JSON/`registerDef` covers it).
+- Email is log-only without SMTP; SSE stream is unauthenticated (doctype + name
+  only); webhooks/print are best-effort.
+- Financial statements are pre-closing (no period-close entry into equity).
+- The DocType builder does not yet edit child-table field layouts in the UI.
