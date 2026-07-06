@@ -1,0 +1,18 @@
+{
+  "name": "Depreciation Entry",
+  "module": "Assets",
+  "naming_rule": "series:DEPR-.#####",
+  "is_submittable": true,
+  "title_field": "asset",
+  "fields": [
+    { "fieldname": "asset", "label": "Asset", "fieldtype": "Link", "options": "Asset", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "amount", "label": "Depreciation Amount", "fieldtype": "Currency", "description": "Leave blank to auto-compute the straight-line annual charge", "in_list_view": true },
+    { "fieldname": "expense_account", "label": "Depreciation Expense Account", "fieldtype": "Link", "options": "Account", "default": "Depreciation Expense" },
+    { "fieldname": "accumulated_account", "label": "Accumulated Depreciation Account", "fieldtype": "Link", "options": "Account", "default": "Accumulated Depreciation" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
