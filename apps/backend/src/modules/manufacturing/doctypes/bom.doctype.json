@@ -1,0 +1,17 @@
+{
+  "name": "BOM",
+  "module": "Manufacturing",
+  "naming_rule": "series:BOM-.#####",
+  "title_field": "item",
+  "fields": [
+    { "fieldname": "item", "label": "Production Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "quantity", "label": "Quantity", "fieldtype": "Float", "default": "1", "reqd": true, "in_list_view": true },
+    { "fieldname": "is_active", "label": "Is Active", "fieldtype": "Check", "default": "1", "in_list_view": true },
+    { "fieldname": "is_default", "label": "Is Default", "fieldtype": "Check", "default": "1" },
+    { "fieldname": "items", "label": "Raw Materials", "fieldtype": "Table", "options": "BOM Item" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "report": 1 }
+  ]
+}

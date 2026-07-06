@@ -131,6 +131,23 @@ async function main() {
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });
 
+  // Manufacturing: a raw material + a BOM that produces WIDGET-1 from it.
+  await create("Item", {
+    item_code: "RAW-STEEL",
+    item_name: "Steel Sheet",
+    item_group: "Products",
+    stock_uom: "Nos",
+    standard_rate: 8,
+    is_stock_item: 1,
+  });
+  await create("BOM", {
+    item: "WIDGET-1",
+    quantity: 1,
+    is_active: 1,
+    is_default: 1,
+    items: [{ item_code: "RAW-STEEL", qty: 2, rate: 8 }],
+  });
+
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
     status: "Open",
