@@ -173,6 +173,26 @@ validated metadata.
   `CurrentUser`, and the throttler are execution-context aware (`requestFrom()`)
   so auth applies to REST and GraphQL alike.
 
+## Phase 12 — Manufacturing, Projects, Assets
+
+- **Manufacturing.** `BOM` (production item + raw-material rows) and `Work Order`
+  (submittable). Submitting a Work Order emits a Stock Entry with a new
+  **Manufacture** purpose that issues the BOM's materials from the source
+  warehouse and receives the finished good into the target warehouse at the
+  rolled-up material cost per unit (via `basic_rate` on the entry line); the
+  order flips to Completed and cancel reverses the whole entry.
+- **Projects.** `Project`, `Task`, and a submittable `Timesheet`. Submitting a
+  Timesheet computes `billable_amount = hours × rate` (billable lines only) and
+  rolls hours + amount onto the Project; cancel unwinds the rollup.
+- **Assets.** `Asset` (submittable) + `Depreciation Entry` (submittable). A
+  Depreciation Entry auto-computes the straight-line annual charge when left
+  blank (never below salvage), books **Dr Depreciation Expense / Cr Accumulated
+  Depreciation** to the GL, and steps the asset's accumulated depreciation,
+  current value and status; cancel reverses the GL and unwinds the asset.
+- Each module is a thin `BusinessModule` (JSON DocTypes + one event listener,
+  no cross-module service imports) and surfaces automatically in the
+  metadata-driven Desk sidebar, list and form views.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

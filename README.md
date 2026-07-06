@@ -115,4 +115,14 @@ Accounting, and HR as metadata-defined modules.
   engine and permissions (`documents`/`document` queries, `saveDocument`/
   `submitDocument`/`cancelDocument`/`deleteDocument` mutations).
 
+## Phase 12
+
+- **Manufacturing** — `BOM` + `Work Order`; submitting a Work Order issues raw
+  materials and receives the finished good (Manufacture stock entry) at rolled-up
+  material cost.
+- **Projects** — `Project`, `Task`, and a submittable `Timesheet` that rolls
+  billable hours × rate onto the project.
+- **Assets** — `Asset` + `Depreciation Entry` posting straight-line depreciation
+  (Dr Depreciation Expense / Cr Accumulated Depreciation) to the GL.
+
 See `docs/ARCHITECTURE.md` for the full design.
