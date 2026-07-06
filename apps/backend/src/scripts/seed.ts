@@ -166,6 +166,19 @@ async function main() {
     designation: "Engineer",
     status: "Active",
   });
+
+  // Projects demo.
+  await create("Project", {
+    project_name: "Website Revamp",
+    status: "Open",
+    customer: "Acme Inc",
+  });
+  await create("Task", {
+    subject: "Design mockups",
+    project: "Website Revamp",
+    status: "Open",
+    priority: "High",
+  });
   await create("Print Format", {
     print_format_name: "Sales Invoice Standard",
     document_type: "Sales Invoice",

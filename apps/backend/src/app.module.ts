@@ -20,6 +20,7 @@ import { StockModule } from "./modules/stock/stock.module";
 import { AccountingModule } from "./modules/accounting/accounting.module";
 import { HrModule } from "./modules/hr/hr.module";
 import { ManufacturingModule } from "./modules/manufacturing/manufacturing.module";
+import { ProjectsModule } from "./modules/projects/projects.module";
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ManufacturingModule } from "./modules/manufacturing/manufacturing.modul
     AccountingModule,
     HrModule,
     ManufacturingModule,
+    ProjectsModule,
   ],
   controllers: [HealthController],
   providers: [
