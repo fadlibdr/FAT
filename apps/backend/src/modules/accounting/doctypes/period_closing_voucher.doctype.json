@@ -1,0 +1,17 @@
+{
+  "name": "Period Closing Voucher",
+  "module": "Accounting",
+  "naming_rule": "series:PCV-.#####",
+  "is_submittable": true,
+  "title_field": "posting_date",
+  "fields": [
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "fiscal_year", "label": "Fiscal Year", "fieldtype": "Data", "in_standard_filter": true },
+    { "fieldname": "closing_account", "label": "Closing (Equity) Account", "fieldtype": "Link", "options": "Account", "reqd": true, "default": "Retained Earnings", "in_list_view": true },
+    { "fieldname": "net_profit", "label": "Net Profit", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

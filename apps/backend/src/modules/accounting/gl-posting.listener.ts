@@ -182,4 +182,56 @@ export class GlPostingListener {
       });
     }
   }
+
+  /**
+   * Period close: zero out income/expense account balances and move net profit
+   * into the equity (Retained Earnings) account with a balanced GL entry.
+   */
+  @OnEvent("doc.on_submit:Period Closing Voucher")
+  async onPeriodClose(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const ctx = systemContext(payload.user);
+    const closingAccount = String(doc.closing_account ?? "Retained Earnings");
+
+    const balances: Array<{ account: string; type: string; bal: number }> =
+      await this.dataSource.query(
+        `SELECT gl."account" AS account, a."account_type" AS type,
+                (sum(gl."credit") - sum(gl."debit")) AS bal
+         FROM ${quoteIdent(tableNameFor("GL Entry"))} gl
+         JOIN ${quoteIdent(tableNameFor("Account"))} a ON a."name" = gl."account"
+         WHERE a."account_type" IN ('Income','Expense')
+         GROUP BY gl."account", a."account_type"
+         HAVING (sum(gl."credit") - sum(gl."debit")) <> 0`,
+      );
+
+    const lines: Line[] = [];
+    let netProfit = 0;
+    for (const b of balances) {
+      const bal = Number(b.bal); // credit-positive for income, debit-negative for expense
+      netProfit += bal; // income adds, expense (negative bal) subtracts
+      // Reverse the account's balance to zero it.
+      if (bal > 0) lines.push({ account: b.account, debit: bal, credit: 0, against: closingAccount });
+      else lines.push({ account: b.account, debit: 0, credit: -bal, against: closingAccount });
+    }
+    // Book the net into equity (credit for profit, debit for loss).
+    if (netProfit >= 0) lines.push({ account: closingAccount, debit: 0, credit: netProfit, against: "Period Close" });
+    else lines.push({ account: closingAccount, debit: -netProfit, credit: 0, against: "Period Close" });
+
+    try {
+      await this.postLines(ctx, "Period Closing Voucher", String(doc.name), doc.posting_date, lines);
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Period Closing Voucher"))} SET ${quoteIdent("net_profit")} = $1
+         WHERE ${quoteIdent("name")} = $2`,
+        [netProfit, doc.name],
+      );
+      this.logger.log(`Period close ${doc.name}: net profit ${netProfit} -> ${closingAccount}`);
+    } catch (err) {
+      this.logger.error(`Period close ${doc.name} failed: ${(err as Error).message}`);
+    }
+  }
+
+  @OnEvent("doc.on_cancel:Period Closing Voucher")
+  async onPeriodCloseCancel(payload: DocEventPayload): Promise<void> {
+    await this.reverseGl("Period Closing Voucher", payload.doc.name);
+  }
 }

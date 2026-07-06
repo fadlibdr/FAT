@@ -103,4 +103,16 @@ Accounting, and HR as metadata-defined modules.
 - **Hardening** — rate limiting, audit-log retention, an RBAC admin UI, and a
   Playwright e2e suite in CI.
 
+## Phase 11
+
+- **Stock depth** — serial numbers (`Serial No`, Active→Delivered) and per-batch
+  valuation (`Bin` keyed by item+warehouse+batch).
+- **Period close** — a `Period Closing Voucher` moves net profit/loss into equity
+  (Retained Earnings) with a balanced GL entry.
+- **Point of Sale** — `/pos` posts an invoice + reconciled payment in one tap,
+  with an offline localStorage queue that auto-syncs on reconnect.
+- **GraphQL** — a generic Apollo schema at `/graphql` over the same DocType
+  engine and permissions (`documents`/`document` queries, `saveDocument`/
+  `submitDocument`/`cancelDocument`/`deleteDocument` mutations).
+
 See `docs/ARCHITECTURE.md` for the full design.

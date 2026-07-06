@@ -18,3 +18,4 @@ pnpm-debug.log*
 
 playwright-report/
 test-results/
+apps/backend/src/graphql/schema.gql

@@ -151,11 +151,35 @@ validated metadata.
   `/api/admin/rbac`), and a **Playwright e2e** suite (`apps/e2e`) wired into a
   dedicated CI job that seeds + boots both apps and runs the specs.
 
+## Phase 11 — serial/batch depth, POS, GraphQL
+
+- **Stock depth.** Serial numbers (`Serial No` DocType; `serial_no` on stock
+  movements + ledger; the stock-ledger listener creates serials Active on receipt
+  and flips them Delivered on issue) and **per-batch valuation** — `Bin` is now
+  keyed by `item::warehouse::batch`, so moving-average/FIFO cost is tracked per
+  batch and the stock-balance report re-aggregates back to item+warehouse.
+- **Period close.** `Period Closing Voucher` (submittable): the GL listener zeroes
+  every income/expense balance and books the net profit/loss into the equity
+  closing account (Retained Earnings) with a balanced entry, reversible on cancel.
+- **Point of Sale.** `/pos` rings up a sale — one tap posts a Sales Invoice + a
+  reconciled Payment Entry. It is **offline-resilient**: when offline or the server
+  is unreachable the order is persisted to a localStorage queue and retried
+  automatically on reconnect (invoice name is stamped before payment so a
+  mid-sequence retry never duplicates the invoice).
+- **GraphQL alongside REST.** One generic Apollo (code-first) schema over the
+  DocType engine — `documents`/`document` queries and `saveDocument`/
+  `submitDocument`/`cancelDocument`/`deleteDocument` mutations — reusing
+  `DocumentService` and the same permission checks. The global JWT guard,
+  `CurrentUser`, and the throttler are execution-context aware (`requestFrom()`)
+  so auth applies to REST and GraphQL alike.
+
 ## Known limitations (still open)
 
-- Batch tracking is by batch id (no serial numbers or per-batch valuation);
-  multi-currency has a single conversion rate (no revaluation).
+- Multi-currency has a single conversion rate (no revaluation); serial numbers
+  track status/movement but not per-serial valuation.
 - Email is log-only without SMTP; SSE stream is unauthenticated (doctype + name
   only); webhooks/print are best-effort.
-- Financial statements are pre-closing (no period-close entry into equity).
+- POS offline retry can duplicate a *payment* (not the invoice) if the invoice
+  submitted but the client never saw the response; GraphQL exposes no
+  subscriptions yet.
 - The DocType builder does not yet edit child-table field layouts in the UI.

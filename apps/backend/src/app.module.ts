@@ -2,11 +2,13 @@ import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
-import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { buildDataSourceOptions } from "./data-source";
 import { CoreModule } from "./core/core.module";
 import { JobsModule } from "./core/jobs/jobs.module";
+import { FatGraphQLModule } from "./graphql/graphql.module";
+import { GqlThrottlerGuard } from "./graphql/gql-throttler.guard";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard } from "./auth/jwt-auth.guard";
 import { HealthController } from "./health.controller";
@@ -28,6 +30,7 @@ import { HrModule } from "./modules/hr/hr.module";
     TypeOrmModule.forRoot(buildDataSourceOptions()),
     CoreModule,
     JobsModule,
+    FatGraphQLModule,
     AuthModule,
     // Order matters for readable startup logs; Link validation is runtime, not
     // load-time, so masters need not strictly precede dependents.
@@ -41,7 +44,7 @@ import { HrModule } from "./modules/hr/hr.module";
   ],
   controllers: [HealthController],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: GqlThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
