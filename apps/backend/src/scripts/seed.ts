@@ -182,6 +182,19 @@ async function main() {
     discount_percentage: 10,
   });
 
+  // Support: a default SLA with per-priority response/resolution targets.
+  await create("Service Level Agreement", {
+    service_level: "Default SLA",
+    is_active: 1,
+    is_default: 1,
+    priorities: [
+      { priority: "Low", response_time_hours: 24, resolution_time_hours: 120 },
+      { priority: "Medium", response_time_hours: 8, resolution_time_hours: 48 },
+      { priority: "High", response_time_hours: 4, resolution_time_hours: 24 },
+      { priority: "Urgent", response_time_hours: 1, resolution_time_hours: 8 },
+    ],
+  });
+
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
     status: "Open",

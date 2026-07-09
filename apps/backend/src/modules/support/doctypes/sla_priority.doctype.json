@@ -1,0 +1,14 @@
+{
+  "name": "SLA Priority",
+  "module": "Support",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "priority", "label": "Priority", "fieldtype": "Select", "options": "Low\nMedium\nHigh\nUrgent", "default": "Medium", "reqd": true, "in_list_view": true },
+    { "fieldname": "response_time_hours", "label": "First Response (hrs)", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "resolution_time_hours", "label": "Resolution (hrs)", "fieldtype": "Float", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

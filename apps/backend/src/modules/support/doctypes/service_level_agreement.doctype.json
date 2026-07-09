@@ -1,0 +1,15 @@
+{
+  "name": "Service Level Agreement",
+  "module": "Support",
+  "naming_rule": "field:service_level",
+  "title_field": "service_level",
+  "fields": [
+    { "fieldname": "service_level", "label": "Service Level", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "is_active", "label": "Is Active", "fieldtype": "Check", "default": "1", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "is_default", "label": "Is Default", "fieldtype": "Check", "default": "1", "in_list_view": true },
+    { "fieldname": "priorities", "label": "Priorities", "fieldtype": "Table", "options": "SLA Priority" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}
