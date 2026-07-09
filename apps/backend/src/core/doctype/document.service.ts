@@ -348,6 +348,7 @@ export class DocumentService {
     ctx: UserContext,
     data: Record<string, unknown>,
   ): Promise<FatDocument> {
+    await this.hooks.applyBeforeSave({ doctype: dt.name, data, user: ctx.name, isNew: true });
     this.validation.validate(dt, data, true);
     await this.validateLinks(dt, data);
 
@@ -399,6 +400,7 @@ export class DocumentService {
       throw new BadRequestException(`Cannot edit a submitted ${dt.name}`);
     }
 
+    await this.hooks.applyBeforeSave({ doctype: dt.name, data, user: ctx.name, isNew: false });
     this.validation.validate(dt, data, false);
     await this.validateLinks(dt, data);
 

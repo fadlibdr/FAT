@@ -169,6 +169,19 @@ async function main() {
     deductions: [{ salary_component: "Tax", amount: 900 }],
   });
 
+  // Selling: a volume discount rule for Acme on WIDGET-1 (10+ qty -> 10% off).
+  await create("Pricing Rule", {
+    title: "Acme Widget Volume 10%",
+    is_active: 1,
+    priority: 1,
+    apply_on: "Item Code",
+    item_code: "WIDGET-1",
+    customer: "Acme Inc",
+    min_qty: 10,
+    rate_or_discount: "Discount Percentage",
+    discount_percentage: 10,
+  });
+
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
     status: "Open",
