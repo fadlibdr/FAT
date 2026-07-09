@@ -25,6 +25,7 @@ import { AssetsModule } from "./modules/assets/assets.module";
 import { PayrollModule } from "./modules/payroll/payroll.module";
 import { SupportModule } from "./modules/support/support.module";
 import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
+import { LoyaltyModule } from "./modules/loyalty/loyalty.module";
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.modul
     PayrollModule,
     SupportModule,
     SubscriptionsModule,
+    LoyaltyModule,
   ],
   controllers: [HealthController],
   providers: [

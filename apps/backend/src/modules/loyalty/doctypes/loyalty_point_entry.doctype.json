@@ -1,0 +1,18 @@
+{
+  "name": "Loyalty Point Entry",
+  "module": "Loyalty",
+  "naming_rule": "series:LPE-.#####",
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "loyalty_program", "label": "Loyalty Program", "fieldtype": "Link", "options": "Loyalty Program", "in_standard_filter": true },
+    { "fieldname": "entry_type", "label": "Entry Type", "fieldtype": "Select", "options": "Accrual\nRedemption", "default": "Accrual", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "points", "label": "Points", "fieldtype": "Int", "reqd": true, "in_list_view": true },
+    { "fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Link", "options": "Sales Invoice", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
