@@ -1,0 +1,15 @@
+{
+  "name": "Salary Component",
+  "module": "Payroll",
+  "naming_rule": "field:component_name",
+  "title_field": "component_name",
+  "fields": [
+    { "fieldname": "component_name", "label": "Component Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "component_type", "label": "Type", "fieldtype": "Select", "options": "Earning\nDeduction", "default": "Earning", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "gl_account", "label": "GL Account", "fieldtype": "Link", "options": "Account", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

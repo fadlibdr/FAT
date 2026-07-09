@@ -1,0 +1,17 @@
+{
+  "name": "Salary Structure",
+  "module": "Payroll",
+  "naming_rule": "field:structure_name",
+  "title_field": "structure_name",
+  "fields": [
+    { "fieldname": "structure_name", "label": "Structure Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "is_active", "label": "Is Active", "fieldtype": "Check", "default": "1", "in_list_view": true },
+    { "fieldname": "earnings", "label": "Earnings", "fieldtype": "Table", "options": "Salary Detail" },
+    { "fieldname": "deductions", "label": "Deductions", "fieldtype": "Table", "options": "Salary Detail" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
