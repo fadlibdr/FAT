@@ -1,0 +1,22 @@
+{
+  "name": "Salary Slip",
+  "module": "Payroll",
+  "naming_rule": "series:SAL-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "salary_structure", "label": "Salary Structure", "fieldtype": "Link", "options": "Salary Structure", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "payable_account", "label": "Payable Account", "fieldtype": "Link", "options": "Account", "default": "Salaries Payable" },
+    { "fieldname": "gross_pay", "label": "Gross Pay", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "total_deduction", "label": "Total Deduction", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "net_pay", "label": "Net Pay", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 }
+  ]
+}

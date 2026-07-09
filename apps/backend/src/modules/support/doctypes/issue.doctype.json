@@ -1,0 +1,22 @@
+{
+  "name": "Issue",
+  "module": "Support",
+  "naming_rule": "series:ISS-.#####",
+  "title_field": "subject",
+  "fields": [
+    { "fieldname": "subject", "label": "Subject", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "in_standard_filter": true },
+    { "fieldname": "priority", "label": "Priority", "fieldtype": "Select", "options": "Low\nMedium\nHigh\nUrgent", "default": "Medium", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nReplied\nResolved\nClosed", "default": "Open", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "opening_date", "label": "Opening", "fieldtype": "Datetime", "in_list_view": true },
+    { "fieldname": "service_level_agreement", "label": "SLA", "fieldtype": "Link", "options": "Service Level Agreement", "read_only": true },
+    { "fieldname": "response_by", "label": "Response By", "fieldtype": "Datetime", "read_only": true },
+    { "fieldname": "resolution_by", "label": "Resolution By", "fieldtype": "Datetime", "read_only": true },
+    { "fieldname": "resolution_date", "label": "Resolved On", "fieldtype": "Datetime", "read_only": true },
+    { "fieldname": "agreement_status", "label": "Agreement Status", "fieldtype": "Select", "options": "Ongoing\nFulfilled\nFailed", "default": "Ongoing", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

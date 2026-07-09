@@ -117,6 +117,9 @@ async function main() {
   await create("Account", { account_name: "Fixed Assets", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Accumulated Depreciation", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Depreciation Expense", account_type: "Expense", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Salary Expense", account_type: "Expense", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Salaries Payable", account_type: "Liability", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Tax Withheld Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Cost Center", { cost_center_name: "Main", company: "FAT Demo Co" });
   await create("Budget", { cost_center: "Main", account: "Sales", budget_amount: 10000 });
   await create("Batch", { batch_id: "BATCH-A", item: "WIDGET-1" });
@@ -149,6 +152,47 @@ async function main() {
     is_active: 1,
     is_default: 1,
     items: [{ item_code: "RAW-STEEL", qty: 2, rate: 8 }],
+  });
+
+  // Payroll: components + a salary structure for the demo employee.
+  await create("Salary Component", { component_name: "Basic", component_type: "Earning", gl_account: "Salary Expense" });
+  await create("Salary Component", { component_name: "Allowance", component_type: "Earning", gl_account: "Salary Expense" });
+  await create("Salary Component", { component_name: "Tax", component_type: "Deduction", gl_account: "Tax Withheld Payable" });
+  await create("Salary Structure", {
+    structure_name: "Standard Engineer",
+    company: "FAT Demo Co",
+    is_active: 1,
+    earnings: [
+      { salary_component: "Basic", amount: 5000 },
+      { salary_component: "Allowance", amount: 1000 },
+    ],
+    deductions: [{ salary_component: "Tax", amount: 900 }],
+  });
+
+  // Selling: a volume discount rule for Acme on WIDGET-1 (10+ qty -> 10% off).
+  await create("Pricing Rule", {
+    title: "Acme Widget Volume 10%",
+    is_active: 1,
+    priority: 1,
+    apply_on: "Item Code",
+    item_code: "WIDGET-1",
+    customer: "Acme Inc",
+    min_qty: 10,
+    rate_or_discount: "Discount Percentage",
+    discount_percentage: 10,
+  });
+
+  // Support: a default SLA with per-priority response/resolution targets.
+  await create("Service Level Agreement", {
+    service_level: "Default SLA",
+    is_active: 1,
+    is_default: 1,
+    priorities: [
+      { priority: "Low", response_time_hours: 24, resolution_time_hours: 120 },
+      { priority: "Medium", response_time_hours: 8, resolution_time_hours: 48 },
+      { priority: "High", response_time_hours: 4, resolution_time_hours: 24 },
+      { priority: "Urgent", response_time_hours: 1, resolution_time_hours: 8 },
+    ],
   });
 
   await create("ToDo", {

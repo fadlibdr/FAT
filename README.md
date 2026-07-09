@@ -125,4 +125,16 @@ Accounting, and HR as metadata-defined modules.
 - **Assets** — `Asset` + `Depreciation Entry` posting straight-line depreciation
   (Dr Depreciation Expense / Cr Accumulated Depreciation) to the GL.
 
+## Phase 13
+
+- **Payroll** — `Salary Component`, `Salary Structure` (earnings/deductions), and
+  a submittable `Salary Slip` that computes gross/deduction/net and books a
+  balanced journal (Dr earnings, Cr deductions + net pay to the payable account).
+- **Pricing rules** — a `Pricing Rule` (by item/item-group, customer, min qty)
+  applied through a new pre-write engine hook: it sets a line's fixed rate or a
+  discount % before totals are computed.
+- **Support** — `Service Level Agreement` (per-priority response/resolution
+  targets) and `Issue`, which is stamped with SLA deadlines on creation and
+  marked Fulfilled/Failed when resolved.
+
 See `docs/ARCHITECTURE.md` for the full design.
