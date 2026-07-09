@@ -42,9 +42,14 @@ export class PricingRuleListener {
     if (!this.registry.has("Pricing Rule")) return;
     const data = payload.data;
     const items = data.items as Array<Record<string, unknown>> | undefined;
-    // Only selling transactions: a customer + an items grid with item_code/rate.
+    // Only price billing transactions: a customer + an items grid, and a
+    // grand_total field (Quotation / Sales Order / Sales Invoice) — not
+    // pre-sales docs like Opportunity, which would otherwise double-discount
+    // when their lines are carried into a converted Quotation.
     if (!data.customer || !Array.isArray(items) || items.length === 0) return;
     if (!items.some((r) => r && r.item_code !== undefined)) return;
+    const dt = this.registry.get(payload.doctype);
+    if (!dt || !dt.fields.some((f) => f.fieldname === "grand_total")) return;
 
     const rules = (await this.dataSource.query(
       `SELECT ${quoteIdent("name")}, coalesce(${quoteIdent("priority")},0) AS priority,
