@@ -193,6 +193,29 @@ validated metadata.
   no cross-module service imports) and surfaces automatically in the
   metadata-driven Desk sidebar, list and form views.
 
+## Phase 13 — Payroll, Pricing, Support
+
+- **Payroll.** `Salary Component` (Earning/Deduction + GL account),
+  `Salary Structure` (earnings/deductions child tables), and a submittable
+  `Salary Slip`. On submit the listener reads the structure, computes gross /
+  total deduction / net pay, and posts a balanced journal — Dr each earning
+  account (Σ = gross), Cr each deduction account, Cr the payable account (net);
+  cancel reverses the GL.
+- **Pricing rules.** A new **pre-write engine hook** (`HooksService.applyBeforeSave`,
+  invoked by `DocumentService.create`/`update` before validation) lets listeners
+  transform raw input. `PricingRuleListener` uses it to match each selling line
+  against active `Pricing Rule`s (by item code / item group, optionally scoped to
+  a customer and above a minimum qty) and set a fixed rate or apply a discount %;
+  the recompute-totals job then derives amounts/totals from the adjusted rates.
+- **Support.** `Service Level Agreement` (per-priority first-response and
+  resolution targets) and `Issue`. The support listener stamps `response_by` /
+  `resolution_by` from the applicable SLA on creation, and on Resolved/Closed
+  compares the resolution time to the deadline to mark the agreement
+  Fulfilled/Failed (direct SQL write-backs avoid event re-entry).
+- Each module is a thin `BusinessModule` (JSON DocTypes + one event listener, no
+  cross-module service imports) and appears automatically in the Desk sidebar,
+  list and form views.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
@@ -203,3 +226,7 @@ validated metadata.
   submitted but the client never saw the response; GraphQL exposes no
   subscriptions yet.
 - The DocType builder does not yet edit child-table field layouts in the UI.
+- Pricing Rules apply a single best (highest-priority) match per line — no rule
+  stacking or margin/validity-date windows. SLA deadlines are elapsed-hours
+  based (no business-hours calendar, holidays, or pause) and Payroll has no
+  period/attendance proration.
