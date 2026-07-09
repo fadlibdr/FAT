@@ -114,6 +114,9 @@ async function main() {
   await create("Account", { account_name: "VAT", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Cost of Goods Sold", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Retained Earnings", account_type: "Equity", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Fixed Assets", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Accumulated Depreciation", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Depreciation Expense", account_type: "Expense", company: "FAT Demo Co" });
   await create("Cost Center", { cost_center_name: "Main", company: "FAT Demo Co" });
   await create("Budget", { cost_center: "Main", account: "Sales", budget_amount: 10000 });
   await create("Batch", { batch_id: "BATCH-A", item: "WIDGET-1" });
@@ -130,6 +133,23 @@ async function main() {
   // Warehouses for stock ledger postings.
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });
+
+  // Manufacturing: a raw material + a BOM that produces WIDGET-1 from it.
+  await create("Item", {
+    item_code: "RAW-STEEL",
+    item_name: "Steel Sheet",
+    item_group: "Products",
+    stock_uom: "Nos",
+    standard_rate: 8,
+    is_stock_item: 1,
+  });
+  await create("BOM", {
+    item: "WIDGET-1",
+    quantity: 1,
+    is_active: 1,
+    is_default: 1,
+    items: [{ item_code: "RAW-STEEL", qty: 2, rate: 8 }],
+  });
 
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
@@ -148,6 +168,19 @@ async function main() {
     company: "FAT Demo Co",
     designation: "Engineer",
     status: "Active",
+  });
+
+  // Projects demo.
+  await create("Project", {
+    project_name: "Website Revamp",
+    status: "Open",
+    customer: "Acme Inc",
+  });
+  await create("Task", {
+    subject: "Design mockups",
+    project: "Website Revamp",
+    status: "Open",
+    priority: "High",
   });
   await create("Print Format", {
     print_format_name: "Sales Invoice Standard",

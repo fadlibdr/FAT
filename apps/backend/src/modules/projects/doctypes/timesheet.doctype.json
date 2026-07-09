@@ -1,0 +1,23 @@
+{
+  "name": "Timesheet",
+  "module": "Projects",
+  "naming_rule": "series:TS-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "project", "label": "Project", "fieldtype": "Link", "options": "Project", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "task", "label": "Task", "fieldtype": "Link", "options": "Task" },
+    { "fieldname": "posting_date", "label": "Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "activity", "label": "Activity", "fieldtype": "Data" },
+    { "fieldname": "hours", "label": "Hours", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "is_billable", "label": "Is Billable", "fieldtype": "Check", "default": "1" },
+    { "fieldname": "billing_rate", "label": "Billing Rate", "fieldtype": "Currency" },
+    { "fieldname": "billable_amount", "label": "Billable Amount", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Data", "read_only": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

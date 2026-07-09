@@ -1,0 +1,23 @@
+{
+  "name": "Asset",
+  "module": "Assets",
+  "naming_rule": "series:ASSET-.#####",
+  "is_submittable": true,
+  "title_field": "asset_name",
+  "fields": [
+    { "fieldname": "asset_name", "label": "Asset Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "asset_category", "label": "Category", "fieldtype": "Data", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "purchase_date", "label": "Purchase Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "gross_purchase_amount", "label": "Gross Purchase Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "salvage_value", "label": "Salvage Value", "fieldtype": "Currency", "default": "0" },
+    { "fieldname": "useful_life_years", "label": "Useful Life (Years)", "fieldtype": "Float", "reqd": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nPartially Depreciated\nFully Depreciated\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "accumulated_depreciation", "label": "Accumulated Depreciation", "fieldtype": "Currency", "read_only": true, "default": "0" },
+    { "fieldname": "value_after_depreciation", "label": "Current Value", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

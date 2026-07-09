@@ -1,0 +1,17 @@
+{
+  "name": "Task",
+  "module": "Projects",
+  "naming_rule": "series:TASK-.#####",
+  "title_field": "subject",
+  "fields": [
+    { "fieldname": "subject", "label": "Subject", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "project", "label": "Project", "fieldtype": "Link", "options": "Project", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nWorking\nCompleted\nCancelled", "default": "Open", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "priority", "label": "Priority", "fieldtype": "Select", "options": "Low\nMedium\nHigh", "default": "Medium", "in_list_view": true },
+    { "fieldname": "exp_end_date", "label": "Expected End Date", "fieldtype": "Date" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

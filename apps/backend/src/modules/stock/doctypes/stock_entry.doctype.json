@@ -5,7 +5,8 @@
   "is_submittable": true,
   "title_field": "purpose",
   "fields": [
-    { "fieldname": "purpose", "label": "Purpose", "fieldtype": "Select", "options": "Material Receipt\nMaterial Issue\nMaterial Transfer", "default": "Material Receipt", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "purpose", "label": "Purpose", "fieldtype": "Select", "options": "Material Receipt\nMaterial Issue\nMaterial Transfer\nManufacture", "default": "Material Receipt", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "work_order", "label": "Work Order", "fieldtype": "Data", "read_only": true, "in_standard_filter": true },
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Stock Entry Detail" }

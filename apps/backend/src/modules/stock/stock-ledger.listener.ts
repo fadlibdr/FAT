@@ -220,14 +220,19 @@ export class StockLedgerListener {
       const item = String(row.item_code);
       const batch = (row.batch_no as string) || null;
       const serials = String(row.serial_no ?? "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+      // Explicit valuation rate wins for receipts (e.g. a manufactured FG whose
+      // cost is rolled up from its consumed raw materials); else item standard.
+      const rcvRate = row.basic_rate != null && row.basic_rate !== ""
+        ? Number(row.basic_rate)
+        : await this.itemRate(item);
       const moves: Movement[] = [];
       if (purpose === "Material Receipt") {
-        moves.push({ item, warehouse: String(row.t_warehouse ?? ""), delta: qty, incomingRate: await this.itemRate(item), batch, serials });
+        moves.push({ item, warehouse: String(row.t_warehouse ?? ""), delta: qty, incomingRate: rcvRate, batch, serials });
       } else if (purpose === "Material Issue") {
         moves.push({ item, warehouse: String(row.s_warehouse ?? ""), delta: -qty, batch, serials });
       } else {
         if (row.s_warehouse) moves.push({ item, warehouse: String(row.s_warehouse), delta: -qty, batch, serials });
-        if (row.t_warehouse) moves.push({ item, warehouse: String(row.t_warehouse), delta: qty, incomingRate: await this.itemRate(item), batch, serials });
+        if (row.t_warehouse) moves.push({ item, warehouse: String(row.t_warehouse), delta: qty, incomingRate: rcvRate, batch, serials });
       }
       for (const m of moves) {
         try {

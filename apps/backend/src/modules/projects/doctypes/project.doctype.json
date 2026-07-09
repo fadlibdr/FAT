@@ -1,0 +1,19 @@
+{
+  "name": "Project",
+  "module": "Projects",
+  "naming_rule": "field:project_name",
+  "title_field": "project_name",
+  "fields": [
+    { "fieldname": "project_name", "label": "Project Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nCompleted\nCancelled", "default": "Open", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "expected_end_date", "label": "Expected End Date", "fieldtype": "Date" },
+    { "fieldname": "total_hours", "label": "Total Hours", "fieldtype": "Float", "read_only": true, "default": "0", "in_list_view": true },
+    { "fieldname": "total_billable_amount", "label": "Billable Amount", "fieldtype": "Currency", "read_only": true, "default": "0", "in_list_view": true },
+    { "fieldname": "total_billed_amount", "label": "Billed Amount", "fieldtype": "Currency", "read_only": true, "default": "0" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
