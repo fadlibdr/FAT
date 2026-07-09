@@ -195,6 +195,15 @@ async function main() {
     ],
   });
 
+  // Subscriptions: a monthly plan (demo subscription is created by the smoke run).
+  await create("Subscription Plan", {
+    plan_name: "Widget Monthly",
+    item: "WIDGET-1",
+    price: 25,
+    billing_interval: "Month",
+    interval_count: 1,
+  });
+
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
     status: "Open",
