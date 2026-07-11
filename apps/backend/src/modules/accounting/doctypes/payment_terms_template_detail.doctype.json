@@ -1,0 +1,14 @@
+{
+  "name": "Payment Terms Template Detail",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "description", "label": "Description", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "invoice_portion", "label": "Invoice Portion (%)", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "credit_days", "label": "Credit Days", "fieldtype": "Int", "default": "0", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

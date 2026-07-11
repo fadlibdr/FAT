@@ -1,0 +1,15 @@
+{
+  "name": "Payment Schedule",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "due_date", "label": "Due Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "invoice_portion", "label": "Portion (%)", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "payment_amount", "label": "Payment Amount", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Data", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Payment Terms Template",
+  "module": "Accounting",
+  "naming_rule": "field:template_name",
+  "title_field": "template_name",
+  "fields": [
+    { "fieldname": "template_name", "label": "Template Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "terms", "label": "Terms", "fieldtype": "Table", "options": "Payment Terms Template Detail" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
