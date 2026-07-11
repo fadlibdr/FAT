@@ -26,6 +26,7 @@ import { PayrollModule } from "./modules/payroll/payroll.module";
 import { SupportModule } from "./modules/support/support.module";
 import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
 import { LoyaltyModule } from "./modules/loyalty/loyalty.module";
+import { QualityModule } from "./modules/quality/quality.module";
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { LoyaltyModule } from "./modules/loyalty/loyalty.module";
     SupportModule,
     SubscriptionsModule,
     LoyaltyModule,
+    QualityModule,
   ],
   controllers: [HealthController],
   providers: [

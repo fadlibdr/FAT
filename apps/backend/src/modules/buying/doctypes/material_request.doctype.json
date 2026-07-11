@@ -1,0 +1,20 @@
+{
+  "name": "Material Request",
+  "module": "Buying",
+  "naming_rule": "series:MR-.#####",
+  "is_submittable": true,
+  "title_field": "material_request_type",
+  "fields": [
+    { "fieldname": "material_request_type", "label": "Type", "fieldtype": "Select", "options": "Purchase\nMaterial Issue\nMaterial Transfer", "default": "Purchase", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Material Request Item" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nPending\nOrdered\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "purchase_order", "label": "Purchase Order", "fieldtype": "Data", "read_only": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Purchase User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Quality Inspection Reading",
+  "module": "Quality",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "parameter", "label": "Parameter", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "specification", "label": "Specification", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "reading_value", "label": "Reading", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "acceptance", "label": "Acceptance", "fieldtype": "Select", "options": "Accepted\nRejected", "default": "Accepted", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

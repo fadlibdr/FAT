@@ -53,4 +53,15 @@ export class HooksService {
     await this.emitter.emitAsync("doc.before_save", payload);
     await this.emitter.emitAsync(`doc.before_save:${payload.doctype}`, payload);
   }
+
+  /**
+   * Awaitable pre-submit gate. Fired before a document transitions to submitted
+   * (docstatus 1). A listener that throws aborts the submission — e.g. Quality
+   * blocks a Purchase Receipt whose inspected items are not yet Accepted.
+   * `emitAsync` propagates the first listener error to the caller.
+   */
+  async applyBeforeSubmit(payload: DocEventPayload): Promise<void> {
+    await this.emitter.emitAsync("doc.before_submit", payload);
+    await this.emitter.emitAsync(`doc.before_submit:${payload.doctype}`, payload);
+  }
 }

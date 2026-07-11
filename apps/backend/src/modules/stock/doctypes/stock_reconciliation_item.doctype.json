@@ -1,0 +1,17 @@
+{
+  "name": "Stock Reconciliation Item",
+  "module": "Stock",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true },
+    { "fieldname": "qty", "label": "Counted Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "valuation_rate", "label": "Valuation Rate", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "current_qty", "label": "Current Qty", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "difference_qty", "label": "Difference", "fieldtype": "Float", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

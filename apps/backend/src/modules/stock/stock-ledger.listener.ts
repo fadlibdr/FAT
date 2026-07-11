@@ -294,6 +294,79 @@ export class StockLedgerListener {
     this.logger.log(`Posted stock ledger for Purchase Receipt ${doc.name}`);
   }
 
+  /** Current Bin balance for an item+warehouse(+batch) — used by reconciliation. */
+  private async binBalance(
+    item: string,
+    warehouse: string,
+    batch: string,
+  ): Promise<{ qty: number; rate: number }> {
+    const bin = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("actual_qty")} AS qty, ${quoteIdent("valuation_rate")} AS rate
+         FROM ${quoteIdent(tableNameFor("Bin"))} WHERE ${quoteIdent("name")} = $1`,
+        [`${item}::${warehouse}::${batch}`],
+      )
+    )[0];
+    return { qty: Number(bin?.qty ?? 0), rate: Number(bin?.rate ?? 0) };
+  }
+
+  /**
+   * A submitted Stock Reconciliation asserts an absolute counted quantity per
+   * item+warehouse. We read the current Bin balance, post a Stock Ledger Entry
+   * for the *difference* (which drives the Bin to the counted qty via the shared
+   * moving-average/FIFO posting), and stamp each row's current/difference qty and
+   * the voucher's net valuation change. Cancel reverses the same delta.
+   */
+  @OnEvent("doc.on_submit:Stock Reconciliation")
+  async onStockReconciliation(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const ctx = systemContext(payload.user);
+    let differenceAmount = 0;
+    for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
+      const item = String(row.item_code ?? "");
+      const warehouse = String(row.warehouse ?? "");
+      if (!item || !warehouse) continue;
+      const counted = Number(row.qty ?? 0);
+      const { qty: currentQty, rate: currentRate } = await this.binBalance(item, warehouse, "");
+      const delta = counted - currentQty;
+      // An explicit valuation rate overrides the current one (e.g. Opening Stock).
+      const rate = row.valuation_rate != null && row.valuation_rate !== ""
+        ? Number(row.valuation_rate)
+        : currentRate;
+      try {
+        if (delta !== 0) {
+          await this.post(
+            ctx,
+            { item, warehouse, delta, incomingRate: delta > 0 ? rate : undefined },
+            "Stock Reconciliation",
+            String(doc.name),
+            doc.posting_date,
+          );
+        }
+        differenceAmount += delta * (rate || currentRate);
+        await this.dataSource.query(
+          `UPDATE ${quoteIdent(tableNameFor("Stock Reconciliation Item"))}
+           SET ${quoteIdent("current_qty")} = $1, ${quoteIdent("difference_qty")} = $2
+           WHERE ${quoteIdent("name")} = $3`,
+          [currentQty, delta, String(row.name)],
+        );
+      } catch (err) {
+        this.logger.error(`Reconcile ${doc.name}/${item}: ${(err as Error).message}`);
+      }
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Stock Reconciliation"))}
+       SET ${quoteIdent("difference_amount")} = $1 WHERE ${quoteIdent("name")} = $2`,
+      [differenceAmount, String(doc.name)],
+    );
+    this.logger.log(`Reconciled stock for ${doc.name} (net value ${differenceAmount})`);
+  }
+
+  @OnEvent("doc.on_cancel:Stock Reconciliation")
+  async cancelStockReconciliation(p: DocEventPayload): Promise<void> {
+    await this.reverse("Stock Reconciliation", String(p.doc.name));
+  }
+
   @OnEvent("doc.on_cancel:Stock Entry")
   async cancelStockEntry(p: DocEventPayload): Promise<void> {
     await this.reverse("Stock Entry", String(p.doc.name));

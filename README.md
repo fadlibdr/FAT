@@ -147,4 +147,21 @@ Accounting, and HR as metadata-defined modules.
 - **Loyalty** — a `Loyalty Program` accrues points on Sales Invoice submit into a
   `Loyalty Point Entry` ledger; balance at `GET /api/loyalty/balance/:customer`.
 
+## Phase 15
+
+- **Stock Reconciliation** — a physical-count voucher asserts absolute on-hand
+  quantities per item+warehouse; on submit it posts an adjusting Stock Ledger
+  Entry for the difference (driving each `Bin` to the counted qty/valuation) and
+  records the net valuation change. Cancel reverses it.
+- **Auto-reorder** — Items carry a `reorder_level`/`reorder_qty`; a daily (and
+  on-demand `POST /api/buying/run-reorder`) run raises one submitted `Material
+  Request` for every item below its level, and `POST /api/buying/material-request/
+  :name/make-purchase-order` turns a request into a draft `Purchase Order`
+  (stamping ordered qty and linking both).
+- **Quality Inspection** — a `Quality Inspection` (with a readings grid) whose
+  status is derived from the readings (Rejected if any reading fails). A new
+  awaitable `before_submit` engine gate blocks a `Purchase Receipt` from being
+  submitted until every item flagged *inspection required* has a submitted,
+  Accepted inspection referencing that receipt.
+
 See `docs/ARCHITECTURE.md` for the full design.
