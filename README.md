@@ -180,4 +180,18 @@ Accounting, and HR as metadata-defined modules.
   balanced journal on submit (Dr each expense account / Cr the employee payable
   account) and reverses it on cancel.
 
+## Phase 17
+
+- **Sales Return / Credit Note** — a `Sales Invoice` with `is_return` (and an
+  optional `return_against`) posts the reversed journal (Dr Sales + tax / Cr
+  Debtors) and carries a negative outstanding, so the customer's net receivable
+  is just the sum of invoice and credit-note balances.
+- **Delivery Note return** — a `Delivery Note` with `is_return` receives goods
+  back into stock (a positive movement at current valuation) instead of issuing
+  them; cancel reverses it.
+- **Landed Cost Voucher** — distributes an additional cost (freight, duty) across
+  the items of a `Purchase Receipt` — by amount or by qty — increasing each
+  item's `Bin` valuation and recording each share as a zero-quantity Stock Ledger
+  Entry so cancel reverses it exactly.
+
 See `docs/ARCHITECTURE.md` for the full design.

@@ -89,26 +89,32 @@ export class GlPostingListener {
     const grand = Number(doc.grand_total ?? net);
     const against = String(doc.customer ?? "");
     const cc = (doc.cost_center as string) || null;
+    const isReturn = Boolean(doc.is_return);
     const ctx = systemContext(payload.user);
 
+    // A credit note (is_return) mirrors the invoice: debit Sales/tax and credit
+    // Debtors, using absolute amounts (its own totals are negative). Its
+    // outstanding is negative — a receivable the business owes back.
     const lines: Line[] = [
-      { account: DEBTORS, debit: grand * conv, credit: 0, against, cost_center: cc },
-      { account: SALES, debit: 0, credit: net * conv, against, cost_center: cc },
+      { account: DEBTORS, debit: isReturn ? 0 : grand * conv, credit: isReturn ? -grand * conv : 0, against, cost_center: cc },
+      { account: SALES, debit: isReturn ? -net * conv : 0, credit: isReturn ? 0 : net * conv, against, cost_center: cc },
     ];
     for (const t of (doc.taxes as Array<Record<string, unknown>>) ?? []) {
       const amt = Number(t.tax_amount ?? 0);
       if (!amt) continue;
       const acct = (t.account_head as string) || SALES;
-      lines.push({ account: acct, debit: 0, credit: amt * conv, against, cost_center: cc });
+      lines.push({ account: acct, debit: isReturn ? amt * conv : 0, credit: isReturn ? 0 : amt * conv, against, cost_center: cc });
     }
     try {
       await this.postLines(ctx, "Sales Invoice", String(doc.name), doc.posting_date, lines);
       await this.setInvoice(String(doc.name), {
         base_grand_total: grand * conv,
         outstanding_amount: grand,
-        status: "Unpaid",
+        status: isReturn ? "Return" : "Unpaid",
       });
-      this.logger.log(`Posted GL for Sales Invoice ${doc.name} (base ${grand * conv})`);
+      this.logger.log(
+        `Posted GL for ${isReturn ? "Credit Note" : "Sales Invoice"} ${doc.name} (base ${grand * conv})`,
+      );
     } catch (err) {
       this.logger.error(`Failed GL for ${doc.name}: ${(err as Error).message}`);
     }

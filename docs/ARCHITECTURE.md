@@ -296,6 +296,28 @@ validated metadata.
   services, reading sibling tables by SQL and posting through the generic
   `DocumentService`.
 
+## Phase 17 — Returns & landed cost
+
+- **Sales Return / Credit Note.** A `Sales Invoice` gains `is_return` +
+  `return_against`. The GL listener branches on it: a credit note debits Sales
+  and tax and credits Debtors (the mirror of an invoice) using absolute amounts,
+  since the return's own totals are negative, and sets a **negative outstanding**.
+  No mutation of the original invoice — the customer's net receivable is simply
+  the Debtors balance across both documents (verified: 225 − 100 = 125).
+- **Delivery Note return.** A `Delivery Note` gains `is_return` + `return_against`.
+  The stock listener posts a **positive** movement (goods back in at current
+  valuation) instead of an issue; the existing `reverse()` handles cancel because
+  the return's Stock Ledger Entry simply carries a positive `actual_qty`.
+- **Landed Cost Voucher.** References a `Purchase Receipt` and an additional cost
+  to spread across its items (by amount = qty×rate, or by qty). On submit it bumps
+  each item's `Bin` `stock_value` and recomputes `valuation_rate`, recording each
+  share as a **zero-quantity** Stock Ledger Entry; cancel reads those entries to
+  subtract the shares back out and re-derive the rate. No new GL — Purchase
+  Receipts value stock via the stock ledger, so landed cost rides the same path.
+- Everything reuses the existing GL/stock voucher patterns — the returns are
+  branches on `is_return`, and landed cost is another Bin-valuation voucher — so
+  no cross-module service imports are added.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

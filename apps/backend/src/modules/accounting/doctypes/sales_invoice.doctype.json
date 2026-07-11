@@ -8,6 +8,8 @@
     { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "due_date", "label": "Due Date", "fieldtype": "Date" },
+    { "fieldname": "is_return", "label": "Is Return (Credit Note)", "fieldtype": "Check", "in_standard_filter": true },
+    { "fieldname": "return_against", "label": "Return Against", "fieldtype": "Link", "options": "Sales Invoice" },
     { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Link", "options": "Cost Center", "in_standard_filter": true },
     { "fieldname": "currency", "label": "Currency", "fieldtype": "Link", "options": "Currency" },
     { "fieldname": "conversion_rate", "label": "Exchange Rate", "fieldtype": "Float", "default": "1" },
@@ -18,7 +20,7 @@
     { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
     { "fieldname": "base_grand_total", "label": "Grand Total (Base)", "fieldtype": "Currency", "read_only": true },
     { "fieldname": "outstanding_amount", "label": "Outstanding", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
-    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nUnpaid\nPaid\nCancelled", "default": "Draft", "in_list_view": true, "in_standard_filter": true }
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nUnpaid\nPaid\nReturn\nCancelled", "default": "Draft", "in_list_view": true, "in_standard_filter": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },

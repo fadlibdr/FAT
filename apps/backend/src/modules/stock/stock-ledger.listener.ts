@@ -249,13 +249,16 @@ export class StockLedgerListener {
   async onDeliveryNote(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
     const ctx = systemContext(payload.user);
+    // A sales return (is_return) receives goods back into stock at the current
+    // valuation instead of issuing them out.
+    const isReturn = Boolean(doc.is_return);
     for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
       const qty = Number(row.qty ?? 0);
       if (!qty || !row.warehouse) continue;
       try {
         await this.post(
           ctx,
-          { item: String(row.item_code), warehouse: String(row.warehouse), delta: -qty },
+          { item: String(row.item_code), warehouse: String(row.warehouse), delta: isReturn ? qty : -qty },
           "Delivery Note",
           String(doc.name),
           doc.posting_date,
@@ -264,7 +267,7 @@ export class StockLedgerListener {
         this.logger.error(`SLE ${doc.name}: ${(err as Error).message}`);
       }
     }
-    this.logger.log(`Posted stock ledger for Delivery Note ${doc.name}`);
+    this.logger.log(`Posted stock ledger for Delivery Note ${doc.name}${isReturn ? " (return)" : ""}`);
   }
 
   @OnEvent("doc.on_submit:Purchase Receipt")
@@ -380,5 +383,111 @@ export class StockLedgerListener {
   @OnEvent("doc.on_cancel:Purchase Receipt")
   async cancelPurchaseReceipt(p: DocEventPayload): Promise<void> {
     await this.reverse("Purchase Receipt", String(p.doc.name));
+  }
+
+  /** Add a value delta to a Bin and recompute its per-unit valuation rate. */
+  private async bumpBinValue(item: string, warehouse: string, deltaValue: number): Promise<void> {
+    const binKey = `${item}::${warehouse}::`;
+    const bin = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("actual_qty")} AS qty, ${quoteIdent("stock_value")} AS value
+         FROM ${quoteIdent(tableNameFor("Bin"))} WHERE ${quoteIdent("name")} = $1`,
+        [binKey],
+      )
+    )[0];
+    if (!bin) return;
+    const qty = Number(bin.qty ?? 0);
+    const newValue = Number(bin.value ?? 0) + deltaValue;
+    const newRate = qty > 0 ? newValue / qty : 0;
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Bin"))}
+       SET ${quoteIdent("stock_value")} = $1, ${quoteIdent("valuation_rate")} = $2,
+           ${quoteIdent("modified")} = $3 WHERE ${quoteIdent("name")} = $4`,
+      [newValue, newRate, new Date().toISOString(), binKey],
+    );
+  }
+
+  /**
+   * A submitted Landed Cost Voucher distributes an additional cost (freight,
+   * duty) across the items of its Purchase Receipt — by their amount (qty×rate)
+   * or by qty — increasing each item's Bin valuation. Each share is recorded as a
+   * zero-quantity Stock Ledger Entry so cancel can reverse it exactly.
+   */
+  @OnEvent("doc.on_submit:Landed Cost Voucher")
+  async onLandedCost(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const prDt = this.registry.get("Purchase Receipt");
+    const sle = this.registry.get("Stock Ledger Entry");
+    if (!prDt || !sle) return;
+    const ctx = systemContext(payload.user);
+    const total = Number(doc.additional_cost ?? 0);
+    if (!total) return;
+    const byQty = String(doc.distribute_by ?? "Amount") === "Qty";
+
+    try {
+      const pr = await this.documents.get(prDt, String(doc.purchase_receipt));
+      const rows = (pr.items as Array<Record<string, unknown>>) ?? [];
+      const basis = rows.map((r) => {
+        const qty = Number(r.qty ?? 0);
+        return byQty ? qty : qty * Number(r.rate ?? 0);
+      });
+      const totalBasis = basis.reduce((s, b) => s + b, 0);
+      if (totalBasis <= 0) return;
+
+      for (let i = 0; i < rows.length; i += 1) {
+        const row = rows[i];
+        const item = String(row.item_code ?? "");
+        const warehouse = String(row.warehouse ?? "");
+        if (!item || !warehouse) continue;
+        const share = total * (basis[i] / totalBasis);
+        if (!share) continue;
+        await this.bumpBinValue(item, warehouse, share);
+        const { qty, rate } = await this.binBalance(item, warehouse, "");
+        await this.documents.create(sle, ctx, {
+          posting_date: doc.posting_date ?? null,
+          item_code: item,
+          warehouse,
+          actual_qty: 0,
+          valuation_rate: rate,
+          qty_after_transaction: qty,
+          stock_value: share,
+          voucher_type: "Landed Cost Voucher",
+          voucher_no: doc.name,
+        });
+      }
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Landed Cost Voucher"))}
+         SET ${quoteIdent("status")} = 'Applied' WHERE ${quoteIdent("name")} = $1`,
+        [String(doc.name)],
+      );
+      this.logger.log(`Applied Landed Cost ${doc.name}: distributed ${total} over ${rows.length} item(s)`);
+    } catch (err) {
+      this.logger.error(`Landed Cost ${doc.name} failed: ${(err as Error).message}`);
+    }
+  }
+
+  @OnEvent("doc.on_cancel:Landed Cost Voucher")
+  async cancelLandedCost(payload: DocEventPayload): Promise<void> {
+    if (!this.registry.has("Stock Ledger Entry")) return;
+    const sles = await this.dataSource.query(
+      `SELECT ${quoteIdent("item_code")} AS item, ${quoteIdent("warehouse")} AS wh,
+              ${quoteIdent("stock_value")} AS value
+       FROM ${quoteIdent(tableNameFor("Stock Ledger Entry"))}
+       WHERE ${quoteIdent("voucher_type")} = 'Landed Cost Voucher' AND ${quoteIdent("voucher_no")} = $1`,
+      [String(payload.doc.name)],
+    );
+    for (const s of sles) {
+      await this.bumpBinValue(String(s.item), String(s.wh), -Number(s.value));
+    }
+    await this.dataSource.query(
+      `DELETE FROM ${quoteIdent(tableNameFor("Stock Ledger Entry"))}
+       WHERE ${quoteIdent("voucher_type")} = 'Landed Cost Voucher' AND ${quoteIdent("voucher_no")} = $1`,
+      [String(payload.doc.name)],
+    );
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Landed Cost Voucher"))}
+       SET ${quoteIdent("status")} = 'Cancelled' WHERE ${quoteIdent("name")} = $1`,
+      [String(payload.doc.name)],
+    );
   }
 }
