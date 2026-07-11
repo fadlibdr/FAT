@@ -44,6 +44,40 @@ export class PayrollListener {
     );
   }
 
+  /**
+   * Attendance-based payment factor for a slip's period. Counts Attendance rows
+   * in [start_date, end_date] (Present/On Leave = 1 day, Half Day = 0.5, Absent =
+   * 0) and divides by total_working_days. Returns { factor, paymentDays }. When
+   * the period/working-days are unset, or attendance simply isn't tracked for the
+   * period, it defaults to full pay (factor 1) rather than zeroing the salary.
+   */
+  private async paymentFactor(
+    slip: Record<string, unknown>,
+  ): Promise<{ factor: number; paymentDays: number | null }> {
+    const totalDays = Number(slip.total_working_days ?? 0);
+    if (!slip.start_date || !slip.end_date || totalDays <= 0 || !this.registry.has("Attendance")) {
+      return { factor: 1, paymentDays: null };
+    }
+    const start = new Date(slip.start_date as string).toISOString().slice(0, 10);
+    const end = new Date(slip.end_date as string).toISOString().slice(0, 10);
+    const row = (
+      await this.dataSource.query(
+        `SELECT
+           count(*) AS n,
+           coalesce(sum(CASE ${quoteIdent("status")}
+             WHEN 'Present' THEN 1 WHEN 'On Leave' THEN 1 WHEN 'Half Day' THEN 0.5 ELSE 0 END), 0) AS paid
+         FROM ${quoteIdent(tableNameFor("Attendance"))}
+         WHERE ${quoteIdent("employee")} = $1
+           AND ${quoteIdent("attendance_date")} >= $2 AND ${quoteIdent("attendance_date")} <= $3`,
+        [String(slip.employee ?? ""), start, end],
+      )
+    )[0];
+    // No attendance marked for the period → treat as fully worked.
+    const paymentDays = Number(row?.n ?? 0) > 0 ? Number(row.paid) : totalDays;
+    const factor = Math.min(paymentDays / totalDays, 1);
+    return { factor, paymentDays };
+  }
+
   /** Resolve each structure line to a GL account (component's own, else fallback). */
   private async resolve(
     rows: Array<Record<string, unknown>>,
@@ -87,6 +121,10 @@ export class PayrollListener {
         SALARIES_PAYABLE,
       );
 
+      // Loss-of-pay proration: scale earnings by attendance days / working days.
+      const { factor, paymentDays } = await this.paymentFactor(slip);
+      if (factor < 1) for (const e of earnings) e.amount = e.amount * factor;
+
       const gross = earnings.reduce((s, e) => s + e.amount, 0);
       const totalDeduction = deductions.reduce((s, d) => s + d.amount, 0);
       const net = gross - totalDeduction;
@@ -114,10 +152,12 @@ export class PayrollListener {
         gross_pay: gross,
         total_deduction: totalDeduction,
         net_pay: net,
+        payment_days: paymentDays,
         status: "Submitted",
       });
       this.logger.log(
-        `Salary Slip ${slip.name}: gross ${gross} - ded ${totalDeduction} = net ${net} (${slip.employee})`,
+        `Salary Slip ${slip.name}: gross ${gross} - ded ${totalDeduction} = net ${net}` +
+          `${paymentDays != null ? ` (payment days ${paymentDays})` : ""} (${slip.employee})`,
       );
     } catch (err) {
       this.logger.error(`Salary Slip ${slip.name} failed: ${(err as Error).message}`);

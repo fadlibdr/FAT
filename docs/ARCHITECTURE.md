@@ -270,6 +270,32 @@ validated metadata.
 - Each is a thin `BusinessModule` (JSON DocTypes + a listener/service, no
   cross-module service imports) and appears automatically in the Desk.
 
+## Phase 16 — HR & Payroll depth
+
+- **Leave management.** `Leave Type` + a submittable `Leave Allocation` grant a
+  balance; there is no separate ledger — balance is derived live as Σ(submitted
+  allocations) − Σ(submitted applications' days) in `HrService`. A `before_save`
+  hook stamps a Leave Application's inclusive day count, and the awaitable
+  `before_submit` gate (added in Phase 15, and which the Leave-Approval workflow
+  routes through via `setDocStatus`) blocks approval when the balance is
+  insufficient — again registered with `suppressErrors: false`. Served at
+  `GET /api/hr/leave-balance/:employee`.
+- **Attendance & payroll proration.** An `Attendance` doctype records a status per
+  employee/day. This closes a prior known limitation: the Payroll listener now
+  computes a payment factor for a Salary Slip's period — Σ(attendance days, where
+  Present/On Leave = 1 and Half Day = 0.5) ÷ `total_working_days` — and scales
+  earnings by it before posting, so loss-of-pay reaches the GL. When no period or
+  no attendance is recorded it defaults to full pay (factor 1), keeping existing
+  slips unchanged. Payroll reads `tabAttendance` by SQL — no service import.
+- **Expense Claim.** A submittable `Expense Claim` (+ `Expense Claim Detail`
+  grid). On submit an HR listener books a balanced journal — Dr each line to its
+  account (or a general employee-expense account) and Cr the total to the
+  employee payable account — reversed on cancel, mirroring the Payroll/GL
+  listeners' voucher pattern.
+- Everything stays on the event bus: HR/Payroll import no other module's
+  services, reading sibling tables by SQL and posting through the generic
+  `DocumentService`.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
@@ -282,8 +308,9 @@ validated metadata.
 - The DocType builder does not yet edit child-table field layouts in the UI.
 - Pricing Rules apply a single best (highest-priority) match per line — no rule
   stacking or margin/validity-date windows. SLA deadlines are elapsed-hours
-  based (no business-hours calendar, holidays, or pause) and Payroll has no
-  period/attendance proration.
+  based (no business-hours calendar, holidays, or pause). Payroll proration is
+  attendance-day based only (no per-component LWP config, and deductions are not
+  prorated).
 - Subscriptions bill a single-line invoice per plan (no proration, tax templates,
   or dunning); loyalty redemption is recorded as a ledger entry but is not yet
   auto-applied as an invoice discount; a partial update that omits a child table

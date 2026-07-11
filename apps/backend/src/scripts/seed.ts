@@ -79,6 +79,21 @@ async function main() {
     }
   }
 
+  // Create a submittable document and submit it (idempotent: skip on conflict).
+  async function submit(doctype: string, data: Record<string, unknown>) {
+    const dt = registry.get(doctype);
+    if (!dt) return;
+    try {
+      const doc = await documents.create(dt, sys, data);
+      await documents.setDocStatus(dt, sys, String(doc.name), 1);
+      logger.log(`Seeded+submitted ${doctype}: ${doc.name}`);
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      if (status === 409) return; // already exists
+      logger.warn(`Skip ${doctype}: ${(err as Error).message}`);
+    }
+  }
+
   await create("Currency", { currency_name: "USD", symbol: "$", fraction: "Cent" });
   await create("Company", {
     company_name: "FAT Demo Co",
@@ -120,6 +135,8 @@ async function main() {
   await create("Account", { account_name: "Salary Expense", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Salaries Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Tax Withheld Payable", account_type: "Liability", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Employee Expense", account_type: "Expense", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Employee Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Cost Center", { cost_center_name: "Main", company: "FAT Demo Co" });
   await create("Budget", { cost_center: "Main", account: "Sales", budget_amount: 10000 });
   await create("Batch", { batch_id: "BATCH-A", item: "WIDGET-1" });
@@ -260,6 +277,18 @@ async function main() {
     company: "FAT Demo Co",
     designation: "Engineer",
     status: "Active",
+  });
+
+  // HR: leave types + a submitted allocation so Jordan has a leave balance.
+  await create("Leave Type", { leave_type_name: "Casual Leave", max_days_allowed: 12, is_paid: 1 });
+  await create("Leave Type", { leave_type_name: "Sick Leave", max_days_allowed: 10, is_paid: 1 });
+  await create("Leave Type", { leave_type_name: "Privilege Leave", max_days_allowed: 15, is_paid: 1 });
+  await submit("Leave Allocation", {
+    employee: "EMP-00001",
+    leave_type: "Casual Leave",
+    from_date: "2026-01-01",
+    to_date: "2026-12-31",
+    new_leaves_allocated: 12,
   });
 
   // Projects demo.

@@ -164,4 +164,20 @@ Accounting, and HR as metadata-defined modules.
   submitted until every item flagged *inspection required* has a submitted,
   Accepted inspection referencing that receipt.
 
+## Phase 16
+
+- **Leave management** — `Leave Type` + a submittable `Leave Allocation` grant a
+  balance; a `Leave Application`'s day count is derived from its dates, and a
+  `before_submit` gate (which the approval workflow routes through) blocks
+  approval when the employee lacks enough balance. Live balance at
+  `GET /api/hr/leave-balance/:employee` (allocations − approved days).
+- **Attendance & payroll proration** — an `Attendance` record per employee/day
+  (Present/Absent/Half Day/On Leave). A `Salary Slip` with a period and
+  `total_working_days` is now prorated: earnings scale by attendance days
+  (Present/On Leave = 1, Half Day = 0.5) ÷ working days, so loss-of-pay flows
+  through to the posted GL. Slips without a period stay full-pay.
+- **Expense Claim** — a submittable `Expense Claim` with an expense grid books a
+  balanced journal on submit (Dr each expense account / Cr the employee payable
+  account) and reverses it on cancel.
+
 See `docs/ARCHITECTURE.md` for the full design.

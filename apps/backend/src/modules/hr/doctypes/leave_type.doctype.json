@@ -1,0 +1,15 @@
+{
+  "name": "Leave Type",
+  "module": "HR",
+  "naming_rule": "field:leave_type_name",
+  "title_field": "leave_type_name",
+  "fields": [
+    { "fieldname": "leave_type_name", "label": "Leave Type", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "max_days_allowed", "label": "Max Days Allowed", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "is_paid", "label": "Is Paid Leave", "fieldtype": "Check", "default": "1", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

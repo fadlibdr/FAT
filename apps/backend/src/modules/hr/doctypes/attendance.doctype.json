@@ -1,0 +1,16 @@
+{
+  "name": "Attendance",
+  "module": "HR",
+  "naming_rule": "series:ATT-.#####",
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "attendance_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Present\nAbsent\nHalf Day\nOn Leave", "default": "Present", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 }
+  ]
+}
