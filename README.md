@@ -194,4 +194,19 @@ Accounting, and HR as metadata-defined modules.
   item's `Bin` valuation and recording each share as a zero-quantity Stock Ledger
   Entry so cancel reverses it exactly.
 
+## Phase 18
+
+- **Purchase Invoice (AP)** — a submittable `Purchase Invoice` posts the payables
+  journal (Dr expense/tax, Cr Creditors) with outstanding tracking and an
+  `is_return` debit note; a Pay-type `Payment Entry` now reconciles Purchase
+  Invoices (references generalised to either invoice type) — the full bill →
+  Creditors → pay cycle.
+- **Payment Terms** — a `Payment Terms Template` (portion % + credit days per
+  term) expands, on `before_save`, into a due-dated `Payment Schedule` on Sales
+  and Purchase Invoices (installments sum exactly to the total).
+- **Bank Reconciliation** — `Bank Account` + `Bank Transaction`;
+  `POST /api/accounting/bank-reconcile` auto-matches unreconciled transactions to
+  submitted Payment Entries by amount and direction (deposit↔Receive,
+  withdrawal↔Pay), preferring an equal reference number, and links both.
+
 See `docs/ARCHITECTURE.md` for the full design.

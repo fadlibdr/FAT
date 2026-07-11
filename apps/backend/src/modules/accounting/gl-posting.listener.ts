@@ -13,6 +13,7 @@ const DEBTORS = "Debtors";
 const SALES = "Sales";
 const CASH = "Cash";
 const CREDITORS = "Creditors";
+const COGS = "Cost of Goods Sold";
 
 interface Line {
   account: string;
@@ -71,14 +72,50 @@ export class GlPostingListener {
   }
 
   private async setInvoice(name: string, fields: Record<string, unknown>): Promise<void> {
+    await this.setDoc("Sales Invoice", name, fields);
+  }
+
+  private async setDoc(
+    doctype: string,
+    name: string,
+    fields: Record<string, unknown>,
+  ): Promise<void> {
     const cols = Object.keys(fields);
     const sets = cols.map((c, i) => `${quoteIdent(c)} = $${i + 1}`).join(", ");
     const params = [...Object.values(fields), name];
     await this.dataSource.query(
-      `UPDATE ${quoteIdent(tableNameFor("Sales Invoice"))} SET ${sets}
+      `UPDATE ${quoteIdent(tableNameFor(doctype))} SET ${sets}
        WHERE ${quoteIdent("name")} = $${params.length}`,
       params,
     );
+  }
+
+  /**
+   * Move an invoice's outstanding by `sign * alloc` (sign −1 on payment, +1 on
+   * cancel) and set Paid/Unpaid, for either a Sales or Purchase Invoice.
+   */
+  private async reconcileInvoice(
+    refDoctype: string,
+    name: string,
+    alloc: number,
+    sign: -1 | 1,
+  ): Promise<void> {
+    if (refDoctype !== "Sales Invoice" && refDoctype !== "Purchase Invoice") return;
+    if (!this.registry.has(refDoctype)) return;
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("outstanding_amount")} AS o FROM ${quoteIdent(tableNameFor(refDoctype))}
+         WHERE ${quoteIdent("name")} = $1`,
+        [name],
+      )
+    )[0];
+    const outstanding = sign < 0
+      ? Math.max(0, Number(row?.o ?? 0) - alloc)
+      : Number(row?.o ?? 0) + alloc;
+    await this.setDoc(refDoctype, name, {
+      outstanding_amount: outstanding,
+      status: outstanding <= 0.0001 ? "Paid" : "Unpaid",
+    });
   }
 
   @OnEvent("doc.on_submit:Sales Invoice")
@@ -126,6 +163,56 @@ export class GlPostingListener {
     await this.setInvoice(String(payload.doc.name), { status: "Cancelled", outstanding_amount: 0 });
   }
 
+  @OnEvent("doc.on_submit:Purchase Invoice")
+  async onPurchaseInvoiceSubmit(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const conv = Number(doc.conversion_rate ?? 1) || 1;
+    const net = Number(doc.total ?? 0);
+    const grand = Number(doc.grand_total ?? net);
+    const against = String(doc.supplier ?? "");
+    const cc = (doc.cost_center as string) || null;
+    const isReturn = Boolean(doc.is_return);
+    const creditTo = String(doc.credit_to || CREDITORS);
+    const expense = String(doc.expense_account || COGS);
+    const ctx = systemContext(payload.user);
+
+    // Mirror of a Sales Invoice: Dr expense/tax (what we bought), Cr Creditors
+    // (what we owe). A debit note (is_return) reverses both, with a negative
+    // outstanding — a payable the supplier owes back.
+    const lines: Line[] = [
+      { account: creditTo, debit: isReturn ? -grand * conv : 0, credit: isReturn ? 0 : grand * conv, against, cost_center: cc },
+      { account: expense, debit: isReturn ? 0 : net * conv, credit: isReturn ? -net * conv : 0, against, cost_center: cc },
+    ];
+    for (const t of (doc.taxes as Array<Record<string, unknown>>) ?? []) {
+      const amt = Number(t.tax_amount ?? 0);
+      if (!amt) continue;
+      const acct = (t.account_head as string) || expense;
+      lines.push({ account: acct, debit: isReturn ? 0 : amt * conv, credit: isReturn ? -amt * conv : 0, against, cost_center: cc });
+    }
+    try {
+      await this.postLines(ctx, "Purchase Invoice", String(doc.name), doc.posting_date, lines);
+      await this.setDoc("Purchase Invoice", String(doc.name), {
+        base_grand_total: grand * conv,
+        outstanding_amount: grand,
+        status: isReturn ? "Return" : "Unpaid",
+      });
+      this.logger.log(
+        `Posted GL for ${isReturn ? "Debit Note" : "Purchase Invoice"} ${doc.name} (base ${grand * conv})`,
+      );
+    } catch (err) {
+      this.logger.error(`Failed GL for ${doc.name}: ${(err as Error).message}`);
+    }
+  }
+
+  @OnEvent("doc.on_cancel:Purchase Invoice")
+  async onPurchaseInvoiceCancel(payload: DocEventPayload): Promise<void> {
+    await this.reverseGl("Purchase Invoice", payload.doc.name);
+    await this.setDoc("Purchase Invoice", String(payload.doc.name), {
+      status: "Cancelled",
+      outstanding_amount: 0,
+    });
+  }
+
   @OnEvent("doc.on_submit:Payment Entry")
   async onPaymentSubmit(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
@@ -145,22 +232,15 @@ export class GlPostingListener {
          WHERE ${quoteIdent("name")} = $2`,
         [base, doc.name],
       );
-      // Reconcile against referenced invoices.
+      // Reconcile against referenced invoices (Sales for Receive, Purchase for Pay).
       for (const r of (doc.references as Array<Record<string, unknown>>) ?? []) {
-        if (String(r.reference_doctype) !== "Sales Invoice" || !r.reference_name) continue;
-        const alloc = Number(r.allocated_amount ?? 0);
-        const inv = (
-          await this.dataSource.query(
-            `SELECT ${quoteIdent("outstanding_amount")} AS o FROM ${quoteIdent(tableNameFor("Sales Invoice"))}
-             WHERE ${quoteIdent("name")} = $1`,
-            [r.reference_name],
-          )
-        )[0];
-        const outstanding = Math.max(0, Number(inv?.o ?? 0) - alloc);
-        await this.setInvoice(String(r.reference_name), {
-          outstanding_amount: outstanding,
-          status: outstanding <= 0.0001 ? "Paid" : "Unpaid",
-        });
+        if (!r.reference_name) continue;
+        await this.reconcileInvoice(
+          String(r.reference_doctype),
+          String(r.reference_name),
+          Number(r.allocated_amount ?? 0),
+          -1,
+        );
       }
       this.logger.log(`Posted GL + reconciled Payment Entry ${doc.name} (base ${base})`);
     } catch (err) {
@@ -173,19 +253,13 @@ export class GlPostingListener {
     await this.reverseGl("Payment Entry", payload.doc.name);
     // Restore outstanding on referenced invoices.
     for (const r of (payload.doc.references as Array<Record<string, unknown>>) ?? []) {
-      if (String(r.reference_doctype) !== "Sales Invoice" || !r.reference_name) continue;
-      const alloc = Number(r.allocated_amount ?? 0);
-      const inv = (
-        await this.dataSource.query(
-          `SELECT ${quoteIdent("outstanding_amount")} AS o FROM ${quoteIdent(tableNameFor("Sales Invoice"))}
-           WHERE ${quoteIdent("name")} = $1`,
-          [r.reference_name],
-        )
-      )[0];
-      await this.setInvoice(String(r.reference_name), {
-        outstanding_amount: Number(inv?.o ?? 0) + alloc,
-        status: "Unpaid",
-      });
+      if (!r.reference_name) continue;
+      await this.reconcileInvoice(
+        String(r.reference_doctype),
+        String(r.reference_name),
+        Number(r.allocated_amount ?? 0),
+        1,
+      );
     }
   }
 

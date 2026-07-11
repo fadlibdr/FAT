@@ -230,6 +230,21 @@ async function main() {
     redemption_factor: 1,
   });
 
+  // Accounts payable + cash management: a payment-terms template (half now, half
+  // in 30 days) and a bank account mapped to the Cash GL account.
+  await create("Payment Terms Template", {
+    template_name: "50/50 Net 30",
+    terms: [
+      { description: "On receipt", invoice_portion: 50, credit_days: 0 },
+      { description: "Net 30", invoice_portion: 50, credit_days: 30 },
+    ],
+  });
+  await create("Bank Account", {
+    account_name: "Main Checking",
+    bank_name: "Demo Bank",
+    account: "Cash",
+  });
+
   // Buying: a supplier, plus a reorder-enabled consumable that starts below its
   // reorder level so the reorder run raises a Material Request for it.
   await create("Supplier", {

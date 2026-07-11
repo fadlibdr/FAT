@@ -1,0 +1,20 @@
+{
+  "name": "Bank Transaction",
+  "module": "Accounting",
+  "naming_rule": "series:BT-.#####",
+  "title_field": "description",
+  "fields": [
+    { "fieldname": "date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "bank_account", "label": "Bank Account", "fieldtype": "Link", "options": "Bank Account", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "reference_no", "label": "Reference No", "fieldtype": "Data" },
+    { "fieldname": "deposit", "label": "Deposit", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "withdrawal", "label": "Withdrawal", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Unreconciled\nReconciled", "default": "Unreconciled", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "payment_entry", "label": "Payment Entry", "fieldtype": "Data", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

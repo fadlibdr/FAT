@@ -318,6 +318,33 @@ validated metadata.
   branches on `is_return`, and landed cost is another Bin-valuation voucher — so
   no cross-module service imports are added.
 
+## Phase 18 — Accounts payable & cash management
+
+- **Purchase Invoice.** The AP counterpart to Sales Invoice: on submit the GL
+  listener debits the expense (and input-tax) accounts and credits Creditors,
+  tracks `outstanding_amount`, and supports an `is_return` debit note (the mirror
+  posting with a negative outstanding). Totals ride the shared `recompute_totals`
+  job (items + taxes). Payment reconciliation was generalised — a single
+  `reconcileInvoice(refDoctype, …)` helper moves outstanding on either a Sales or
+  a Purchase Invoice, so a Pay-type Payment Entry clears bills exactly as a
+  Receive clears sales invoices.
+- **Payment Terms.** A `Payment Terms Template` (each term a portion % + credit
+  days) drives a `before_save` listener that, for any invoice carrying a template
+  and no explicit schedule, expands it into a `Payment Schedule` child — due_date
+  = posting_date + credit_days, amount = portion × (net + taxes), with the final
+  installment absorbing rounding so the rows sum exactly to the total. Works for
+  both invoice types off the same template.
+- **Bank Reconciliation.** `Bank Account` + `Bank Transaction`, and a
+  `BankReconciliationService` (`POST /api/accounting/bank-reconcile`) that
+  auto-matches unreconciled transactions to submitted Payment Entries by amount
+  and direction (a deposit ↔ a Receive, a withdrawal ↔ a Pay), preferring an
+  equal `reference_no`; each Payment Entry is consumed once, so the run is
+  idempotent. (Field defaults are UI-applied, so the matcher treats a NULL
+  transaction status as unreconciled.)
+- All of it stays on the event bus / generic engine — no cross-module service
+  imports; the reconciliation service and terms listener read sibling tables by
+  SQL.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
