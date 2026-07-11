@@ -1,0 +1,18 @@
+{
+  "name": "Leave Allocation",
+  "module": "HR",
+  "naming_rule": "series:LAL-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "leave_type", "label": "Leave Type", "fieldtype": "Link", "options": "Leave Type", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "new_leaves_allocated", "label": "New Leaves Allocated", "fieldtype": "Float", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 }
+  ]
+}
