@@ -213,6 +213,36 @@ async function main() {
     redemption_factor: 1,
   });
 
+  // Buying: a supplier, plus a reorder-enabled consumable that starts below its
+  // reorder level so the reorder run raises a Material Request for it.
+  await create("Supplier", {
+    supplier_name: "Global Supply Co",
+    supplier_group: "Raw Material",
+    email_id: "sales@globalsupply.example",
+  });
+  await create("Item", {
+    item_code: "BOLT-1",
+    item_name: "Hex Bolt",
+    item_group: "Products",
+    stock_uom: "Nos",
+    standard_rate: 2,
+    is_stock_item: 1,
+    reorder_level: 50,
+    reorder_qty: 100,
+  });
+
+  // Quality: an item that requires incoming inspection before its Purchase
+  // Receipt can be submitted.
+  await create("Item", {
+    item_code: "GLASS-1",
+    item_name: "Tempered Glass Panel",
+    item_group: "Products",
+    stock_uom: "Nos",
+    standard_rate: 40,
+    is_stock_item: 1,
+    inspection_required_before_purchase: 1,
+  });
+
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
     status: "Open",

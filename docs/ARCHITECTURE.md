@@ -240,6 +240,36 @@ validated metadata.
 - Each is a thin `BusinessModule` (JSON DocTypes + a listener/service, no
   cross-module service imports) and appears automatically in the Desk.
 
+## Phase 15 — Supply-chain & inventory control
+
+- **Stock Reconciliation.** A submittable `Stock Reconciliation` asserts absolute
+  counted quantities per item+warehouse. On submit the Stock listener reads the
+  current `Bin` balance and posts a Stock Ledger Entry for the *difference* only,
+  reusing the shared moving-average/FIFO posting so the Bin lands exactly on the
+  counted qty (and, for Opening Stock, an explicit valuation rate). It stamps
+  each row's current/difference qty and the voucher's net valuation change;
+  cancel reverses the same delta. No new ledger code — it rides the existing
+  `post()`/`reverse()` path, so a reconciliation is just another voucher type.
+- **Auto-reorder → Material Request → Purchase Order.** Items gain
+  `reorder_level`/`reorder_qty`. A `ReorderService` (daily cron + `POST
+  /api/buying/run-reorder`) sums on-hand qty across every Bin per reorder-enabled
+  item and raises a single submitted `Material Request` (type Purchase) for the
+  shortfall. `POST /api/buying/material-request/:name/make-purchase-order`
+  converts a submitted request into a draft `Purchase Order`, marks the request
+  Ordered, links the two, and stamps each line's ordered qty — all through the
+  generic `DocumentService`, no cross-module service imports.
+- **Quality Inspection.** This phase adds an awaitable **pre-submit gate** to the
+  engine: `HooksService.applyBeforeSubmit` fires `doc.before_submit(:Doctype)`
+  via `emitAsync` before a document transitions to submitted, and a listener that
+  throws aborts the submit. The `Quality` module uses it two ways: a
+  `before_save` hook derives a `Quality Inspection`'s status from its readings
+  grid (Rejected if any reading fails), and a `before_submit:Purchase Receipt`
+  gate (registered with `suppressErrors: false` so the thrown error propagates
+  instead of being swallowed by the event emitter) blocks a receipt whose
+  inspection-required items lack a submitted, Accepted inspection referencing it.
+- Each is a thin `BusinessModule` (JSON DocTypes + a listener/service, no
+  cross-module service imports) and appears automatically in the Desk.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
