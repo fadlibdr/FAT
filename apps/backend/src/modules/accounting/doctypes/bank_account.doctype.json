@@ -1,0 +1,15 @@
+{
+  "name": "Bank Account",
+  "module": "Accounting",
+  "naming_rule": "field:account_name",
+  "title_field": "account_name",
+  "fields": [
+    { "fieldname": "account_name", "label": "Account Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "bank_name", "label": "Bank Name", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "account", "label": "GL Account", "fieldtype": "Link", "options": "Account", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
