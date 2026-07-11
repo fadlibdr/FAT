@@ -216,6 +216,30 @@ validated metadata.
   cross-module service imports) and appears automatically in the Desk sidebar,
   list and form views.
 
+## Phase 14 — CRM pipeline, Subscriptions, Loyalty
+
+- **CRM pipeline.** `Lead` and `Opportunity` gain conversion behaviour: marking a
+  Lead "Converted" creates a `Customer` (once) and links it back; marking an
+  Opportunity "Converted" builds a draft `Quotation` from its items (new
+  `Opportunity Item` child) and links it back. Idempotent via the stamped
+  back-links. The Pricing Rule listener is now gated to billing transactions
+  (those with a `grand_total` field) so pre-sales Opportunities are not priced
+  and the converted Quotation is discounted exactly once.
+- **Subscriptions.** `Subscription Plan` + `Subscription`. A daily cron (and
+  `POST /api/admin/run-subscriptions`, with an optional `as_of` date) bills every
+  Active subscription whose `next_invoice_date` has arrived — raising and
+  submitting a Sales Invoice from the plan via the generic `DocumentService` (so
+  GL posts through the normal event path), then advancing the date and recording
+  the run. It waits for the async recompute-totals job before submitting so GL
+  posts the real amount.
+- **Loyalty.** `Loyalty Program` + a `Loyalty Point Entry` ledger. Submitting a
+  Sales Invoice earns `floor(grand_total × collection_factor)` points under the
+  default active program (Accrual entry), reversed when the invoice is cancelled;
+  redemptions are negative entries and the balance (sum of entries) is served at
+  `GET /api/loyalty/balance/:customer`.
+- Each is a thin `BusinessModule` (JSON DocTypes + a listener/service, no
+  cross-module service imports) and appears automatically in the Desk.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
@@ -230,3 +254,7 @@ validated metadata.
   stacking or margin/validity-date windows. SLA deadlines are elapsed-hours
   based (no business-hours calendar, holidays, or pause) and Payroll has no
   period/attendance proration.
+- Subscriptions bill a single-line invoice per plan (no proration, tax templates,
+  or dunning); loyalty redemption is recorded as a ledger entry but is not yet
+  auto-applied as an invoice discount; a partial update that omits a child table
+  replaces it (clients submit the whole document).

@@ -195,6 +195,24 @@ async function main() {
     ],
   });
 
+  // Subscriptions: a monthly plan (demo subscription is created by the smoke run).
+  await create("Subscription Plan", {
+    plan_name: "Widget Monthly",
+    item: "WIDGET-1",
+    price: 25,
+    billing_interval: "Month",
+    interval_count: 1,
+  });
+
+  // Loyalty: a default program earning 0.1 points per currency unit invoiced.
+  await create("Loyalty Program", {
+    program_name: "Standard Rewards",
+    is_active: 1,
+    is_default: 1,
+    collection_factor: 0.1,
+    redemption_factor: 1,
+  });
+
   await create("ToDo", {
     description: "Welcome to FAT — try creating a Customer or Sales Order",
     status: "Open",

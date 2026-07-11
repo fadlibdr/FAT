@@ -1,0 +1,20 @@
+{
+  "name": "Subscription",
+  "module": "Subscriptions",
+  "naming_rule": "series:SUB-.#####",
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "plan", "label": "Plan", "fieldtype": "Link", "options": "Subscription Plan", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Active\nCancelled", "default": "Active", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "start_date", "label": "Start Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "next_invoice_date", "label": "Next Invoice Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "invoice_count", "label": "Invoices Generated", "fieldtype": "Int", "default": "0", "read_only": true, "in_list_view": true },
+    { "fieldname": "last_invoice", "label": "Last Invoice", "fieldtype": "Link", "options": "Sales Invoice", "read_only": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

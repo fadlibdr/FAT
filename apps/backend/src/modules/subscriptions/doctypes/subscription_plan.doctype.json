@@ -1,0 +1,17 @@
+{
+  "name": "Subscription Plan",
+  "module": "Subscriptions",
+  "naming_rule": "field:plan_name",
+  "title_field": "plan_name",
+  "fields": [
+    { "fieldname": "plan_name", "label": "Plan Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "item", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "price", "label": "Price", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "billing_interval", "label": "Billing Interval", "fieldtype": "Select", "options": "Day\nWeek\nMonth", "default": "Month", "reqd": true, "in_list_view": true },
+    { "fieldname": "interval_count", "label": "Interval Count", "fieldtype": "Int", "default": "1" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

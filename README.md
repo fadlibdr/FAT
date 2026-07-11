@@ -137,4 +137,14 @@ Accounting, and HR as metadata-defined modules.
   targets) and `Issue`, which is stamped with SLA deadlines on creation and
   marked Fulfilled/Failed when resolved.
 
+## Phase 14
+
+- **CRM pipeline** — converting a `Lead` creates a `Customer`; converting an
+  `Opportunity` (with items) spins up a draft `Quotation`, both linked back.
+- **Subscriptions** — `Subscription Plan` + `Subscription`; a daily (and
+  on-demand) run bills every due subscription, submitting a Sales Invoice and
+  advancing the next billing date.
+- **Loyalty** — a `Loyalty Program` accrues points on Sales Invoice submit into a
+  `Loyalty Point Entry` ledger; balance at `GET /api/loyalty/balance/:customer`.
+
 See `docs/ARCHITECTURE.md` for the full design.

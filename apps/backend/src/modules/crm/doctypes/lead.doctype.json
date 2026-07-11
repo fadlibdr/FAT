@@ -8,7 +8,8 @@
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nContacted\nQualified\nConverted\nDo Not Contact", "default": "Open", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "email_id", "label": "Email", "fieldtype": "Data", "in_list_view": true },
     { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" },
-    { "fieldname": "territory", "label": "Territory", "fieldtype": "Link", "options": "Territory" }
+    { "fieldname": "territory", "label": "Territory", "fieldtype": "Link", "options": "Territory" },
+    { "fieldname": "customer", "label": "Converted Customer", "fieldtype": "Link", "options": "Customer", "read_only": true, "in_list_view": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
