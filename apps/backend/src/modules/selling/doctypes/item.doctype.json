@@ -12,7 +12,10 @@
     { "fieldname": "valuation_method", "label": "Valuation Method", "fieldtype": "Select", "options": "Moving Average\nFIFO", "default": "Moving Average" },
     { "fieldname": "has_batch_no", "label": "Has Batch No", "fieldtype": "Check" },
     { "fieldname": "has_serial_no", "label": "Has Serial No", "fieldtype": "Check" },
-    { "fieldname": "is_stock_item", "label": "Maintain Stock", "fieldtype": "Check", "default": "1" }
+    { "fieldname": "is_stock_item", "label": "Maintain Stock", "fieldtype": "Check", "default": "1" },
+    { "fieldname": "reorder_level", "label": "Reorder Level", "fieldtype": "Float" },
+    { "fieldname": "reorder_qty", "label": "Reorder Qty", "fieldtype": "Float" },
+    { "fieldname": "inspection_required_before_purchase", "label": "Inspection Required before Purchase", "fieldtype": "Check" }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
