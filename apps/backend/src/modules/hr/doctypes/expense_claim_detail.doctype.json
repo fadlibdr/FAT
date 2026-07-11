@@ -1,0 +1,15 @@
+{
+  "name": "Expense Claim Detail",
+  "module": "HR",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "expense_type", "label": "Expense Type", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "default_account", "label": "Expense Account", "fieldtype": "Link", "options": "Account", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

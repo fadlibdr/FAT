@@ -1,0 +1,21 @@
+{
+  "name": "Expense Claim",
+  "module": "HR",
+  "naming_rule": "series:EXP-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "expenses", "label": "Expenses", "fieldtype": "Table", "options": "Expense Claim Detail" },
+    { "fieldname": "total_claimed", "label": "Total Claimed", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "payable_account", "label": "Payable Account", "fieldtype": "Link", "options": "Account", "default": "Employee Payable" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "report": 1 }
+  ]
+}
