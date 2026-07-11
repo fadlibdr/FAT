@@ -1,0 +1,21 @@
+{
+  "name": "Quality Inspection",
+  "module": "Quality",
+  "naming_rule": "series:QI-.#####",
+  "is_submittable": true,
+  "title_field": "item_code",
+  "fields": [
+    { "fieldname": "inspection_type", "label": "Inspection Type", "fieldtype": "Select", "options": "Incoming\nOutgoing\nIn Process", "default": "Incoming", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "reference_type", "label": "Reference Type", "fieldtype": "Select", "options": "Purchase Receipt\nDelivery Note\nStock Entry", "default": "Purchase Receipt", "in_standard_filter": true },
+    { "fieldname": "reference_name", "label": "Reference Name", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "sample_size", "label": "Sample Size", "fieldtype": "Int", "default": "1" },
+    { "fieldname": "readings", "label": "Readings", "fieldtype": "Table", "options": "Quality Inspection Reading" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Accepted\nRejected", "default": "Accepted", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 },
+    { "role": "Purchase User", "read": 1, "report": 1 }
+  ]
+}

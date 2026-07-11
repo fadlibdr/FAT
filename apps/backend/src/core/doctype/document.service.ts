@@ -504,6 +504,10 @@ export class DocumentService {
     if (docstatus === 2 && current !== 1) {
       throw new BadRequestException(`${dt.name} ${name} is not submitted`);
     }
+    // Pre-submit gate: a listener may throw to abort the transition to submitted.
+    if (docstatus === 1) {
+      await this.hooks.applyBeforeSubmit({ doctype: dt.name, doc, user: ctx.name });
+    }
     await this.dataSource.query(
       `UPDATE ${quoteIdent(tableNameFor(dt.name))}
        SET ${quoteIdent("docstatus")} = $1, ${quoteIdent("modified")} = $2, ${quoteIdent("modified_by")} = $3
