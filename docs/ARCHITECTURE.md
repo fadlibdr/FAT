@@ -471,6 +471,30 @@ and planning — all on the existing event bus:
   creates a **draft** Work Order per planned item (left in draft for scheduling)
   and links it back — plan → Work Orders → (submit) → manufacture, end to end.
 
+## Phase 25 — Sales promotions
+
+Builds on the Pricing Rule engine (Phase 13). The `before_save` pricing listener
+gains coupon gating and product (free-item) discounts; a separate promotion
+listener handles usage counting and scheme generation.
+
+- **Coupon Codes.** A `Coupon Code` points at a `coupon_based` Pricing Rule. In
+  the pricing listener, a coupon-based rule is skipped unless the document's
+  `coupon_code` resolves to it and the coupon is valid (within `valid_upto`, and
+  `used < max_use`). Usage is tracked out-of-band: submitting a Sales Invoice
+  with a coupon increments its `used` count (decremented on cancel), so a
+  max-use coupon stops unlocking its rule once spent.
+- **Promotional Schemes.** A submittable `Promotional Scheme` with a tier grid
+  (min qty → discount %). On submit, the promotion listener deletes the rules
+  previously generated for the scheme and creates one Pricing Rule per tier
+  (priority = min qty, tagged `promotional_scheme`), so a single scheme drives a
+  whole qty-based discount ladder; cancel removes them.
+- **Free-item promotions.** A Pricing Rule's `price_or_product_discount` = Product
+  (+ `free_item`/`free_qty`) makes a match append a **free line** (rate 0) rather
+  than discount the matched line — buy-X-get-Y. The listener appends the free
+  lines after scanning, and is idempotent (won't re-add an existing free line).
+- All of it stays on the event bus / generic engine — no cross-module service
+  imports.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
