@@ -1,0 +1,14 @@
+{
+  "name": "Operation",
+  "module": "Manufacturing",
+  "naming_rule": "field:operation_name",
+  "title_field": "operation_name",
+  "fields": [
+    { "fieldname": "operation_name", "label": "Operation Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "default_workstation", "label": "Default Workstation", "fieldtype": "Link", "options": "Workstation", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

@@ -8,7 +8,11 @@
     { "fieldname": "quantity", "label": "Quantity", "fieldtype": "Float", "default": "1", "reqd": true, "in_list_view": true },
     { "fieldname": "is_active", "label": "Is Active", "fieldtype": "Check", "default": "1", "in_list_view": true },
     { "fieldname": "is_default", "label": "Is Default", "fieldtype": "Check", "default": "1" },
-    { "fieldname": "items", "label": "Raw Materials", "fieldtype": "Table", "options": "BOM Item" }
+    { "fieldname": "items", "label": "Raw Materials", "fieldtype": "Table", "options": "BOM Item" },
+    { "fieldname": "operations", "label": "Operations", "fieldtype": "Table", "options": "BOM Operation" },
+    { "fieldname": "raw_material_cost", "label": "Raw Material Cost", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "operating_cost", "label": "Operating Cost", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "total_cost", "label": "Total Cost", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
