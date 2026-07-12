@@ -1,0 +1,22 @@
+{
+  "name": "Warranty Claim",
+  "module": "Maintenance",
+  "naming_rule": "series:WC-.#####",
+  "is_submittable": true,
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "serial_no", "label": "Serial No", "fieldtype": "Link", "options": "Serial No", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "read_only": true, "in_list_view": true },
+    { "fieldname": "complaint_date", "label": "Complaint Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "complaint", "label": "Complaint", "fieldtype": "Text" },
+    { "fieldname": "warranty_status", "label": "Warranty Status", "fieldtype": "Select", "options": "In Warranty\nOut of Warranty", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "resolution_date", "label": "Resolution Date", "fieldtype": "Date" },
+    { "fieldname": "resolution", "label": "Resolution", "fieldtype": "Text" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nResolved\nCancelled", "default": "Open", "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
