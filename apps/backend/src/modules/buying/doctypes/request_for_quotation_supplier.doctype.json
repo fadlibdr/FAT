@@ -1,0 +1,13 @@
+{
+  "name": "Request for Quotation Supplier",
+  "module": "Buying",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "supplier", "label": "Supplier", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true },
+    { "fieldname": "supplier_quotation", "label": "Supplier Quotation", "fieldtype": "Data", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

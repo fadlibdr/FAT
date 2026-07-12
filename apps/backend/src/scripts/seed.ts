@@ -252,6 +252,11 @@ async function main() {
     supplier_group: "Raw Material",
     email_id: "sales@globalsupply.example",
   });
+  await create("Supplier", {
+    supplier_name: "Budget Parts Ltd",
+    supplier_group: "Raw Material",
+    email_id: "quotes@budgetparts.example",
+  });
   await create("Item", {
     item_code: "BOLT-1",
     item_name: "Hex Bolt",

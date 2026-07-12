@@ -369,6 +369,27 @@ Because each report reads its own source, a by-invoice AR total and the Debtors
 GL control balance can legitimately differ by unallocated receipts and standalone
 credit notes — the reports expose that gap rather than hiding it.
 
+## Phase 20 — Procurement sourcing
+
+Completes the buying cycle upstream of the Purchase Order (which already flowed
+PO → Receipt → Invoice). A `SourcingService` (Buying module, no cross-module
+service imports) drives it on the event bus and the generic `DocumentService`:
+
+- **Request for Quotation.** A submittable RFQ carries an items grid and an
+  invited-suppliers grid. On submit, `onRfqSubmit` creates one draft
+  `Supplier Quotation` per supplier — pre-filled with the RFQ items at zero rate,
+  linked via `request_for_quotation`, and stamped back onto the supplier row —
+  then marks the RFQ Submitted.
+- **Supplier Quotation + comparison.** Suppliers fill rates and submit (totals via
+  the shared `recompute_totals` job; an on-submit hook flips the status to
+  Submitted). `compare(rfq)` joins Supplier Quotation Item → Supplier Quotation,
+  groups quotes per item across all *submitted* quotations for the RFQ, and flags
+  the lowest — served at `GET /api/buying/rfq-comparison/:rfq`.
+- **Quotation → Purchase Order.** `makePurchaseOrder(sq)` builds a draft Purchase
+  Order from the chosen quotation's lines, links both, and marks the quotation
+  Ordered (idempotent — a second award is rejected). Mirrors the existing
+  Material-Request → Purchase-Order conversion.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
