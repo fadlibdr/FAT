@@ -5,12 +5,20 @@ import { BusinessModule } from "../module-base";
 import { PricingRuleListener } from "./pricing-rule.listener";
 import { FulfillmentService } from "./fulfillment.service";
 import { FulfillmentListener } from "./fulfillment.listener";
+import { VariantService } from "./variant.service";
+import { VariantListener } from "./variant.listener";
 import { SellingController } from "./selling.controller";
 
 @Module({
   imports: [CoreModule],
   controllers: [SellingController],
-  providers: [PricingRuleListener, FulfillmentService, FulfillmentListener],
+  providers: [
+    PricingRuleListener,
+    FulfillmentService,
+    FulfillmentListener,
+    VariantService,
+    VariantListener,
+  ],
 })
 export class SellingModule extends BusinessModule {
   protected readonly baseDir = __dirname;
