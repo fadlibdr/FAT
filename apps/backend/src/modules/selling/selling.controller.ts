@@ -1,16 +1,19 @@
-import { Controller, Param, Post } from "@nestjs/common";
+import { Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { FulfillmentService } from "./fulfillment.service";
+import { VariantService } from "./variant.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
 /**
- * Selling conversions: create a draft Delivery Note or Sales Invoice pre-filled
- * from a submitted Sales Order and linked back to it (which drives the order's
- * delivered/billed status once the draft is itself submitted).
+ * Selling endpoints: Sales-Order → Delivery/Invoice conversions, and Item
+ * variant generation / resolution.
  */
 @Controller("api/selling")
 export class SellingController {
-  constructor(private readonly fulfillment: FulfillmentService) {}
+  constructor(
+    private readonly fulfillment: FulfillmentService,
+    private readonly variants: VariantService,
+  ) {}
 
   @Post("sales-order/:name/make-delivery-note")
   async makeDeliveryNote(@CurrentUser() user: UserContext, @Param("name") name: string) {
@@ -22,5 +25,16 @@ export class SellingController {
   async makeSalesInvoice(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const salesInvoice = await this.fulfillment.makeFromSalesOrder(name, "Sales Invoice", user);
     return { salesInvoice };
+  }
+
+  @Post("item/:template/make-variants")
+  async makeVariants(@CurrentUser() user: UserContext, @Param("template") template: string) {
+    return this.variants.makeVariants(template, user);
+  }
+
+  @Get("item/:template/variant")
+  async resolveVariant(@Param("template") template: string, @Query() query: Record<string, string>) {
+    const variant = await this.variants.resolve(template, query);
+    return { template, variant };
   }
 }

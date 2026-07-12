@@ -431,6 +431,26 @@ lifecycles, still purely on the event bus:
   straight into the order's fulfillment status. Exposed under `/api/selling/…`
   and `/api/buying/…`.
 
+## Phase 23 — Item variants
+
+Shows the DocType engine generating documents from metadata. An Item can be a
+variant template (`has_variants`) carrying an `attributes` grid of the
+`Item Attribute`s it varies on; each attribute owns its allowed values.
+
+- **Generation.** `VariantService.makeVariants` loads each listed attribute's
+  values, takes their cartesian product, and creates one child Item per
+  combination — `item_code` suffixed by the value abbreviations, `variant_of` set,
+  the base fields copied, and the specific combination stored in the variant's
+  `attributes`. It checks existence first, so a re-run is idempotent and never
+  trips the uniqueness guard.
+- **Resolver.** `resolve(template, {attr: value, …})` scans the template's
+  variants and returns the one whose attribute combination matches every pair —
+  the runtime "which SKU is Medium/Blue?" lookup.
+- **Guards.** A `before_save:Item` listener (suppressErrors:false) rejects an item
+  that is simultaneously a template and a variant, and blocks a second variant
+  with an attribute combination already used by a sibling — comparing order-
+  independent signatures of the combinations.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

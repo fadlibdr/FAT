@@ -154,6 +154,33 @@ async function main() {
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });
 
+  // Item variants: attributes + a template T-Shirt that varies on Size and Color.
+  await create("Item Attribute", {
+    attribute_name: "Size",
+    values: [
+      { attribute_value: "Small", abbreviation: "S" },
+      { attribute_value: "Medium", abbreviation: "M" },
+      { attribute_value: "Large", abbreviation: "L" },
+    ],
+  });
+  await create("Item Attribute", {
+    attribute_name: "Color",
+    values: [
+      { attribute_value: "Red", abbreviation: "RED" },
+      { attribute_value: "Blue", abbreviation: "BLU" },
+    ],
+  });
+  await create("Item", {
+    item_code: "T-SHIRT",
+    item_name: "T-Shirt",
+    item_group: "Products",
+    stock_uom: "Nos",
+    standard_rate: 15,
+    is_stock_item: 1,
+    has_variants: 1,
+    attributes: [{ attribute: "Size" }, { attribute: "Color" }],
+  });
+
   // A serial-tracked unit under warranty, for maintenance/warranty demos.
   await create("Serial No", {
     serial_no: "SN-DEMO-001",

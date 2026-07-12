@@ -1,0 +1,13 @@
+{
+  "name": "Item Variant Attribute",
+  "module": "Selling",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "attribute", "label": "Attribute", "fieldtype": "Link", "options": "Item Attribute", "reqd": true, "in_list_view": true },
+    { "fieldname": "attribute_value", "label": "Attribute Value", "fieldtype": "Data", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}
