@@ -1,0 +1,118 @@
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { InjectDataSource } from "@nestjs/typeorm";
+import { DataSource } from "typeorm";
+import { DoctypeRegistryService } from "../../core/doctype/doctype-registry.service";
+import { DocumentService } from "../../core/doctype/document.service";
+import { systemContext } from "../../core/permissions/system-context";
+import { tableNameFor, quoteIdent } from "../../core/doctype/schema-sync.service";
+import type { UserContext } from "../../core/permissions/permission.service";
+
+/**
+ * Purchase Order fulfillment — the buying-side mirror of Selling's
+ * FulfillmentService. Recomputes a Purchase Order's received / billed
+ * percentages and status from the submitted (non-return) Purchase Receipts and
+ * Purchase Invoices referencing it, and converts an order into a draft receipt
+ * or bill. Pure SQL over sibling tables; no cross-module service imports.
+ */
+@Injectable()
+export class PoFulfillmentService {
+  private readonly logger = new Logger(PoFulfillmentService.name);
+
+  constructor(
+    private readonly registry: DoctypeRegistryService,
+    private readonly documents: DocumentService,
+    @InjectDataSource() private readonly dataSource: DataSource,
+  ) {}
+
+  async recomputePurchaseOrder(po: string): Promise<void> {
+    if (!this.registry.has("Purchase Order") || !po) return;
+    const ordered = await this.qtyByItem("Purchase Order Item", "Purchase Order", "name", po, false);
+    const received = await this.qtyByItem("Purchase Receipt Item", "Purchase Receipt", "purchase_order", po, true);
+    const billed = await this.qtyByItem("Purchase Invoice Item", "Purchase Invoice", "purchase_order", po, true);
+
+    const perReceived = this.progress(ordered, received);
+    const perBilled = this.progress(ordered, billed);
+    const status = this.status(perReceived, perBilled);
+
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Purchase Order"))}
+       SET ${quoteIdent("per_received")} = $1, ${quoteIdent("per_billed")} = $2, ${quoteIdent("status")} = $3
+       WHERE ${quoteIdent("name")} = $4`,
+      [perReceived, perBilled, status, po],
+    );
+    this.logger.log(`Purchase Order ${po}: received ${perReceived}% billed ${perBilled}% -> ${status}`);
+  }
+
+  /** Create a draft Purchase Receipt or Purchase Invoice pre-filled from a Purchase Order. */
+  async makeFromPurchaseOrder(
+    po: string,
+    target: "Purchase Receipt" | "Purchase Invoice",
+    ctx?: UserContext,
+  ): Promise<string> {
+    const poDt = this.registry.get("Purchase Order");
+    const tgtDt = this.registry.get(target);
+    if (!poDt || !tgtDt) throw new BadRequestException(`${target} not registered`);
+    const context = ctx ?? systemContext();
+    const order = await this.documents.get(poDt, po);
+    if ((order.docstatus ?? 0) !== 1) throw new BadRequestException("Purchase Order must be submitted");
+
+    const items = ((order.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Number(r.qty ?? 0),
+      rate: Number(r.rate ?? 0),
+    }));
+    const doc = await this.documents.create(tgtDt, context, {
+      supplier: order.supplier,
+      posting_date: new Date().toISOString().slice(0, 10),
+      purchase_order: po,
+      items,
+    });
+    this.logger.log(`Purchase Order ${po} -> ${target} ${doc.name}`);
+    return String(doc.name);
+  }
+
+  private async qtyByItem(
+    childDoctype: string,
+    parentDoctype: string,
+    field: string,
+    value: string,
+    linked: boolean,
+  ): Promise<Map<string, number>> {
+    if (!this.registry.has(childDoctype)) return new Map();
+    const hasReturn = this.registry.get(parentDoctype)?.fields.some((f) => f.fieldname === "is_return");
+    const extra = linked
+      ? `AND p.${quoteIdent("docstatus")} = 1` +
+        (hasReturn ? ` AND coalesce(p.${quoteIdent("is_return")}, 0) = 0` : "")
+      : "";
+    const rows = await this.dataSource.query(
+      `SELECT c.${quoteIdent("item_code")} AS item, coalesce(sum(c.${quoteIdent("qty")}), 0) AS qty
+       FROM ${quoteIdent(tableNameFor(childDoctype))} c
+       JOIN ${quoteIdent(tableNameFor(parentDoctype))} p ON p.${quoteIdent("name")} = c.${quoteIdent("parent")}
+       WHERE p.${quoteIdent(field)} = $1 ${extra}
+       GROUP BY c.${quoteIdent("item_code")}`,
+      [value],
+    );
+    const map = new Map<string, number>();
+    for (const r of rows) map.set(String(r.item), Number(r.qty));
+    return map;
+  }
+
+  private progress(ordered: Map<string, number>, done: Map<string, number>): number {
+    let totalOrdered = 0;
+    let totalDone = 0;
+    for (const [item, qty] of ordered) {
+      totalOrdered += qty;
+      totalDone += Math.min(done.get(item) ?? 0, qty);
+    }
+    return totalOrdered > 0 ? Math.round((totalDone / totalOrdered) * 10000) / 100 : 0;
+  }
+
+  private status(perReceived: number, perBilled: number): string {
+    const received = perReceived >= 99.99;
+    const billed = perBilled >= 99.99;
+    if (received && billed) return "Completed";
+    if (billed) return "To Receive";
+    if (received) return "To Bill";
+    return "To Receive and Bill";
+  }
+}

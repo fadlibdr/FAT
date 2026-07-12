@@ -409,6 +409,28 @@ and Customer masters, entirely on the event bus:
   stamping the visit — and reopens it on cancel. Cross-document child-row update
   by SQL, no service import.
 
+## Phase 22 — Order fulfillment & billing status
+
+Ties the transactional documents together into order-to-cash and procure-to-pay
+lifecycles, still purely on the event bus:
+
+- **Sales Order.** Gains `per_delivered` / `per_billed` and a status. Selling's
+  `FulfillmentService.recomputeSalesOrder` sums, per item, the qty on submitted
+  non-return Delivery Notes and Sales Invoices that link back via `sales_order`,
+  caps each at the ordered qty (Σ min(done, ordered) / Σ ordered), and derives the
+  status (To Deliver and Bill / To Bill / To Deliver / Completed). A listener
+  recomputes on order submit and on any linked Delivery Note / Sales Invoice
+  submit **or cancel**, so progress reverses correctly.
+- **Purchase Order.** The buying-side mirror (`PoFulfillmentService`), driven by
+  linked Purchase Receipts / Purchase Invoices. The per-item qty helper skips the
+  `is_return` filter for doctypes that don't declare it (Purchase Receipt has no
+  return flag), so the same aggregation serves both sides.
+- **Conversions.** `makeFromSalesOrder` / `makeFromPurchaseOrder` build a
+  pre-filled **draft** Delivery Note / Sales Invoice (or Purchase Receipt /
+  Invoice) from an order's lines, linked back — so submitting the draft flows
+  straight into the order's fulfillment status. Exposed under `/api/selling/…`
+  and `/api/buying/…`.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

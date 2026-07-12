@@ -1,6 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, Param, Post } from "@nestjs/common";
 import { ReorderService } from "./reorder.service";
 import { SourcingService } from "./sourcing.service";
+import { PoFulfillmentService } from "./po-fulfillment.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -15,6 +16,7 @@ export class BuyingController {
   constructor(
     private readonly reorder: ReorderService,
     private readonly sourcing: SourcingService,
+    private readonly poFulfillment: PoFulfillmentService,
   ) {}
 
   @Post("run-reorder")
@@ -43,5 +45,17 @@ export class BuyingController {
   async sqToPurchaseOrder(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const purchaseOrder = await this.sourcing.makePurchaseOrder(name, user);
     return { purchaseOrder };
+  }
+
+  @Post("purchase-order/:name/make-purchase-receipt")
+  async poToReceipt(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const purchaseReceipt = await this.poFulfillment.makeFromPurchaseOrder(name, "Purchase Receipt", user);
+    return { purchaseReceipt };
+  }
+
+  @Post("purchase-order/:name/make-purchase-invoice")
+  async poToInvoice(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const purchaseInvoice = await this.poFulfillment.makeFromPurchaseOrder(name, "Purchase Invoice", user);
+    return { purchaseInvoice };
   }
 }

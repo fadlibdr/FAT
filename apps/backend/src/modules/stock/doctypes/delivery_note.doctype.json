@@ -9,6 +9,7 @@
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "is_return", "label": "Is Return (Sales Return)", "fieldtype": "Check", "in_standard_filter": true },
     { "fieldname": "return_against", "label": "Return Against", "fieldtype": "Link", "options": "Delivery Note" },
+    { "fieldname": "sales_order", "label": "Sales Order", "fieldtype": "Link", "options": "Sales Order", "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Delivery Note Item" },
     { "fieldname": "total", "label": "Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
   ],
