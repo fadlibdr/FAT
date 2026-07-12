@@ -248,4 +248,18 @@ Accounting, and HR as metadata-defined modules.
   pending scheduled visit on its schedule (and stamps the visit back); cancel
   reopens it.
 
+## Phase 22
+
+- **Sales Order fulfillment** — a `Sales Order` tracks `per_delivered` /
+  `per_billed` and a status (To Deliver and Bill → To Bill / To Deliver →
+  Completed), recomputed whenever a `Delivery Note` or `Sales Invoice` linked to
+  it (via `sales_order`) is submitted or cancelled.
+- **Purchase Order fulfillment** — a `Purchase Order` tracks `per_received` /
+  `per_billed` and status the same way, driven by linked `Purchase Receipt` /
+  `Purchase Invoice` documents.
+- **Order → document conversions** — `POST /api/selling/sales-order/:name/
+  make-delivery-note` (and `make-sales-invoice`), plus `POST /api/buying/
+  purchase-order/:name/make-purchase-receipt` (and `make-purchase-invoice`),
+  create pre-filled draft documents linked back to the order.
+
 See `docs/ARCHITECTURE.md` for the full design.
