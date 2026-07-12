@@ -223,4 +223,17 @@ Accounting, and HR as metadata-defined modules.
 - **Registers** — `sales-register` / `purchase-register` list submitted invoices
   over a date range with net / tax / grand total / outstanding / status.
 
+## Phase 20
+
+- **Request for Quotation** — submitting a `Request for Quotation` (items +
+  invited suppliers) fans out a draft `Supplier Quotation` per supplier,
+  pre-filled with the RFQ items and linked back.
+- **Supplier Quotation + comparison** — suppliers fill in and submit their quoted
+  rates; `GET /api/buying/rfq-comparison/:rfq` ranks the submitted quotes per
+  item across suppliers and flags the lowest.
+- **Quotation → Purchase Order** — `POST /api/buying/supplier-quotation/:name/
+  make-purchase-order` turns a submitted quotation into a draft `Purchase Order`,
+  links both, and marks the quotation Ordered — completing the sourcing cycle
+  (RFQ → Supplier Quotation → PO → Receipt → Invoice).
+
 See `docs/ARCHITECTURE.md` for the full design.
