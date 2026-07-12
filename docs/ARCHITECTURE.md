@@ -390,6 +390,25 @@ service imports) drives it on the event bus and the generic `DocumentService`:
   Ordered (idempotent — a second award is rejected). Mirrors the existing
   Material-Request → Purchase-Order conversion.
 
+## Phase 21 — Maintenance & warranty
+
+A new `Maintenance` module (after-sales service) tied to the existing Serial No
+and Customer masters, entirely on the event bus:
+
+- **Warranty Claim.** `Serial No` gains `warranty_expiry_date`. A submittable
+  `Warranty Claim`'s `before_save` hook reads the referenced serial, fills the
+  item, and sets warranty status to In / Out of Warranty by comparing the serial's
+  expiry to the complaint date.
+- **Maintenance Schedule.** A submittable schedule whose `before_save` hook
+  expands `start_date` + `periodicity` (Weekly / Monthly / Quarterly / Half-Yearly
+  / Yearly) + `no_of_visits` into a `Maintenance Schedule Detail` grid of dated,
+  Pending visits — the same generate-a-child-table-before-write pattern as Payment
+  Terms.
+- **Maintenance Visit.** On submit, the listener closes the *earliest still-pending*
+  scheduled visit on the referenced schedule (FIFO) — marking it Completed and
+  stamping the visit — and reopens it on cancel. Cross-document child-row update
+  by SQL, no service import.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
