@@ -345,6 +345,30 @@ validated metadata.
   imports; the reconciliation service and terms listener read sibling tables by
   SQL.
 
+## Phase 19 — Financial reporting depth
+
+The `/api/query-report/:name` engine gains **parameters**: a report may declare
+`filters` and supply a `build(filters)` that returns parameterized SQL
+(`$1, $2, …`), while static reports keep their plain `sql`. Identifiers stay
+literal in the builders; only values are bound — same posture as the rest of the
+engine. Five reports are added on top of the accumulated GL/AR/AP data:
+
+- **AR / AP aging** (`accounts-receivable`, `accounts-payable`). Open invoices
+  (submitted, positive outstanding) bucketed by age relative to an `as_of` date
+  into 0-30 / 31-60 / 61-90 / 90+, computed from `as_of − coalesce(due_date,
+  posting_date)`. A shared `agingSql(doctype, partyField, asOf)` serves both.
+- **General Ledger** (`general-ledger`). GL entries with a running balance
+  (`sum(debit − credit) OVER (ORDER BY posting_date, creation ROWS …)`),
+  filterable by account, party (`against`), and date range — an account
+  statement when scoped to one account, a party ledger when scoped to a party.
+- **Registers** (`sales-register`, `purchase-register`). Submitted invoices over a
+  date range with net / tax / grand total / outstanding / status, via a shared
+  `registerSql`.
+
+Because each report reads its own source, a by-invoice AR total and the Debtors
+GL control balance can legitimately differ by unallocated receipts and standalone
+credit notes — the reports expose that gap rather than hiding it.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

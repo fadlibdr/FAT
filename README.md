@@ -209,4 +209,18 @@ Accounting, and HR as metadata-defined modules.
   submitted Payment Entries by amount and direction (deposit↔Receive,
   withdrawal↔Pay), preferring an equal reference number, and links both.
 
+## Phase 19
+
+- **Parameterized reports** — the `GET /api/query-report/:name` engine now accepts
+  query-param filters and builds safe parameterized SQL, alongside the existing
+  static reports.
+- **AR / AP aging** — `accounts-receivable` / `accounts-payable` bucket open
+  invoices by age (0-30 / 31-60 / 61-90 / 90+) relative to an `as_of` date, per
+  party.
+- **General Ledger** — `general-ledger` lists GL entries with a running balance,
+  filterable by account, party, and date range (an account statement / party
+  ledger).
+- **Registers** — `sales-register` / `purchase-register` list submitted invoices
+  over a date range with net / tax / grand total / outstanding / status.
+
 See `docs/ARCHITECTURE.md` for the full design.
