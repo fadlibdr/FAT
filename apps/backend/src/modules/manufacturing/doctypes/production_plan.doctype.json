@@ -1,0 +1,17 @@
+{
+  "name": "Production Plan",
+  "module": "Manufacturing",
+  "naming_rule": "series:PP-.#####",
+  "is_submittable": true,
+  "title_field": "posting_date",
+  "fields": [
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Production Plan Item" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Production Plan Item",
+  "module": "Manufacturing",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "bom", "label": "BOM", "fieldtype": "Link", "options": "BOM", "reqd": true, "in_list_view": true },
+    { "fieldname": "planned_qty", "label": "Planned Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "work_order", "label": "Work Order", "fieldtype": "Data", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

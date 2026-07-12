@@ -199,12 +199,17 @@ async function main() {
     standard_rate: 8,
     is_stock_item: 1,
   });
+  // Shop floor: a workstation + operation, referenced by the BOM's routing so
+  // the finished good is costed at material + labour.
+  await create("Workstation", { workstation_name: "Assembly Line", hour_rate: 60 });
+  await create("Operation", { operation_name: "Assemble", default_workstation: "Assembly Line" });
   await create("BOM", {
     item: "WIDGET-1",
     quantity: 1,
     is_active: 1,
     is_default: 1,
     items: [{ item_code: "RAW-STEEL", qty: 2, rate: 8 }],
+    operations: [{ operation: "Assemble", workstation: "Assembly Line", time_in_mins: 30 }],
   });
 
   // Payroll: components + a salary structure for the demo employee.

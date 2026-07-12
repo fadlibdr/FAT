@@ -1,0 +1,15 @@
+{
+  "name": "BOM Operation",
+  "module": "Manufacturing",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "operation", "label": "Operation", "fieldtype": "Link", "options": "Operation", "reqd": true, "in_list_view": true },
+    { "fieldname": "workstation", "label": "Workstation", "fieldtype": "Link", "options": "Workstation", "in_list_view": true },
+    { "fieldname": "time_in_mins", "label": "Time (mins)", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "operating_cost", "label": "Operating Cost", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}
