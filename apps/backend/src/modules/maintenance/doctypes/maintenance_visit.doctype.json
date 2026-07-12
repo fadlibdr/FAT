@@ -1,0 +1,21 @@
+{
+  "name": "Maintenance Visit",
+  "module": "Maintenance",
+  "naming_rule": "series:MVISIT-.#####",
+  "is_submittable": true,
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "in_list_view": true },
+    { "fieldname": "serial_no", "label": "Serial No", "fieldtype": "Link", "options": "Serial No", "in_standard_filter": true },
+    { "fieldname": "maintenance_schedule", "label": "Maintenance Schedule", "fieldtype": "Link", "options": "Maintenance Schedule", "in_standard_filter": true },
+    { "fieldname": "visit_date", "label": "Visit Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "completion_status", "label": "Completion Status", "fieldtype": "Select", "options": "Fully Completed\nPartially Completed", "default": "Fully Completed", "in_list_view": true },
+    { "fieldname": "work_done", "label": "Work Done", "fieldtype": "Text" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

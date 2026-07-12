@@ -154,6 +154,15 @@ async function main() {
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });
 
+  // A serial-tracked unit under warranty, for maintenance/warranty demos.
+  await create("Serial No", {
+    serial_no: "SN-DEMO-001",
+    item: "WIDGET-1",
+    warehouse: "Stores",
+    status: "Active",
+    warranty_expiry_date: "2027-01-01",
+  });
+
   // Manufacturing: a raw material + a BOM that produces WIDGET-1 from it.
   await create("Item", {
     item_code: "RAW-STEEL",

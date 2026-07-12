@@ -236,4 +236,16 @@ Accounting, and HR as metadata-defined modules.
   links both, and marks the quotation Ordered — completing the sourcing cycle
   (RFQ → Supplier Quotation → PO → Receipt → Invoice).
 
+## Phase 21
+
+- **Warranty Claim** — `Serial No` gains a `warranty_expiry_date`; a
+  `Warranty Claim` derives its warranty status (In / Out of Warranty) from the
+  serial's expiry vs the complaint date (and auto-fills the item) on `before_save`.
+- **Maintenance Schedule** — a `Maintenance Schedule` expands `start_date` +
+  `periodicity` (Weekly … Yearly) + `no_of_visits` into dated visit rows on
+  `before_save`.
+- **Maintenance Visit** — submitting a `Maintenance Visit` closes the earliest
+  pending scheduled visit on its schedule (and stamps the visit back); cancel
+  reopens it.
+
 See `docs/ARCHITECTURE.md` for the full design.

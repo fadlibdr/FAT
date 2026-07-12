@@ -1,0 +1,21 @@
+{
+  "name": "Maintenance Schedule",
+  "module": "Maintenance",
+  "naming_rule": "series:MSCH-.#####",
+  "is_submittable": true,
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "serial_no", "label": "Serial No", "fieldtype": "Link", "options": "Serial No", "in_standard_filter": true },
+    { "fieldname": "start_date", "label": "Start Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "periodicity", "label": "Periodicity", "fieldtype": "Select", "options": "Weekly\nMonthly\nQuarterly\nHalf-Yearly\nYearly", "default": "Quarterly", "reqd": true, "in_list_view": true },
+    { "fieldname": "no_of_visits", "label": "No of Visits", "fieldtype": "Int", "default": "4", "reqd": true, "in_list_view": true },
+    { "fieldname": "schedule", "label": "Schedule", "fieldtype": "Table", "options": "Maintenance Schedule Detail" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
