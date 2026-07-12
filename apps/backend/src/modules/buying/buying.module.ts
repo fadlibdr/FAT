@@ -4,12 +4,14 @@ import { DoctypeLoaderService } from "../../core/doctype/doctype-loader.service"
 import { BusinessModule } from "../module-base";
 import { ReorderService } from "./reorder.service";
 import { SourcingService } from "./sourcing.service";
+import { PoFulfillmentService } from "./po-fulfillment.service";
+import { PoFulfillmentListener } from "./po-fulfillment.listener";
 import { BuyingController } from "./buying.controller";
 
 @Module({
   imports: [CoreModule],
   controllers: [BuyingController],
-  providers: [ReorderService, SourcingService],
+  providers: [ReorderService, SourcingService, PoFulfillmentService, PoFulfillmentListener],
 })
 export class BuyingModule extends BusinessModule {
   protected readonly baseDir = __dirname;

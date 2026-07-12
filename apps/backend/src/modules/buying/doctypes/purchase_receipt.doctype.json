@@ -7,6 +7,7 @@
   "fields": [
     { "fieldname": "supplier", "label": "Supplier", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "purchase_order", "label": "Purchase Order", "fieldtype": "Link", "options": "Purchase Order", "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Purchase Receipt Item" },
     { "fieldname": "total", "label": "Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
   ],
