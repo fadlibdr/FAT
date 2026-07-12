@@ -5,20 +5,107 @@
   "is_submittable": true,
   "title_field": "customer",
   "fields": [
-    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
-    { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
-    { "fieldname": "delivery_date", "label": "Delivery Date", "fieldtype": "Date" },
-    { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Sales Order Item" },
-    { "fieldname": "total", "label": "Net Total", "fieldtype": "Currency", "read_only": true },
-    { "fieldname": "taxes", "label": "Taxes and Charges", "fieldtype": "Table", "options": "Sales Taxes and Charges" },
-    { "fieldname": "total_taxes_and_charges", "label": "Total Taxes", "fieldtype": "Currency", "read_only": true },
-    { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
-    { "fieldname": "per_delivered", "label": "% Delivered", "fieldtype": "Float", "read_only": true, "in_list_view": true },
-    { "fieldname": "per_billed", "label": "% Billed", "fieldtype": "Float", "read_only": true, "in_list_view": true },
-    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nTo Deliver and Bill\nTo Bill\nTo Deliver\nCompleted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+    {
+      "fieldname": "customer",
+      "label": "Customer",
+      "fieldtype": "Link",
+      "options": "Customer",
+      "reqd": true,
+      "in_list_view": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "coupon_code",
+      "label": "Coupon Code",
+      "fieldtype": "Data",
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "transaction_date",
+      "label": "Date",
+      "fieldtype": "Date",
+      "reqd": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "delivery_date",
+      "label": "Delivery Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "items",
+      "label": "Items",
+      "fieldtype": "Table",
+      "options": "Sales Order Item"
+    },
+    {
+      "fieldname": "total",
+      "label": "Net Total",
+      "fieldtype": "Currency",
+      "read_only": true
+    },
+    {
+      "fieldname": "taxes",
+      "label": "Taxes and Charges",
+      "fieldtype": "Table",
+      "options": "Sales Taxes and Charges"
+    },
+    {
+      "fieldname": "total_taxes_and_charges",
+      "label": "Total Taxes",
+      "fieldtype": "Currency",
+      "read_only": true
+    },
+    {
+      "fieldname": "grand_total",
+      "label": "Grand Total",
+      "fieldtype": "Currency",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "per_delivered",
+      "label": "% Delivered",
+      "fieldtype": "Float",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "per_billed",
+      "label": "% Billed",
+      "fieldtype": "Float",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Draft\nTo Deliver and Bill\nTo Bill\nTo Deliver\nCompleted\nCancelled",
+      "default": "Draft",
+      "read_only": true,
+      "in_list_view": true,
+      "in_standard_filter": true
+    }
   ],
   "permissions": [
-    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
-    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "submit": 1,
+      "cancel": 1,
+      "report": 1
+    },
+    {
+      "role": "Sales User",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "submit": 1,
+      "report": 1
+    }
   ]
 }

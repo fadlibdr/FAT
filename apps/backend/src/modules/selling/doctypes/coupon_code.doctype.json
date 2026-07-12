@@ -1,0 +1,17 @@
+{
+  "name": "Coupon Code",
+  "module": "Selling",
+  "naming_rule": "field:coupon_code",
+  "title_field": "coupon_code",
+  "fields": [
+    { "fieldname": "coupon_code", "label": "Coupon Code", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "pricing_rule", "label": "Pricing Rule", "fieldtype": "Link", "options": "Pricing Rule", "reqd": true, "in_list_view": true },
+    { "fieldname": "valid_upto", "label": "Valid Upto", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "max_use", "label": "Maximum Use", "fieldtype": "Int", "default": "1", "in_list_view": true },
+    { "fieldname": "used", "label": "Used", "fieldtype": "Int", "default": "0", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
