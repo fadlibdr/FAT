@@ -1,0 +1,19 @@
+{
+  "name": "Job Card",
+  "module": "Manufacturing",
+  "naming_rule": "series:JC-.#####",
+  "title_field": "operation",
+  "fields": [
+    { "fieldname": "work_order", "label": "Work Order", "fieldtype": "Link", "options": "Work Order", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "operation", "label": "Operation", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "workstation", "label": "Workstation", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "for_quantity", "label": "For Quantity", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "time_in_mins", "label": "Time (mins)", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "operating_cost", "label": "Operating Cost", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nCompleted", "default": "Open", "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
