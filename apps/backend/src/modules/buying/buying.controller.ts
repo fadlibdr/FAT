@@ -1,16 +1,21 @@
-import { Body, Controller, ForbiddenException, Param, Post } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Param, Post } from "@nestjs/common";
 import { ReorderService } from "./reorder.service";
+import { SourcingService } from "./sourcing.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
 /**
- * Buying automation endpoints: trigger the reorder run on demand and convert a
- * Material Request into a Purchase Order. Reorder is System-Manager only (it
- * writes across items); MR->PO is allowed for anyone who can create a PO.
+ * Buying automation endpoints: reorder runs, Material-Request / Supplier-Quotation
+ * conversion to Purchase Orders, and RFQ quote comparison. Reorder is
+ * System-Manager only (it writes across items); the rest is allowed for anyone
+ * who can create a Purchase Order.
  */
 @Controller("api/buying")
 export class BuyingController {
-  constructor(private readonly reorder: ReorderService) {}
+  constructor(
+    private readonly reorder: ReorderService,
+    private readonly sourcing: SourcingService,
+  ) {}
 
   @Post("run-reorder")
   async runReorder(@CurrentUser() user: UserContext, @Body() body: { as_of?: string }) {
@@ -26,6 +31,17 @@ export class BuyingController {
     @Body() body: { supplier: string },
   ) {
     const purchaseOrder = await this.reorder.makePurchaseOrder(name, body?.supplier, user);
+    return { purchaseOrder };
+  }
+
+  @Get("rfq-comparison/:name")
+  async rfqComparison(@Param("name") name: string) {
+    return { rfq: name, comparison: await this.sourcing.compare(name) };
+  }
+
+  @Post("supplier-quotation/:name/make-purchase-order")
+  async sqToPurchaseOrder(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const purchaseOrder = await this.sourcing.makePurchaseOrder(name, user);
     return { purchaseOrder };
   }
 }
