@@ -300,4 +300,16 @@ Accounting, and HR as metadata-defined modules.
 - **Free-item promotions** — a Pricing Rule with a `Product` discount type adds a
   free line item (rate 0) to the transaction when it matches (buy-X-get-Y).
 
+## Phase 26
+
+- **Asset Movement** — an `Asset Movement` relocates an asset; on submit it stamps
+  the previous location and updates the asset's current `location`/`custodian`
+  (cancel restores it).
+- **Asset Repair** — an `Asset Repair` either expenses the cost (Dr Repairs / Cr
+  Creditors) or **capitalises** it (Dr the asset account / Cr Creditors, adding
+  the cost to the asset's gross + current value); cancel reverses both.
+- **Asset Disposal** — scrapping or selling an asset posts the removal journal
+  (Dr Accumulated Depreciation + Cash, Cr Fixed Assets) and books the balancing
+  **gain or loss** vs book value, marking the asset Scrapped/Sold; cancel reverses.
+
 See `docs/ARCHITECTURE.md` for the full design.
