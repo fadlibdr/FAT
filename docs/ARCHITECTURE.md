@@ -451,6 +451,26 @@ variant template (`has_variants`) carrying an `attributes` grid of the
   with an attribute combination already used by a sibling — comparing order-
   independent signatures of the combinations.
 
+## Phase 24 — Manufacturing shop floor
+
+Deepens the Manufacturing module (BOM + Work Order) with routing, labour costing,
+and planning — all on the existing event bus:
+
+- **Routing & BOM costing.** `Workstation` (hour rate) and `Operation` masters,
+  plus a `BOM Operation` grid on the BOM. A `before_save:BOM` hook prices each
+  operation (`time_in_mins/60 × workstation hour_rate`) and sets the BOM's
+  `raw_material_cost` / `operating_cost` / `total_cost` — so a BOM now carries a
+  full costed bill (verified: 16 material + 30 labour = 46).
+- **Job Cards & labour in valuation.** The existing Work-Order → Manufacture
+  Stock Entry flow is extended: on submit it also creates a `Job Card` per
+  operation (scaled to the order qty) and adds the operating cost to the
+  finished-good rate, so the produced item is valued at **material + labour**
+  (10 units → rate 46, `produced_value` 460). Cancel deletes the Job Cards along
+  with reversing the stock entry.
+- **Production Plan.** A submittable `Production Plan` whose on-submit handler
+  creates a **draft** Work Order per planned item (left in draft for scheduling)
+  and links it back — plan → Work Orders → (submit) → manufacture, end to end.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

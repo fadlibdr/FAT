@@ -276,4 +276,17 @@ Accounting, and HR as metadata-defined modules.
   item that is both template and variant, and rejects a duplicate attribute
   combination among a template's variants.
 
+## Phase 24
+
+- **Workstations, Operations & BOM costing** — a `BOM` gains an `operations`
+  routing (each an `Operation` on a `Workstation`); on save it prices every
+  operation (time × workstation hour rate) and rolls raw-material + operating cost
+  into the BOM's `total_cost`.
+- **Job Cards & labour valuation** — submitting a `Work Order` now generates a
+  `Job Card` per BOM operation and folds operating cost into the finished-good
+  valuation (material + labour), so the produced item is costed fully; cancel
+  removes the Job Cards.
+- **Production Plan** — a submitted `Production Plan` spins up a draft `Work Order`
+  per planned item, linked back for scheduling.
+
 See `docs/ARCHITECTURE.md` for the full design.
