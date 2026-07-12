@@ -10,6 +10,11 @@ import { tableNameFor, quoteIdent } from "../../core/doctype/schema-sync.service
 
 const EXPENSE = "Depreciation Expense";
 const ACCUMULATED = "Accumulated Depreciation";
+const FIXED_ASSETS = "Fixed Assets";
+const REPAIRS = "Repairs Expense";
+const CREDITORS = "Creditors";
+const CASH = "Cash";
+const DISPOSAL_GAIN_LOSS = "Gain/Loss on Asset Disposal";
 
 /**
  * Asset lifecycle + straight-line depreciation. A submitted Depreciation Entry
@@ -50,6 +55,201 @@ export class AssetsListener {
   @OnEvent("doc.on_cancel:Asset")
   async onAssetCancel(payload: DocEventPayload): Promise<void> {
     await this.setAsset(String(payload.doc.name), { status: "Cancelled" });
+  }
+
+  /**
+   * Asset Movement: relocate an asset. On submit we stamp the movement's
+   * from_location with the asset's current location, then set the asset to the
+   * new location/custodian; cancel restores the previous location.
+   */
+  /** Post a set of balanced GL lines for a voucher. */
+  private async postGl(
+    ctx: ReturnType<typeof systemContext>,
+    voucherType: string,
+    voucherNo: string,
+    postingDate: unknown,
+    against: string,
+    lines: Array<{ account: string; debit: number; credit: number }>,
+  ): Promise<void> {
+    const glDt = this.registry.get("GL Entry");
+    if (!glDt) return;
+    for (const l of lines) {
+      if (!l.debit && !l.credit) continue;
+      await this.documents.create(glDt, ctx, {
+        posting_date: postingDate ?? null,
+        voucher_type: voucherType,
+        voucher_no: voucherNo,
+        account: l.account,
+        debit: l.debit,
+        credit: l.credit,
+        against,
+      });
+    }
+  }
+
+  private async reverseGl(voucherType: string, voucherNo: unknown): Promise<void> {
+    if (!this.registry.has("GL Entry")) return;
+    await this.dataSource.query(
+      `DELETE FROM ${quoteIdent(tableNameFor("GL Entry"))}
+       WHERE ${quoteIdent("voucher_type")} = $1 AND ${quoteIdent("voucher_no")} = $2`,
+      [voucherType, voucherNo],
+    );
+  }
+
+  /**
+   * Asset Repair: expense the cost (Dr Repairs / Cr payable) or capitalise it
+   * (Dr the asset account / Cr payable and add the cost to the asset's gross &
+   * current value). Cancel reverses both the GL and any capitalisation.
+   */
+  @OnEvent("doc.on_submit:Asset Repair")
+  async onRepairSubmit(payload: DocEventPayload): Promise<void> {
+    const rep = payload.doc;
+    const assetDt = this.registry.get("Asset");
+    if (!assetDt || !this.registry.has("GL Entry")) return;
+    const ctx = systemContext(payload.user);
+    const cost = Number(rep.repair_cost ?? 0);
+    if (cost <= 0) return;
+    const capitalize = Boolean(rep.capitalize);
+    const debit = capitalize ? String(rep.asset_account || FIXED_ASSETS) : String(rep.repair_account || REPAIRS);
+    const payable = String(rep.payable_account || CREDITORS);
+
+    try {
+      await this.postGl(ctx, "Asset Repair", String(rep.name), rep.repair_date, String(rep.asset ?? ""), [
+        { account: debit, debit: cost, credit: 0 },
+        { account: payable, debit: 0, credit: cost },
+      ]);
+      if (capitalize) {
+        const asset = await this.documents.get(assetDt, String(rep.asset));
+        await this.setAsset(String(rep.asset), {
+          gross_purchase_amount: Number(asset.gross_purchase_amount ?? 0) + cost,
+          value_after_depreciation: Number(asset.value_after_depreciation ?? 0) + cost,
+        });
+      }
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Asset Repair"))} SET ${quoteIdent("status")} = 'Completed'
+         WHERE ${quoteIdent("name")} = $1`,
+        [String(rep.name)],
+      );
+      this.logger.log(`Asset Repair ${rep.name}: ${cost} ${capitalize ? "capitalised" : "expensed"} on ${rep.asset}`);
+    } catch (err) {
+      this.logger.error(`Asset Repair ${rep.name} failed: ${(err as Error).message}`);
+    }
+  }
+
+  @OnEvent("doc.on_cancel:Asset Repair")
+  async onRepairCancel(payload: DocEventPayload): Promise<void> {
+    const rep = payload.doc;
+    await this.reverseGl("Asset Repair", rep.name);
+    const assetDt = this.registry.get("Asset");
+    if (assetDt && rep.capitalize && rep.asset) {
+      const cost = Number(rep.repair_cost ?? 0);
+      const asset = await this.documents.get(assetDt, String(rep.asset));
+      await this.setAsset(String(rep.asset), {
+        gross_purchase_amount: Number(asset.gross_purchase_amount ?? 0) - cost,
+        value_after_depreciation: Number(asset.value_after_depreciation ?? 0) - cost,
+      });
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Asset Repair"))} SET ${quoteIdent("status")} = 'Cancelled'
+       WHERE ${quoteIdent("name")} = $1`,
+      [String(rep.name)],
+    );
+  }
+
+  /**
+   * Asset Disposal (scrap or sale): remove the asset from the books — Dr
+   * Accumulated Depreciation + Dr Cash (sale proceeds), Cr the fixed-asset cost,
+   * and book the balancing gain (Cr) or loss (Dr) against the difference between
+   * sale proceeds and book value. Marks the asset Scrapped/Sold; cancel reverses.
+   */
+  @OnEvent("doc.on_submit:Asset Disposal")
+  async onDisposalSubmit(payload: DocEventPayload): Promise<void> {
+    const dis = payload.doc;
+    const assetDt = this.registry.get("Asset");
+    if (!assetDt || !this.registry.has("GL Entry")) return;
+    const ctx = systemContext(payload.user);
+
+    try {
+      const asset = await this.documents.get(assetDt, String(dis.asset));
+      const gross = Number(asset.gross_purchase_amount ?? 0);
+      const accum = Number(asset.accumulated_depreciation ?? 0);
+      const bookValue = gross - accum;
+      const sale = String(dis.disposal_type) === "Sale" ? Number(dis.sale_amount ?? 0) : 0;
+      const gainLoss = sale - bookValue;
+      const gainLossAcct = String(dis.gain_loss_account || DISPOSAL_GAIN_LOSS);
+
+      const lines = [
+        { account: ACCUMULATED, debit: accum, credit: 0 },
+        { account: String(dis.cash_account || CASH), debit: sale, credit: 0 },
+        { account: FIXED_ASSETS, debit: 0, credit: gross },
+        {
+          account: gainLossAcct,
+          debit: gainLoss < 0 ? -gainLoss : 0,
+          credit: gainLoss > 0 ? gainLoss : 0,
+        },
+      ];
+      await this.postGl(ctx, "Asset Disposal", String(dis.name), dis.disposal_date, String(dis.asset ?? ""), lines);
+
+      await this.setAsset(String(dis.asset), {
+        status: String(dis.disposal_type) === "Sale" ? "Sold" : "Scrapped",
+        value_after_depreciation: 0,
+      });
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Asset Disposal"))}
+         SET ${quoteIdent("book_value")} = $1, ${quoteIdent("gain_loss")} = $2 WHERE ${quoteIdent("name")} = $3`,
+        [bookValue, gainLoss, String(dis.name)],
+      );
+      this.logger.log(`Asset Disposal ${dis.name}: ${dis.asset} book ${bookValue}, gain/loss ${gainLoss}`);
+    } catch (err) {
+      this.logger.error(`Asset Disposal ${dis.name} failed: ${(err as Error).message}`);
+    }
+  }
+
+  @OnEvent("doc.on_cancel:Asset Disposal")
+  async onDisposalCancel(payload: DocEventPayload): Promise<void> {
+    const dis = payload.doc;
+    await this.reverseGl("Asset Disposal", dis.name);
+    const assetDt = this.registry.get("Asset");
+    if (!assetDt || !dis.asset) return;
+    const asset = await this.documents.get(assetDt, String(dis.asset));
+    const gross = Number(asset.gross_purchase_amount ?? 0);
+    const accum = Number(asset.accumulated_depreciation ?? 0);
+    const salvage = Number(asset.salvage_value ?? 0);
+    const value = gross - accum;
+    await this.setAsset(String(dis.asset), {
+      value_after_depreciation: value,
+      status: accum <= 0.0001 ? "Submitted" : value <= salvage + 0.0001 ? "Fully Depreciated" : "Partially Depreciated",
+    });
+  }
+
+  @OnEvent("doc.on_submit:Asset Movement")
+  async onMovementSubmit(payload: DocEventPayload): Promise<void> {
+    const mv = payload.doc;
+    const assetDt = this.registry.get("Asset");
+    if (!assetDt || !mv.asset) return;
+    try {
+      const asset = await this.documents.get(assetDt, String(mv.asset));
+      const from = (asset.location as string) ?? null;
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Asset Movement"))} SET ${quoteIdent("from_location")} = $1
+         WHERE ${quoteIdent("name")} = $2`,
+        [from, String(mv.name)],
+      );
+      await this.setAsset(String(mv.asset), {
+        location: mv.to_location ?? from,
+        custodian: mv.to_custodian ?? asset.custodian ?? null,
+      });
+      this.logger.log(`Asset Movement ${mv.name}: ${mv.asset} ${from ?? "-"} -> ${mv.to_location}`);
+    } catch (err) {
+      this.logger.error(`Asset Movement ${mv.name} failed: ${(err as Error).message}`);
+    }
+  }
+
+  @OnEvent("doc.on_cancel:Asset Movement")
+  async onMovementCancel(payload: DocEventPayload): Promise<void> {
+    const mv = payload.doc;
+    if (!this.registry.has("Asset") || !mv.asset) return;
+    await this.setAsset(String(mv.asset), { location: (mv.from_location as string) ?? null });
   }
 
   @OnEvent("doc.on_submit:Depreciation Entry")
