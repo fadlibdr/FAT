@@ -262,4 +262,18 @@ Accounting, and HR as metadata-defined modules.
   purchase-order/:name/make-purchase-receipt` (and `make-purchase-invoice`),
   create pre-filled draft documents linked back to the order.
 
+## Phase 23
+
+- **Item attributes & templates** — `Item Attribute` (with allowed values) plus
+  `has_variants` / `variant_of` / `attributes` on Item let an item be a variant
+  template.
+- **Variant generation** — `POST /api/selling/item/:template/make-variants`
+  creates one variant Item per combination of the template's attribute values
+  (cartesian product), named by abbreviation and copying the base fields;
+  idempotent (existing variants are skipped).
+- **Resolver + guards** — `GET /api/selling/item/:template/variant?Attr=Val…`
+  returns the variant matching a combination; a `before_save` guard blocks an
+  item that is both template and variant, and rejects a duplicate attribute
+  combination among a template's variants.
+
 See `docs/ARCHITECTURE.md` for the full design.
