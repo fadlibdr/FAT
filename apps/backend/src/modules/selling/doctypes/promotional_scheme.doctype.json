@@ -1,0 +1,20 @@
+{
+  "name": "Promotional Scheme",
+  "module": "Selling",
+  "naming_rule": "series:PROMO-.#####",
+  "is_submittable": true,
+  "title_field": "scheme_name",
+  "fields": [
+    { "fieldname": "scheme_name", "label": "Scheme Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "apply_on", "label": "Apply On", "fieldtype": "Select", "options": "Item Code\nItem Group", "default": "Item Code" },
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item" },
+    { "fieldname": "item_group", "label": "Item Group", "fieldtype": "Link", "options": "Item Group" },
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer" },
+    { "fieldname": "tiers", "label": "Discount Tiers", "fieldtype": "Table", "options": "Promotional Scheme Tier" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nActive\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
