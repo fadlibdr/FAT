@@ -289,4 +289,15 @@ Accounting, and HR as metadata-defined modules.
 - **Production Plan** — a submitted `Production Plan` spins up a draft `Work Order`
   per planned item, linked back for scheduling.
 
+## Phase 25
+
+- **Coupon Codes** — a `Coupon Code` unlocks a `coupon_based` Pricing Rule only
+  when it's present on the transaction and still valid (within date, under its
+  max-use); usage is counted when the invoice is submitted (reversed on cancel).
+- **Promotional Schemes** — a submitted `Promotional Scheme` generates one
+  Pricing Rule per discount tier (e.g. 5% at qty ≥ 10, 12% at ≥ 50), tagged with
+  the scheme so its rules are replaced/removed cleanly.
+- **Free-item promotions** — a Pricing Rule with a `Product` discount type adds a
+  free line item (rate 0) to the transaction when it matches (buy-X-get-Y).
+
 See `docs/ARCHITECTURE.md` for the full design.

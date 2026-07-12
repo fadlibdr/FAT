@@ -14,7 +14,12 @@
     { "fieldname": "min_qty", "label": "Min Qty", "fieldtype": "Float", "default": "0" },
     { "fieldname": "rate_or_discount", "label": "Action", "fieldtype": "Select", "options": "Discount Percentage\nRate", "default": "Discount Percentage", "reqd": true, "in_list_view": true },
     { "fieldname": "discount_percentage", "label": "Discount %", "fieldtype": "Float", "default": "0", "in_list_view": true },
-    { "fieldname": "rate", "label": "Rate", "fieldtype": "Currency" }
+    { "fieldname": "rate", "label": "Rate", "fieldtype": "Currency" },
+    { "fieldname": "coupon_based", "label": "Coupon Based", "fieldtype": "Check", "in_standard_filter": true },
+    { "fieldname": "promotional_scheme", "label": "Promotional Scheme", "fieldtype": "Data", "read_only": true, "in_standard_filter": true },
+    { "fieldname": "price_or_product_discount", "label": "Discount Type", "fieldtype": "Select", "options": "Price\nProduct", "default": "Price" },
+    { "fieldname": "free_item", "label": "Free Item", "fieldtype": "Link", "options": "Item" },
+    { "fieldname": "free_qty", "label": "Free Qty", "fieldtype": "Float", "default": "0" }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },

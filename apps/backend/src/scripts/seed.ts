@@ -240,6 +240,45 @@ async function main() {
     discount_percentage: 10,
   });
 
+  // Promotions: a coupon-gated 20%-off rule on WIDGET-F (+ its coupon), and a
+  // buy-5-get-1-free rule (free FIFO Widget). The coupon links to the rule by
+  // name, so create the rule directly to capture it.
+  const prDt = registry.get("Pricing Rule");
+  if (prDt) {
+    try {
+      const couponRule = await documents.create(prDt, sys, {
+        title: "Coupon SAVE20 (WIDGET-F 20% off)",
+        is_active: 1,
+        priority: 5,
+        apply_on: "Item Code",
+        item_code: "WIDGET-F",
+        coupon_based: 1,
+        rate_or_discount: "Discount Percentage",
+        discount_percentage: 20,
+      });
+      await create("Coupon Code", {
+        coupon_code: "SAVE20",
+        pricing_rule: couponRule.name,
+        max_use: 5,
+        valid_upto: "2027-12-31",
+      });
+    } catch (err) {
+      logger.warn(`Skip coupon seed: ${(err as Error).message}`);
+    }
+  }
+  await create("Pricing Rule", {
+    title: "Buy 5 WIDGET-1 get 1 WIDGET-F free",
+    is_active: 1,
+    priority: 2,
+    apply_on: "Item Code",
+    item_code: "WIDGET-1",
+    min_qty: 5,
+    rate_or_discount: "Discount Percentage",
+    price_or_product_discount: "Product",
+    free_item: "WIDGET-F",
+    free_qty: 1,
+  });
+
   // Support: a default SLA with per-priority response/resolution targets.
   await create("Service Level Agreement", {
     service_level: "Default SLA",
