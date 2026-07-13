@@ -4,7 +4,8 @@
   "naming_rule": "series:BUDG-.#####",
   "title_field": "cost_center",
   "fields": [
-    { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Link", "options": "Cost Center", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Link", "options": "Cost Center", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "project", "label": "Project", "fieldtype": "Link", "options": "Project", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "account", "label": "Account", "fieldtype": "Link", "options": "Account", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "fiscal_year", "label": "Fiscal Year", "fieldtype": "Link", "options": "Fiscal Year", "in_standard_filter": true },
     { "fieldname": "budget_amount", "label": "Budget Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true }

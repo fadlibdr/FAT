@@ -117,6 +117,31 @@ const REPORTS: Record<string, QueryReport> = {
           ) act ON act."account" = b."account" AND act."cost_center" = b."cost_center"
           ORDER BY b."cost_center", b."account"`,
   },
+  "project-budget-variance": {
+    permDoctype: "GL Entry",
+    columns: [
+      { key: "project", label: "Project" },
+      { key: "account", label: "Account" },
+      { key: "budget_amount", label: "Budget" },
+      { key: "actual", label: "Actual" },
+      { key: "variance", label: "Variance" },
+    ],
+    // Budget vs actual for project-dimension budgets: each Budget carrying a
+    // project is matched to the GL actual (Dr − Cr) for that project + account.
+    sql: `SELECT b."project", b."account",
+                 b."budget_amount"::float8 AS "budget_amount",
+                 coalesce(act."actual", 0)::float8 AS "actual",
+                 (b."budget_amount" - coalesce(act."actual", 0))::float8 AS "variance"
+          FROM "tabBudget" b
+          LEFT JOIN (
+            SELECT "account", "project", sum("debit") - sum("credit") AS "actual"
+            FROM "tabGL Entry"
+            WHERE "project" IS NOT NULL AND "project" <> ''
+            GROUP BY "account", "project"
+          ) act ON act."account" = b."account" AND act."project" = b."project"
+          WHERE b."project" IS NOT NULL AND b."project" <> ''
+          ORDER BY b."project", b."account"`,
+  },
   "batch-stock-balance": {
     permDoctype: "Stock Ledger Entry",
     columns: [
@@ -237,6 +262,7 @@ const REPORTS: Record<string, QueryReport> = {
     filters: [
       { fieldname: "account", label: "Account", fieldtype: "Link" },
       { fieldname: "party", label: "Party", fieldtype: "Data" },
+      { fieldname: "project", label: "Project", fieldtype: "Link" },
       { fieldname: "from_date", label: "From Date", fieldtype: "Date" },
       { fieldname: "to_date", label: "To Date", fieldtype: "Date" },
     ],
@@ -245,6 +271,7 @@ const REPORTS: Record<string, QueryReport> = {
       const where: string[] = [];
       if (f.account) { params.push(f.account); where.push(`"account" = $${params.length}`); }
       if (f.party) { params.push(f.party); where.push(`"against" = $${params.length}`); }
+      if (f.project) { params.push(f.project); where.push(`"project" = $${params.length}`); }
       if (f.from_date) { params.push(f.from_date); where.push(`"posting_date" >= $${params.length}`); }
       if (f.to_date) { params.push(f.to_date); where.push(`"posting_date" <= $${params.length}`); }
       const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
@@ -255,6 +282,34 @@ const REPORTS: Record<string, QueryReport> = {
                         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::float8 AS "balance"
                FROM "tabGL Entry" ${clause}
                ORDER BY "posting_date", "creation"`,
+        params,
+      };
+    },
+  },
+  "project-ledger": {
+    permDoctype: "GL Entry",
+    columns: [
+      { key: "project", label: "Project" },
+      { key: "account", label: "Account" },
+      { key: "debit", label: "Debit" },
+      { key: "credit", label: "Credit" },
+      { key: "net", label: "Net (Dr − Cr)" },
+    ],
+    filters: [{ fieldname: "project", label: "Project", fieldtype: "Link" }],
+    // Dimension-wise ledger: GL rolled up by project + account. Only entries that
+    // carry the project dimension are included.
+    build: (f) => {
+      const params: unknown[] = [];
+      let clause = `WHERE "project" IS NOT NULL AND "project" <> ''`;
+      if (f.project) { params.push(f.project); clause += ` AND "project" = $${params.length}`; }
+      return {
+        text: `SELECT "project", "account",
+                      sum("debit")::float8 AS "debit",
+                      sum("credit")::float8 AS "credit",
+                      (sum("debit") - sum("credit"))::float8 AS "net"
+               FROM "tabGL Entry" ${clause}
+               GROUP BY "project", "account"
+               ORDER BY "project", "account"`,
         params,
       };
     },

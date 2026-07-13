@@ -348,4 +348,14 @@ Accounting, and HR as metadata-defined modules.
 - **Appointment** — a submittable `Appointment` whose `before_submit` gate blocks
   a booking that overlaps another submitted appointment for the same assignee.
 
+## Phase 30
+
+- **Accounting dimensions** — an `Accounting Dimension` master plus a `project`
+  dimension on Sales/Purchase Invoices and the GL; the GL listener stamps each
+  posted line with the voucher's project (alongside cost center).
+- **Dimension reporting** — the `general-ledger` report gains a project filter,
+  and a `project-ledger` report rolls debit/credit/net up by project + account.
+- **Dimension budgets** — Budgets can target a `project`; a
+  `project-budget-variance` report compares each project budget to its GL actual.
+
 See `docs/ARCHITECTURE.md` for the full design.

@@ -59,6 +59,13 @@
       "in_standard_filter": true
     },
     {
+      "fieldname": "project",
+      "label": "Project",
+      "fieldtype": "Link",
+      "options": "Project",
+      "in_standard_filter": true
+    },
+    {
       "fieldname": "currency",
       "label": "Currency",
       "fieldtype": "Link",
