@@ -495,6 +495,25 @@ listener handles usage counting and scheme generation.
 - All of it stays on the event bus / generic engine — no cross-module service
   imports.
 
+## Phase 26 — Asset lifecycle
+
+Extends the Assets module (Asset + Depreciation Entry) with movement, repair, and
+disposal, all handled by the existing `AssetsListener` on the event bus:
+
+- **Asset Movement.** On submit, stamps the movement's `from_location` with the
+  asset's current location and updates the asset to the new location/custodian;
+  cancel restores the previous location.
+- **Asset Repair.** Expenses the cost (Dr Repairs Expense / Cr the payable) or
+  **capitalises** it (Dr the asset account / Cr the payable, and adds the cost to
+  the asset's `gross_purchase_amount` + `value_after_depreciation`). Cancel
+  reverses the GL and unwinds any capitalisation.
+- **Asset Disposal.** Scrap or sale. Posts the removal journal — Dr Accumulated
+  Depreciation + Dr Cash (sale proceeds), Cr the fixed-asset cost — and books the
+  balancing **gain (Cr) or loss (Dr)** against `sale − book value`, so the entry
+  always balances (verified for loss, gain, and scrap). Marks the asset
+  Scrapped/Sold and zeroes its value; cancel reverses and restores the asset's
+  depreciated state.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

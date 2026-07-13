@@ -1,0 +1,21 @@
+{
+  "name": "Asset Disposal",
+  "module": "Assets",
+  "naming_rule": "series:ADIS-.#####",
+  "is_submittable": true,
+  "title_field": "asset",
+  "fields": [
+    { "fieldname": "asset", "label": "Asset", "fieldtype": "Link", "options": "Asset", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "disposal_date", "label": "Disposal Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "disposal_type", "label": "Disposal Type", "fieldtype": "Select", "options": "Scrap\nSale", "default": "Scrap", "reqd": true, "in_list_view": true },
+    { "fieldname": "sale_amount", "label": "Sale Amount", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "cash_account", "label": "Cash / Receivable Account", "fieldtype": "Link", "options": "Account", "default": "Cash" },
+    { "fieldname": "gain_loss_account", "label": "Gain/Loss Account", "fieldtype": "Link", "options": "Account", "default": "Gain/Loss on Asset Disposal" },
+    { "fieldname": "book_value", "label": "Book Value", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "gain_loss", "label": "Gain / (Loss)", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Asset Movement",
+  "module": "Assets",
+  "naming_rule": "series:ASM-.#####",
+  "is_submittable": true,
+  "title_field": "asset",
+  "fields": [
+    { "fieldname": "asset", "label": "Asset", "fieldtype": "Link", "options": "Asset", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "movement_date", "label": "Movement Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "purpose", "label": "Purpose", "fieldtype": "Select", "options": "Issue\nTransfer\nReceipt", "default": "Transfer", "in_list_view": true },
+    { "fieldname": "from_location", "label": "From Location", "fieldtype": "Data", "read_only": true, "in_list_view": true },
+    { "fieldname": "to_location", "label": "To Location", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "to_custodian", "label": "To Custodian", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
