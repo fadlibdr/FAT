@@ -29,6 +29,7 @@ import { LoyaltyModule } from "./modules/loyalty/loyalty.module";
 import { QualityModule } from "./modules/quality/quality.module";
 import { MaintenanceModule } from "./modules/maintenance/maintenance.module";
 import { ReceivablesModule } from "./modules/receivables/receivables.module";
+import { EngagementModule } from "./modules/engagement/engagement.module";
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ReceivablesModule } from "./modules/receivables/receivables.module";
     QualityModule,
     MaintenanceModule,
     ReceivablesModule,
+    EngagementModule,
   ],
   controllers: [HealthController],
   providers: [
