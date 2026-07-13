@@ -337,4 +337,15 @@ Accounting, and HR as metadata-defined modules.
   storage, posting a warehouse-to-warehouse transfer per line at the source's
   valuation; cancel reverses.
 
+## Phase 29
+
+- **Campaign** — a `Campaign` master; Leads carry a `campaign`, and a
+  `campaign-performance` query-report shows leads, conversions, and conversion
+  rate per campaign.
+- **Contract** — a submittable `Contract` (Customer/Supplier) validates its date
+  range on submit and derives status (Active, or Expired if the end date has
+  already passed); cancel resets it.
+- **Appointment** — a submittable `Appointment` whose `before_submit` gate blocks
+  a booking that overlaps another submitted appointment for the same assignee.
+
 See `docs/ARCHITECTURE.md` for the full design.

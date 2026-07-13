@@ -396,6 +396,13 @@ async function main() {
     new_leaves_allocated: 12,
   });
 
+  // Engagement demo: a campaign that leads can be attributed to.
+  await create("Campaign", {
+    campaign_name: "Summer Launch",
+    status: "Active",
+    budget_cost: 5000,
+  });
+
   // Projects demo.
   await create("Project", {
     project_name: "Website Revamp",

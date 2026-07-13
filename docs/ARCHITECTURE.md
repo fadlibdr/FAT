@@ -559,6 +559,28 @@ tracking stays consistent — no new ledger logic:
   links the note back onto the pick and flips it to Delivered; the actual stock
   issue happens when that Delivery Note is submitted, through the existing listener.
 
+## Phase 29 — Customer engagement
+
+A new thin `Engagement` module (three JSON DocTypes + one `EngagementListener`,
+no cross-module service imports) plus a query-report:
+
+- **Campaign.** A master that Leads attribute to via a new `campaign` Link field.
+  The `campaign-performance` query-report groups `tabLead` by campaign, counting
+  leads and — reusing the CRM pipeline's stamped `customer` back-link as the
+  conversion signal — converted leads and the conversion rate. No separate
+  attribution table is maintained.
+- **Contract.** A submittable agreement (Customer/Supplier via a Dynamic Link).
+  A `before_submit` gate (`suppressErrors:false`) rejects an end-before-start
+  range; on submit the listener derives the status (Expired if the end date has
+  already passed, else Active) and cancel resets it. Dates arrive as `Date`
+  objects, so comparisons normalise through epoch milliseconds rather than string
+  compare.
+- **Appointment.** A submittable booking with a `Datetime` range. The
+  `before_submit` gate rejects a non-positive duration and, with a half-open
+  overlap test (`existing.start < new.end AND existing.end > new.start`), blocks a
+  submit that would double-book the same assignee — adjacent, touching slots are
+  allowed. Passing the gate flips the status to Scheduled.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
