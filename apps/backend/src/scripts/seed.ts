@@ -402,6 +402,14 @@ async function main() {
     new_leaves_allocated: 12,
   });
 
+  // Fleet demo: a vehicle to log fuel/service against.
+  await create("Vehicle", {
+    license_plate: "FAT-1234",
+    make: "Toyota",
+    model: "Hilux",
+    fuel_type: "Diesel",
+  });
+
   // Engagement demo: a campaign that leads can be attributed to.
   await create("Campaign", {
     campaign_name: "Summer Launch",

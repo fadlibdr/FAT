@@ -601,6 +601,24 @@ by project.
   each project budget to its GL actual (Dr − Cr for that project + account), the
   same sign convention as the cost-center `budget-variance`.
 
+## Phase 31 — Fleet management
+
+A new thin `Fleet` module (two JSON DocTypes + one `FleetListener`, no
+cross-module service imports) plus a query-report:
+
+- **Vehicle + Vehicle Log.** A `before_save` derives the log's
+  `fuel_cost = fuel_qty × fuel_rate`. On submit the listener rolls the fuel and
+  service costs onto the `Vehicle` (`total_fuel_cost` / `total_service_cost`,
+  accumulated with `coalesce(…,0) + …`) and advances `last_odometer` with
+  `greatest(…)`; cancel subtracts the costs back out (the odometer is not rolled
+  back — readings only ever move forward).
+- **Odometer gate.** A `before_submit` gate (`suppressErrors:false`) rejects a log
+  whose odometer is below the vehicle's current reading, keeping the reading
+  monotonic.
+- **Running cost.** The `vehicle-running-cost` report aggregates a vehicle's
+  submitted logs — fuel, service, distance (`max − min` odometer), total cost, and
+  cost per km — reading straight from `tabVehicle Log`.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
