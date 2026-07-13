@@ -33,6 +33,13 @@
       "fieldtype": "Date"
     },
     {
+      "fieldname": "blanket_order",
+      "label": "Blanket Order",
+      "fieldtype": "Link",
+      "options": "Blanket Order",
+      "in_standard_filter": true
+    },
+    {
       "fieldname": "items",
       "label": "Items",
       "fieldtype": "Table",
