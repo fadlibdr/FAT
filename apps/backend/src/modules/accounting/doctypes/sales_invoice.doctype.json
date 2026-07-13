@@ -66,6 +66,13 @@
       "in_standard_filter": true
     },
     {
+      "fieldname": "sales_person",
+      "label": "Sales Person",
+      "fieldtype": "Link",
+      "options": "Sales Person",
+      "in_standard_filter": true
+    },
+    {
       "fieldname": "currency",
       "label": "Currency",
       "fieldtype": "Link",

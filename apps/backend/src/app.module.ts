@@ -31,6 +31,7 @@ import { MaintenanceModule } from "./modules/maintenance/maintenance.module";
 import { ReceivablesModule } from "./modules/receivables/receivables.module";
 import { EngagementModule } from "./modules/engagement/engagement.module";
 import { FleetModule } from "./modules/fleet/fleet.module";
+import { SalesteamModule } from "./modules/salesteam/salesteam.module";
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { FleetModule } from "./modules/fleet/fleet.module";
     ReceivablesModule,
     EngagementModule,
     FleetModule,
+    SalesteamModule,
   ],
   controllers: [HealthController],
   providers: [
