@@ -368,4 +368,15 @@ Accounting, and HR as metadata-defined modules.
 - **Running cost** — a `vehicle-running-cost` report gives per-vehicle fuel,
   service, distance (max − min odometer), total cost, and cost per km.
 
+## Phase 32
+
+- **Sales commission** — a `Sales Person` (commission rate + target); submitting a
+  Sales Invoice tagged with one accrues `base_grand_total × rate%` commission and
+  the sales total onto the person (cancel unwinds).
+- **Commission report** — a `sales-commission` report shows each person's sales,
+  commission, target, and attainment %.
+- **Blanket Order** — a customer rate/qty agreement; a `before_submit` gate blocks
+  a Sales Order that references it from ordering beyond the remaining qty, and each
+  order rolls the blanket's `ordered_qty` (completing it when exhausted).
+
 See `docs/ARCHITECTURE.md` for the full design.

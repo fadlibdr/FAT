@@ -619,6 +619,24 @@ cross-module service imports) plus a query-report:
   submitted logs — fuel, service, distance (`max − min` odometer), total cost, and
   cost per km — reading straight from `tabVehicle Log`.
 
+## Phase 32 — Sales team & agreements
+
+A new thin `Salesteam` module (two JSON DocTypes + one `SalesteamListener`, no
+cross-module service imports), plus a `sales_person` field on Sales Invoice and a
+`blanket_order` field on Sales Order:
+
+- **Commission.** On Sales Invoice submit, if a `sales_person` is set, the listener
+  reads that person's `commission_rate` and rolls `base_grand_total` into
+  `total_sales` and `base_grand_total × rate%` into `total_commission` on the
+  Sales Person (credit notes are skipped). Cancel reverses with the opposite sign.
+  The `sales-commission` report exposes the rollups plus target attainment.
+- **Blanket Order.** A customer rate/quantity agreement for one item. A
+  `before_submit` gate on Sales Order (`suppressErrors:false`) sums the order's
+  qty for the blanket's item and blocks the submit if `ordered_qty + thisQty`
+  exceeds `total_qty`; on submit it advances `ordered_qty` (and flips the blanket
+  to Completed when exhausted), and cancel rolls it back. All quantity roll-ups are
+  plain SQL over the sibling table — no shared service.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

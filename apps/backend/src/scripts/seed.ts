@@ -402,6 +402,13 @@ async function main() {
     new_leaves_allocated: 12,
   });
 
+  // Sales team demo: a sales person with a commission rate + target.
+  await create("Sales Person", {
+    sales_person_name: "Dana Reps",
+    commission_rate: 5,
+    target_amount: 50000,
+  });
+
   // Fleet demo: a vehicle to log fuel/service against.
   await create("Vehicle", {
     license_plate: "FAT-1234",
