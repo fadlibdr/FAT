@@ -14,6 +14,7 @@
     { "fieldname": "credit_to", "label": "Credit To", "fieldtype": "Link", "options": "Account", "default": "Creditors" },
     { "fieldname": "expense_account", "label": "Expense Account", "fieldtype": "Link", "options": "Account", "default": "Cost of Goods Sold" },
     { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Link", "options": "Cost Center", "in_standard_filter": true },
+    { "fieldname": "project", "label": "Project", "fieldtype": "Link", "options": "Project", "in_standard_filter": true },
     { "fieldname": "currency", "label": "Currency", "fieldtype": "Link", "options": "Currency" },
     { "fieldname": "conversion_rate", "label": "Exchange Rate", "fieldtype": "Float", "default": "1" },
     { "fieldname": "payment_terms_template", "label": "Payment Terms Template", "fieldtype": "Link", "options": "Payment Terms Template" },

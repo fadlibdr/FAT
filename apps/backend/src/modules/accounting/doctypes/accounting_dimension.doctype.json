@@ -1,0 +1,16 @@
+{
+  "name": "Accounting Dimension",
+  "module": "Accounting",
+  "naming_rule": "field:dimension_name",
+  "title_field": "dimension_name",
+  "fields": [
+    { "fieldname": "dimension_name", "label": "Dimension Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "reference_doctype", "label": "Reference DocType", "fieldtype": "Link", "options": "DocType", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "fieldname", "label": "Fieldname", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "disabled", "label": "Disabled", "fieldtype": "Check", "default": "0", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

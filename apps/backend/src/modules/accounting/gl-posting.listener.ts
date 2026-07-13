@@ -21,6 +21,7 @@ interface Line {
   credit: number;
   against: string;
   cost_center?: string | null;
+  project?: string | null;
 }
 
 /**
@@ -58,6 +59,7 @@ export class GlPostingListener {
         credit: l.credit,
         against: l.against,
         cost_center: l.cost_center ?? null,
+        project: l.project ?? null,
       });
     }
   }
@@ -126,6 +128,7 @@ export class GlPostingListener {
     const grand = Number(doc.grand_total ?? net);
     const against = String(doc.customer ?? "");
     const cc = (doc.cost_center as string) || null;
+    const proj = (doc.project as string) || null;
     const isReturn = Boolean(doc.is_return);
     const ctx = systemContext(payload.user);
 
@@ -142,6 +145,8 @@ export class GlPostingListener {
       const acct = (t.account_head as string) || SALES;
       lines.push({ account: acct, debit: isReturn ? amt * conv : 0, credit: isReturn ? 0 : amt * conv, against, cost_center: cc });
     }
+    // Stamp the accounting dimension (project) onto every GL line.
+    for (const l of lines) l.project = proj;
     try {
       await this.postLines(ctx, "Sales Invoice", String(doc.name), doc.posting_date, lines);
       await this.setInvoice(String(doc.name), {
@@ -171,6 +176,7 @@ export class GlPostingListener {
     const grand = Number(doc.grand_total ?? net);
     const against = String(doc.supplier ?? "");
     const cc = (doc.cost_center as string) || null;
+    const proj = (doc.project as string) || null;
     const isReturn = Boolean(doc.is_return);
     const creditTo = String(doc.credit_to || CREDITORS);
     const expense = String(doc.expense_account || COGS);
@@ -189,6 +195,8 @@ export class GlPostingListener {
       const acct = (t.account_head as string) || expense;
       lines.push({ account: acct, debit: isReturn ? 0 : amt * conv, credit: isReturn ? -amt * conv : 0, against, cost_center: cc });
     }
+    // Stamp the accounting dimension (project) onto every GL line.
+    for (const l of lines) l.project = proj;
     try {
       await this.postLines(ctx, "Purchase Invoice", String(doc.name), doc.posting_date, lines);
       await this.setDoc("Purchase Invoice", String(doc.name), {
