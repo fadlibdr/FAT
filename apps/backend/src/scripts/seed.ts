@@ -111,6 +111,7 @@ async function main() {
     customer_group: "Commercial",
     territory: "All Territories",
     email_id: "hello@acme.example",
+    credit_limit: 100000,
   });
   await create("Item", {
     item_code: "WIDGET-1",
@@ -134,6 +135,7 @@ async function main() {
   await create("Account", { account_name: "Repairs Expense", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Gain/Loss on Asset Disposal", account_type: "Income", company: "FAT Demo Co" });
   await create("Account", { account_name: "Depreciation Expense", account_type: "Expense", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Interest Income", account_type: "Income", company: "FAT Demo Co" });
   await create("Account", { account_name: "Salary Expense", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Salaries Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Tax Withheld Payable", account_type: "Liability", company: "FAT Demo Co" });

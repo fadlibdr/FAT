@@ -514,6 +514,28 @@ disposal, all handled by the existing `AssetsListener` on the event bus:
   Scrapped/Sold and zeroes its value; cancel reverses and restores the asset's
   depreciated state.
 
+## Phase 27 — Accounts-receivable collections
+
+A new thin `Receivables` module (one JSON DocType + one `ReceivablesListener`,
+no cross-module service imports) plus a query-report, all driven by the event bus:
+
+- **Dunning.** A `before_save` computes the interest on an overdue invoice
+  (`outstanding × rate% × overdue_days / 365`); on submit the listener books it
+  Dr Debtors / Cr Interest Income (balanced, verified) and marks the notice
+  Unresolved, and cancel deletes the GL. Interest income realises the time value
+  of an overdue receivable without touching the original invoice.
+- **Credit limit.** `Customer` gains a `credit_limit`. A
+  `before_submit:Sales Invoice` gate (`suppressErrors:false`, so a throw aborts
+  the submit) sums the customer's open receivable from already-submitted invoices
+  and blocks the transition when adding the new invoice would exceed the limit;
+  an unset/zero limit is unlimited, and credit notes (`is_return`) are exempt.
+- **Customer Statement.** A `customer-statement` query-report reads the receivable
+  account movements for one customer straight from `tabGL Entry` (account =
+  Debtors, `against` = customer) — invoices (Dr), payments (Cr) and dunning
+  interest (Dr) — with a window-function **running balance**, i.e. a statement of
+  account. It reuses the ledger the other listeners already post to, so no
+  separate aggregation is maintained.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

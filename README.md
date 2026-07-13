@@ -312,4 +312,16 @@ Accounting, and HR as metadata-defined modules.
   (Dr Accumulated Depreciation + Cash, Cr Fixed Assets) and books the balancing
   **gain or loss** vs book value, marking the asset Scrapped/Sold; cancel reverses.
 
+## Phase 27
+
+- **Dunning** — a submittable `Dunning` charges interest on an overdue invoice
+  (`outstanding × rate% × overdue_days / 365`) and books it as income on submit
+  (Dr Debtors / Cr Interest Income); cancel reverses the GL.
+- **Credit limit** — Customers gain a `credit_limit`; a `before_submit` gate
+  blocks a Sales Invoice when the customer's open receivable plus the new invoice
+  would exceed it (0 / unset = no limit).
+- **Customer Statement** — a `customer-statement` query-report renders a statement
+  of account for one customer: every receivable movement (invoices, payments,
+  dunning interest) with a running balance.
+
 See `docs/ARCHITECTURE.md` for the full design.
