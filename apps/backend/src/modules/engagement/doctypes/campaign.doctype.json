@@ -1,0 +1,18 @@
+{
+  "name": "Campaign",
+  "module": "Engagement",
+  "naming_rule": "field:campaign_name",
+  "title_field": "campaign_name",
+  "fields": [
+    { "fieldname": "campaign_name", "label": "Campaign Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "start_date", "label": "Start Date", "fieldtype": "Date", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "end_date", "label": "End Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "budget_cost", "label": "Budget Cost", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Planned\nActive\nClosed", "default": "Planned", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Small Text" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

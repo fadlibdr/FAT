@@ -202,6 +202,26 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "campaign-performance": {
+    permDoctype: "Lead",
+    columns: [
+      { key: "campaign", label: "Campaign" },
+      { key: "leads", label: "Leads" },
+      { key: "converted", label: "Converted" },
+      { key: "conversion_rate", label: "Conversion %" },
+    ],
+    // Lead volume and conversion per campaign (a Lead is "converted" once its
+    // customer back-link is stamped by the CRM pipeline listener).
+    sql: `SELECT "campaign",
+                 count(*)::float8 AS "leads",
+                 count(*) FILTER (WHERE "customer" IS NOT NULL AND "customer" <> '')::float8 AS "converted",
+                 (100.0 * count(*) FILTER (WHERE "customer" IS NOT NULL AND "customer" <> '')
+                   / NULLIF(count(*), 0))::float8 AS "conversion_rate"
+          FROM "tabLead"
+          WHERE "campaign" IS NOT NULL AND "campaign" <> ''
+          GROUP BY "campaign"
+          ORDER BY "leads" DESC`,
+  },
   "general-ledger": {
     permDoctype: "GL Entry",
     columns: [

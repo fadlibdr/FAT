@@ -9,6 +9,7 @@
     { "fieldname": "email_id", "label": "Email", "fieldtype": "Data", "in_list_view": true },
     { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" },
     { "fieldname": "territory", "label": "Territory", "fieldtype": "Link", "options": "Territory" },
+    { "fieldname": "campaign", "label": "Campaign", "fieldtype": "Link", "options": "Campaign", "in_standard_filter": true },
     { "fieldname": "customer", "label": "Converted Customer", "fieldtype": "Link", "options": "Customer", "read_only": true, "in_list_view": true }
   ],
   "permissions": [

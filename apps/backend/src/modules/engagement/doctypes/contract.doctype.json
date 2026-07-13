@@ -1,0 +1,20 @@
+{
+  "name": "Contract",
+  "module": "Engagement",
+  "naming_rule": "series:CON-.#####",
+  "is_submittable": true,
+  "title_field": "party",
+  "fields": [
+    { "fieldname": "party_type", "label": "Party Type", "fieldtype": "Select", "options": "Customer\nSupplier", "default": "Customer", "reqd": true, "in_list_view": true },
+    { "fieldname": "party", "label": "Party", "fieldtype": "Dynamic Link", "options": "party_type", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "start_date", "label": "Start Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "end_date", "label": "End Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "contract_value", "label": "Contract Value", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "terms", "label": "Terms", "fieldtype": "Small Text" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nActive\nExpired\nCancelled", "default": "Draft", "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

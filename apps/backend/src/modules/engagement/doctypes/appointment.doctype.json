@@ -1,0 +1,19 @@
+{
+  "name": "Appointment",
+  "module": "Engagement",
+  "naming_rule": "series:APT-.#####",
+  "is_submittable": true,
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "assigned_to", "label": "Assigned To", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "start_time", "label": "Start Time", "fieldtype": "Datetime", "reqd": true, "in_list_view": true },
+    { "fieldname": "end_time", "label": "End Time", "fieldtype": "Datetime", "reqd": true, "in_list_view": true },
+    { "fieldname": "purpose", "label": "Purpose", "fieldtype": "Data" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nScheduled\nCompleted\nCancelled", "default": "Draft", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
