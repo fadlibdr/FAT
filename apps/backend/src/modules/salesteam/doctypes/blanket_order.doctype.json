@@ -1,0 +1,21 @@
+{
+  "name": "Blanket Order",
+  "module": "Salesteam",
+  "naming_rule": "series:BO-.#####",
+  "is_submittable": true,
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "total_qty", "label": "Total Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "rate", "label": "Rate", "fieldtype": "Currency" },
+    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date" },
+    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date" },
+    { "fieldname": "ordered_qty", "label": "Ordered Qty", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nActive\nCompleted\nCancelled", "default": "Draft", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

@@ -247,6 +247,29 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY "campaign"
           ORDER BY "leads" DESC`,
   },
+  "sales-commission": {
+    permDoctype: "Sales Person",
+    columns: [
+      { key: "sales_person", label: "Sales Person" },
+      { key: "total_sales", label: "Total Sales" },
+      { key: "commission_rate", label: "Rate %" },
+      { key: "total_commission", label: "Commission" },
+      { key: "target_amount", label: "Target" },
+      { key: "attainment", label: "Attainment %" },
+    ],
+    // Per-person commission and target attainment, from the rollups the
+    // Salesteam listener maintains on each Sales Invoice submit.
+    sql: `SELECT "name" AS "sales_person",
+                 coalesce("total_sales", 0)::float8 AS "total_sales",
+                 coalesce("commission_rate", 0)::float8 AS "commission_rate",
+                 coalesce("total_commission", 0)::float8 AS "total_commission",
+                 coalesce("target_amount", 0)::float8 AS "target_amount",
+                 (CASE WHEN coalesce("target_amount", 0) > 0
+                       THEN 100.0 * coalesce("total_sales", 0) / "target_amount"
+                       ELSE 0 END)::float8 AS "attainment"
+          FROM "tabSales Person"
+          ORDER BY "total_sales" DESC`,
+  },
   "vehicle-running-cost": {
     permDoctype: "Vehicle Log",
     columns: [
