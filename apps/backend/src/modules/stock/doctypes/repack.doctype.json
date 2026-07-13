@@ -1,0 +1,19 @@
+{
+  "name": "Repack",
+  "module": "Stock",
+  "naming_rule": "series:REPACK-.#####",
+  "is_submittable": true,
+  "title_field": "warehouse",
+  "fields": [
+    { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "consume_items", "label": "Consumed", "fieldtype": "Table", "options": "Repack Consume Item", "reqd": true },
+    { "fieldname": "produce_items", "label": "Produced", "fieldtype": "Table", "options": "Repack Produce Item", "reqd": true },
+    { "fieldname": "consumed_value", "label": "Consumed Value", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nRepacked\nCancelled", "default": "Draft", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
