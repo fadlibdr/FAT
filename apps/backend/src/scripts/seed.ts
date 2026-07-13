@@ -157,6 +157,7 @@ async function main() {
   // Warehouses for stock ledger postings.
   await create("Warehouse", { warehouse_name: "Stores", company: "FAT Demo Co" });
   await create("Warehouse", { warehouse_name: "Finished Goods", company: "FAT Demo Co" });
+  await create("Warehouse", { warehouse_name: "Receiving", company: "FAT Demo Co" });
 
   // Item variants: attributes + a template T-Shirt that varies on Size and Color.
   await create("Item Attribute", {
