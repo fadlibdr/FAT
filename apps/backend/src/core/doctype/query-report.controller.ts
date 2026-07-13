@@ -247,6 +247,39 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY "campaign"
           ORDER BY "leads" DESC`,
   },
+  "vehicle-running-cost": {
+    permDoctype: "Vehicle Log",
+    columns: [
+      { key: "vehicle", label: "Vehicle" },
+      { key: "fuel_cost", label: "Fuel Cost" },
+      { key: "service_cost", label: "Service Cost" },
+      { key: "distance", label: "Distance" },
+      { key: "total_cost", label: "Total Cost" },
+      { key: "cost_per_km", label: "Cost / km" },
+    ],
+    filters: [{ fieldname: "vehicle", label: "Vehicle", fieldtype: "Link" }],
+    // Running cost per vehicle from its submitted logs: fuel + service, distance
+    // (max − min odometer), and cost per distance unit.
+    build: (f) => {
+      const params: unknown[] = [];
+      let clause = `WHERE "docstatus" = 1`;
+      if (f.vehicle) { params.push(f.vehicle); clause += ` AND "vehicle" = $${params.length}`; }
+      return {
+        text: `SELECT "vehicle",
+                      sum("fuel_cost")::float8 AS "fuel_cost",
+                      sum("service_cost")::float8 AS "service_cost",
+                      (max("odometer") - min("odometer"))::float8 AS "distance",
+                      (sum("fuel_cost") + sum("service_cost"))::float8 AS "total_cost",
+                      (CASE WHEN (max("odometer") - min("odometer")) > 0
+                            THEN (sum("fuel_cost") + sum("service_cost")) / (max("odometer") - min("odometer"))
+                            ELSE 0 END)::float8 AS "cost_per_km"
+               FROM "tabVehicle Log" ${clause}
+               GROUP BY "vehicle"
+               ORDER BY "vehicle"`,
+        params,
+      };
+    },
+  },
   "general-ledger": {
     permDoctype: "GL Entry",
     columns: [
