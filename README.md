@@ -324,4 +324,17 @@ Accounting, and HR as metadata-defined modules.
   of account for one customer: every receivable movement (invoices, payments,
   dunning interest) with a running balance.
 
+## Phase 28
+
+- **Repack** — a `Repack` consumes items and produces others from one warehouse;
+  on submit it issues the consumed lines at their current valuation and receives
+  the produced lines at a rolled-up rate so the produced stock value equals the
+  value consumed (cost conserved). Cancel reverses every movement.
+- **Pick List** — a `Pick List` whose `before_submit` gate blocks the submit when
+  any location's qty exceeds the on-hand Bin balance; a submitted pick converts to
+  a draft Delivery Note via `POST /api/stock/pick-list/:name/make-delivery-note`.
+- **Putaway** — a `Putaway` moves received stock from a receiving warehouse into
+  storage, posting a warehouse-to-warehouse transfer per line at the source's
+  valuation; cancel reverses.
+
 See `docs/ARCHITECTURE.md` for the full design.

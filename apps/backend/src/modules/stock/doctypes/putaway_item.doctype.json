@@ -1,0 +1,12 @@
+{
+  "name": "Putaway Item",
+  "module": "Stock",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "qty", "label": "Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "to_warehouse", "label": "To Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": []
+}

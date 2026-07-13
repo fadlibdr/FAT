@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
@@ -489,5 +489,125 @@ export class StockLedgerListener {
        SET ${quoteIdent("status")} = 'Cancelled' WHERE ${quoteIdent("name")} = $1`,
       [String(payload.doc.name)],
     );
+  }
+
+  private async setStatus(doctype: string, name: string, status: string, extra?: Record<string, unknown>): Promise<void> {
+    const fields: Record<string, unknown> = { status, ...(extra ?? {}) };
+    const cols = Object.keys(fields);
+    const sets = cols.map((c, i) => `${quoteIdent(c)} = $${i + 1}`).join(", ");
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor(doctype))} SET ${sets} WHERE ${quoteIdent("name")} = $${cols.length + 1}`,
+      [...Object.values(fields), name],
+    );
+  }
+
+  /**
+   * A Repack consumes items and produces others from the same warehouse. On
+   * submit we issue each consumed line at its current valuation (summing the
+   * consumed value), then receive the produced lines at a rolled-up rate so the
+   * produced stock value equals the value consumed — cost is conserved, not
+   * created. Cancel reverses every movement.
+   */
+  @OnEvent("doc.on_submit:Repack")
+  async onRepack(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const ctx = systemContext(payload.user);
+    const wh = String(doc.warehouse ?? "");
+    let consumedValue = 0;
+    for (const row of (doc.consume_items as Array<Record<string, unknown>>) ?? []) {
+      const item = String(row.item_code ?? "");
+      const qty = Number(row.qty ?? 0);
+      if (!item || !qty) continue;
+      const { rate } = await this.binBalance(item, wh, "");
+      consumedValue += qty * rate;
+      try {
+        await this.post(ctx, { item, warehouse: wh, delta: -qty }, "Repack", String(doc.name), doc.posting_date);
+      } catch (err) {
+        this.logger.error(`Repack ${doc.name}/${item}: ${(err as Error).message}`);
+      }
+    }
+    const produce = (doc.produce_items as Array<Record<string, unknown>>) ?? [];
+    const totalProduced = produce.reduce((s, r) => s + Number(r.qty ?? 0), 0);
+    const rate = totalProduced > 0 ? consumedValue / totalProduced : 0;
+    for (const row of produce) {
+      const item = String(row.item_code ?? "");
+      const qty = Number(row.qty ?? 0);
+      if (!item || !qty) continue;
+      try {
+        await this.post(ctx, { item, warehouse: wh, delta: qty, incomingRate: rate }, "Repack", String(doc.name), doc.posting_date);
+      } catch (err) {
+        this.logger.error(`Repack ${doc.name}/${item}: ${(err as Error).message}`);
+      }
+    }
+    await this.setStatus("Repack", String(doc.name), "Repacked", { consumed_value: consumedValue });
+    this.logger.log(`Repack ${doc.name}: consumed ${consumedValue} into ${totalProduced} unit(s) @ ${rate}`);
+  }
+
+  @OnEvent("doc.on_cancel:Repack")
+  async cancelRepack(p: DocEventPayload): Promise<void> {
+    await this.reverse("Repack", String(p.doc.name));
+    await this.setStatus("Repack", String(p.doc.name), "Cancelled");
+  }
+
+  /**
+   * A Putaway moves received stock from a staging/receiving warehouse into
+   * storage. Each line is a warehouse-to-warehouse transfer at the source's
+   * current valuation (value follows the goods). Cancel reverses.
+   */
+  @OnEvent("doc.on_submit:Putaway")
+  async onPutaway(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const ctx = systemContext(payload.user);
+    const from = String(doc.from_warehouse ?? "");
+    for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
+      const item = String(row.item_code ?? "");
+      const qty = Number(row.qty ?? 0);
+      const to = String(row.to_warehouse ?? "");
+      if (!item || !qty || !to) continue;
+      const { rate } = await this.binBalance(item, from, "");
+      try {
+        await this.post(ctx, { item, warehouse: from, delta: -qty }, "Putaway", String(doc.name), doc.posting_date);
+        await this.post(ctx, { item, warehouse: to, delta: qty, incomingRate: rate }, "Putaway", String(doc.name), doc.posting_date);
+      } catch (err) {
+        this.logger.error(`Putaway ${doc.name}/${item}: ${(err as Error).message}`);
+      }
+    }
+    await this.setStatus("Putaway", String(doc.name), "Put Away");
+    this.logger.log(`Putaway ${doc.name}: moved ${(doc.items as unknown[])?.length ?? 0} line(s) out of ${from}`);
+  }
+
+  @OnEvent("doc.on_cancel:Putaway")
+  async cancelPutaway(p: DocEventPayload): Promise<void> {
+    await this.reverse("Putaway", String(p.doc.name));
+    await this.setStatus("Putaway", String(p.doc.name), "Cancelled");
+  }
+
+  /**
+   * A Pick List cannot be submitted for more than what is on hand: the
+   * before_submit gate (suppressErrors:false, so a throw aborts the submit)
+   * checks each location's qty against the current Bin balance.
+   */
+  @OnEvent("doc.before_submit:Pick List", { suppressErrors: false })
+  async gatePickList(payload: DocEventPayload): Promise<void> {
+    if (!this.registry.has("Bin")) return;
+    const doc = payload.doc;
+    for (const row of (doc.locations as Array<Record<string, unknown>>) ?? []) {
+      const item = String(row.item_code ?? "");
+      const wh = String(row.warehouse ?? "");
+      const qty = Number(row.qty ?? 0);
+      if (!item || !wh || !qty) continue;
+      const { qty: onHand } = await this.binBalance(item, wh, "");
+      if (qty > onHand + 1e-9) {
+        throw new BadRequestException(
+          `Pick List ${doc.name}: cannot pick ${qty} of ${item} from ${wh} — only ${onHand} on hand`,
+        );
+      }
+    }
+    this.logger.log(`Pick List ${doc.name} passed availability gate`);
+  }
+
+  @OnEvent("doc.on_submit:Pick List")
+  async onPickList(payload: DocEventPayload): Promise<void> {
+    await this.setStatus("Pick List", String(payload.doc.name), "Picked");
   }
 }

@@ -536,6 +536,29 @@ no cross-module service imports) plus a query-report, all driven by the event bu
   account. It reuses the ledger the other listeners already post to, so no
   separate aggregation is maintained.
 
+## Phase 28 — Warehouse operations
+
+Three warehouse flows added to the Stock module, all reusing the existing
+`StockLedgerListener.post()` valuation engine (moving-average / FIFO) so cost
+tracking stays consistent — no new ledger logic:
+
+- **Repack.** Consumes items and produces others from one warehouse. On submit it
+  reads each consumed line's current Bin rate, issues it, and sums the consumed
+  value; the produced lines are then received at a single rolled-up rate
+  (`consumedValue / totalProducedQty`) so the produced stock value equals the
+  value consumed — cost is transformed, not created (verified 10×RAW @8 → 4 units
+  valued 80). Cancel reverses every Stock Ledger Entry.
+- **Putaway.** Moves received stock from a staging/receiving warehouse into
+  storage: each line is a warehouse-to-warehouse transfer (issue from source,
+  receive into target at the source's current valuation, so value follows the
+  goods). Cancel reverses.
+- **Pick List.** A `before_submit` gate (`suppressErrors:false`) blocks the submit
+  when any location's qty exceeds the current Bin balance — you cannot pick what
+  isn't on hand. A submitted pick is converted to a **draft Delivery Note** by
+  `PickListService` (`POST /api/stock/pick-list/:name/make-delivery-note`), which
+  links the note back onto the pick and flips it to Delivered; the actual stock
+  issue happens when that Delivery Note is submitted, through the existing listener.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
