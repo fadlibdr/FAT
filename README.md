@@ -358,4 +358,14 @@ Accounting, and HR as metadata-defined modules.
 - **Dimension budgets** — Budgets can target a `project`; a
   `project-budget-variance` report compares each project budget to its GL actual.
 
+## Phase 31
+
+- **Fleet** — a `Vehicle` master plus a submittable `Vehicle Log` (fuel + service);
+  the log derives `fuel_cost = qty × rate` and, on submit, rolls fuel/service cost
+  and the odometer onto the Vehicle (cancel unwinds the costs).
+- **Odometer gate** — a `before_submit` gate blocks a Vehicle Log whose odometer
+  reading is below the vehicle's current reading (readings are monotonic).
+- **Running cost** — a `vehicle-running-cost` report gives per-vehicle fuel,
+  service, distance (max − min odometer), total cost, and cost per km.
+
 See `docs/ARCHITECTURE.md` for the full design.

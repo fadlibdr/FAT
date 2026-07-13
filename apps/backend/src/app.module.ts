@@ -30,6 +30,7 @@ import { QualityModule } from "./modules/quality/quality.module";
 import { MaintenanceModule } from "./modules/maintenance/maintenance.module";
 import { ReceivablesModule } from "./modules/receivables/receivables.module";
 import { EngagementModule } from "./modules/engagement/engagement.module";
+import { FleetModule } from "./modules/fleet/fleet.module";
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { EngagementModule } from "./modules/engagement/engagement.module";
     MaintenanceModule,
     ReceivablesModule,
     EngagementModule,
+    FleetModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -1,0 +1,21 @@
+{
+  "name": "Vehicle Log",
+  "module": "Fleet",
+  "naming_rule": "series:VLOG-.#####",
+  "is_submittable": true,
+  "title_field": "vehicle",
+  "fields": [
+    { "fieldname": "vehicle", "label": "Vehicle", "fieldtype": "Link", "options": "Vehicle", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "log_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "odometer", "label": "Odometer", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "fuel_qty", "label": "Fuel Qty", "fieldtype": "Float" },
+    { "fieldname": "fuel_rate", "label": "Fuel Rate", "fieldtype": "Currency" },
+    { "fieldname": "fuel_cost", "label": "Fuel Cost", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "service_cost", "label": "Service Cost", "fieldtype": "Currency" },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Data" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

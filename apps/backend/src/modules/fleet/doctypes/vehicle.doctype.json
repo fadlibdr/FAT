@@ -1,0 +1,19 @@
+{
+  "name": "Vehicle",
+  "module": "Fleet",
+  "naming_rule": "field:license_plate",
+  "title_field": "license_plate",
+  "fields": [
+    { "fieldname": "license_plate", "label": "License Plate", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "make", "label": "Make", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "model", "label": "Model", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "fuel_type", "label": "Fuel Type", "fieldtype": "Select", "options": "Petrol\nDiesel\nElectric\nHybrid", "default": "Petrol", "in_standard_filter": true },
+    { "fieldname": "last_odometer", "label": "Last Odometer", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "total_fuel_cost", "label": "Total Fuel Cost", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "total_service_cost", "label": "Total Service Cost", "fieldtype": "Currency", "read_only": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
