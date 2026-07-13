@@ -1,0 +1,24 @@
+{
+  "name": "Dunning",
+  "module": "Receivables",
+  "naming_rule": "series:DUN-.#####",
+  "is_submittable": true,
+  "title_field": "customer",
+  "fields": [
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Link", "options": "Sales Invoice", "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "dunning_level", "label": "Dunning Level", "fieldtype": "Select", "options": "First Notice\nSecond Notice\nFinal Notice", "default": "First Notice", "in_list_view": true },
+    { "fieldname": "outstanding_amount", "label": "Outstanding Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "overdue_days", "label": "Overdue Days", "fieldtype": "Int", "reqd": true },
+    { "fieldname": "interest_rate", "label": "Interest Rate (% p.a.)", "fieldtype": "Float", "default": "12" },
+    { "fieldname": "interest_amount", "label": "Interest Amount", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "debtor_account", "label": "Debtor Account", "fieldtype": "Link", "options": "Account", "default": "Debtors" },
+    { "fieldname": "income_account", "label": "Interest Income Account", "fieldtype": "Link", "options": "Account", "default": "Interest Income" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nResolved\nUnresolved\nCancelled", "default": "Unresolved", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

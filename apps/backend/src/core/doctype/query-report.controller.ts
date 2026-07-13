@@ -167,6 +167,41 @@ const REPORTS: Record<string, QueryReport> = {
     filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
     build: (f) => agingSql("Purchase Invoice", "supplier", f.as_of || today()),
   },
+  "customer-statement": {
+    permDoctype: "GL Entry",
+    columns: [
+      { key: "posting_date", label: "Date" },
+      { key: "voucher_type", label: "Voucher Type" },
+      { key: "voucher_no", label: "Voucher No" },
+      { key: "debit", label: "Debit" },
+      { key: "credit", label: "Credit" },
+      { key: "balance", label: "Balance" },
+    ],
+    filters: [
+      { fieldname: "customer", label: "Customer", fieldtype: "Link" },
+      { fieldname: "account", label: "Receivable Account", fieldtype: "Link" },
+      { fieldname: "from_date", label: "From Date", fieldtype: "Date" },
+      { fieldname: "to_date", label: "To Date", fieldtype: "Date" },
+    ],
+    // A statement of account: every receivable movement for one customer
+    // (invoices Dr, payments Cr, dunning interest Dr) with a running balance.
+    build: (f) => {
+      const params: unknown[] = [f.account || "Debtors", f.customer || ""];
+      const where = [`"account" = $1`, `"against" = $2`];
+      if (f.from_date) { params.push(f.from_date); where.push(`"posting_date" >= $${params.length}`); }
+      if (f.to_date) { params.push(f.to_date); where.push(`"posting_date" <= $${params.length}`); }
+      return {
+        text: `SELECT "posting_date", "voucher_type", "voucher_no",
+                      "debit"::float8 AS "debit", "credit"::float8 AS "credit",
+                      (sum("debit" - "credit") OVER (ORDER BY "posting_date", "creation"
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::float8 AS "balance"
+               FROM "tabGL Entry"
+               WHERE ${where.join(" AND ")}
+               ORDER BY "posting_date", "creation"`,
+        params,
+      };
+    },
+  },
   "general-ledger": {
     permDoctype: "GL Entry",
     columns: [

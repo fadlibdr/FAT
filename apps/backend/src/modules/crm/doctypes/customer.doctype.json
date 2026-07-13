@@ -8,7 +8,8 @@
     { "fieldname": "customer_group", "label": "Customer Group", "fieldtype": "Link", "options": "Customer Group", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "territory", "label": "Territory", "fieldtype": "Link", "options": "Territory", "in_standard_filter": true },
     { "fieldname": "email_id", "label": "Email", "fieldtype": "Data", "in_list_view": true },
-    { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" }
+    { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" },
+    { "fieldname": "credit_limit", "label": "Credit Limit", "fieldtype": "Currency" }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
