@@ -581,6 +581,26 @@ no cross-module service imports) plus a query-report:
   submit that would double-book the same assignee — adjacent, touching slots are
   allowed. Passing the gate flips the status to Scheduled.
 
+## Phase 30 — Accounting dimensions
+
+ERPNext-style accounting dimensions: a second axis of analysis (project) carried
+on the ledger alongside the account and cost center, so the same GL can be sliced
+by project.
+
+- **Capture.** An `Accounting Dimension` master documents which dimensions exist
+  (name → reference DocType → fieldname). A `project` field is added to Sales
+  Invoice, Purchase Invoice, and GL Entry; the existing `GlPostingListener`
+  stamps `doc.project` onto every GL line it posts (the `Line` interface carries
+  it exactly like `cost_center`) — a purely additive change, `null` when unset.
+- **Report.** The `general-ledger` query-report gains a `project` filter, and a
+  `project-ledger` report groups the GL by project + account (debit / credit /
+  net). Both read the stamped column directly, so no separate dimension store is
+  maintained.
+- **Budget.** `Budget` becomes dimension-aware — `cost_center` is now optional and
+  a `project` may be set instead. The `project-budget-variance` report matches
+  each project budget to its GL actual (Dr − Cr for that project + account), the
+  same sign convention as the cost-center `budget-variance`.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

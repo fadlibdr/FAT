@@ -143,6 +143,12 @@ async function main() {
   await create("Account", { account_name: "Employee Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Cost Center", { cost_center_name: "Main", company: "FAT Demo Co" });
   await create("Budget", { cost_center: "Main", account: "Sales", budget_amount: 10000 });
+  // Accounting dimension: attribute GL to a Project.
+  await create("Accounting Dimension", {
+    dimension_name: "Project",
+    reference_doctype: "Project",
+    fieldname: "project",
+  });
   await create("Batch", { batch_id: "BATCH-A", item: "WIDGET-1" });
   await create("Currency", { currency_name: "EUR", symbol: "€", fraction: "Cent" });
   await create("Item", {
@@ -409,6 +415,8 @@ async function main() {
     status: "Open",
     customer: "Acme Inc",
   });
+  // A project-dimension budget (matched to GL actuals by the project variance report).
+  await create("Budget", { project: "Website Revamp", account: "Sales", budget_amount: 8000 });
   await create("Task", {
     subject: "Design mockups",
     project: "Website Revamp",
