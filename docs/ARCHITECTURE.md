@@ -755,6 +755,24 @@ Fills out the CRM party model (one new DocType + a field on Contact + a
   are direct SQL to avoid event re-entry.
 - **Report.** A `party-contacts` report lists a customer's contacts, primary first.
 
+## Phase 40 — Deferred revenue recognition
+
+A self-contained deferred-revenue flow in the accounting module (two DocTypes + a
+`DeferredRevenueListener` + a `DeferredRevenueService`, no cross-module imports):
+
+- **Schedule.** `before_save` splits the total into equal monthly installments (the
+  last row absorbing the rounding remainder). On submit the listener books the full
+  amount Dr Receivable / Cr Deferred Revenue (a liability) and marks the schedule
+  Active; cancel deletes the GL.
+- **Recognition.** `DeferredRevenueService.run(asOf)` (exposed at
+  `POST /api/accounting/deferred-revenue/run`) walks every Active schedule, posts
+  Dr Deferred Revenue / Cr Income for each unrecognized installment due on/before
+  the cutoff, flags the row, bumps the recognized total, and completes the schedule
+  when fully released. Flagging rows makes the run idempotent (verified: a repeat
+  run recognizes nothing).
+- **Report.** A `deferred-revenue` report shows total / recognized / remaining per
+  schedule. The trial balance stays balanced throughout.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

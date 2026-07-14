@@ -1,16 +1,25 @@
-import { Controller, Param, Post } from "@nestjs/common";
+import { Body, Controller, Param, Post } from "@nestjs/common";
 import { PaymentRequestService } from "./payment-request.service";
+import { DeferredRevenueService } from "./deferred-revenue.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
 /** Accounting automation endpoints. */
 @Controller("api/accounting")
 export class AccountingController {
-  constructor(private readonly paymentRequests: PaymentRequestService) {}
+  constructor(
+    private readonly paymentRequests: PaymentRequestService,
+    private readonly deferredRevenue: DeferredRevenueService,
+  ) {}
 
   @Post("payment-request/:name/make-payment")
   async makePayment(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const paymentEntry = await this.paymentRequests.makePayment(name, user);
     return { paymentEntry };
+  }
+
+  @Post("deferred-revenue/run")
+  async runDeferredRevenue(@CurrentUser() user: UserContext, @Body() body: { as_of?: string }) {
+    return this.deferredRevenue.run(body?.as_of, user);
   }
 }
