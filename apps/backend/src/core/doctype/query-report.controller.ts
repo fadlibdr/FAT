@@ -422,6 +422,30 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "exchange-rate-revaluation": {
+    permDoctype: "Exchange Rate Revaluation",
+    columns: [
+      { key: "revaluation", label: "Revaluation" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "account", label: "Account" },
+      { key: "party", label: "Party" },
+      { key: "balance", label: "Balance" },
+      { key: "current_exchange_rate", label: "Current Rate" },
+      { key: "new_exchange_rate", label: "New Rate" },
+      { key: "gain_loss", label: "Gain / Loss" },
+    ],
+    // Per-account revaluation detail for each submitted revaluation voucher.
+    sql: `SELECT r."name" AS "revaluation", r."posting_date",
+                 a."account", a."party",
+                 a."balance"::float8 AS "balance",
+                 a."current_exchange_rate"::float8 AS "current_exchange_rate",
+                 a."new_exchange_rate"::float8 AS "new_exchange_rate",
+                 coalesce(a."gain_loss", 0)::float8 AS "gain_loss"
+          FROM "tabExchange Rate Revaluation" r
+          JOIN "tabExchange Rate Revaluation Account" a ON a."parent" = r."name"
+          WHERE r."docstatus" = 1
+          ORDER BY r."posting_date", r."name", a."account"`,
+  },
   "supplier-scorecard": {
     permDoctype: "Supplier Scorecard",
     columns: [
