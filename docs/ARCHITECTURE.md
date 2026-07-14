@@ -791,6 +791,29 @@ added alongside the existing `ProjectsListener`, no cross-module imports):
   completed/open split (NULL status counts as open, since field defaults are
   UI-applied), average task progress, and the stored percent-complete.
 
+## Phase 42 — Employee advances & settlement
+
+A self-contained advance/expense flow in the HR module (a new `Employee Advance`
+DocType + `EmployeeAdvanceListener`, plus an extension of the existing
+`ExpenseClaimListener`; no cross-module imports):
+
+- **Advance.** On submit the listener books Dr Employee Advance (an asset — the
+  employee owes it back) / Cr the paid-from account (Cash/Bank) for the advance
+  amount and marks it Paid. Cancel reverses the GL.
+- **Settlement.** An Expense Claim may link an advance. On submit the claim still
+  debits each expense line, but the credit is **split**: the part covered by the
+  advance's remaining balance (`advance_amount − claimed_amount`) is credited to
+  the advance account — working the receivable down rather than raising a new
+  payable — and only the excess is credited to Employee Payable. The advance's
+  `claimed_amount` is bumped and it flips to Claimed once fully consumed. A
+  `before_submit` gate (`suppressErrors:false`) blocks a claim adjusting against a
+  different employee's advance or one with no balance left; cancel unwinds the
+  adjustment (restoring `claimed_amount` and status). Every posting stays a
+  balanced double entry (verified: a 600 claim credits the advance in full, a
+  follow-up 700 claim credits 400 to the advance and 300 to the payable).
+- **Report.** An `employee-advance-summary` report shows per advance the amount
+  paid, claimed, and outstanding balance.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
