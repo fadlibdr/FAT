@@ -1,0 +1,14 @@
+{
+  "name": "Loan Repayment",
+  "module": "HR",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "due_date", "label": "Due Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "principal", "label": "Principal", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "interest", "label": "Interest", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "total_payment", "label": "Total Payment", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "balance", "label": "Outstanding After", "fieldtype": "Currency", "in_list_view": true }
+  ],
+  "permissions": []
+}
