@@ -526,4 +526,15 @@ Accounting, and HR as metadata-defined modules.
 - **Schedule report** — a `loan-repayment-schedule` report lists each instalment's
   principal, interest, total, and outstanding balance.
 
+## Phase 47
+
+- **Loan repayment** — a submittable `Loan Repayment Entry` collects an instalment,
+  splitting the credit: the principal reduces the Employee Loan asset and the interest
+  is booked to income (Dr Cash / Cr Employee Loan / Cr Interest Income).
+- **Closure & gate** — each repayment bumps the loan's repaid principal and closes the
+  loan once fully repaid; a `before_submit` gate blocks over-repayment or repaying a
+  non-disbursed loan, and cancel unwinds the totals.
+- **Outstanding report** — a `loan-outstanding` report shows per loan the amount,
+  principal repaid, outstanding balance, and interest collected.
+
 See `docs/ARCHITECTURE.md` for the full design.

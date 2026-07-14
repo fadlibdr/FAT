@@ -902,9 +902,24 @@ A self-contained loan flow in the HR module (a `Loan` submittable DocType + a
 - **Report.** A `loan-repayment-schedule` report lists each instalment's principal,
   interest, total payment, and outstanding-after balance per submitted loan.
 
-Simplification: repayment collection (deducting instalments from payroll and closing
-the loan) is not yet posted — the schedule and disbursement are modelled, actual
-repayment vouchers are future work.
+## Phase 47 — Loan repayment & closure
+
+Completes the loan lifecycle with a `Loan Repayment Entry` submittable DocType + a
+`LoanRepaymentListener` (still HR, still no cross-module imports):
+
+- **Split posting.** Each repayment carries a principal and an interest part. On submit
+  the listener posts Dr the receiving account (Cash/Bank) for the total, Cr Employee
+  Loan for the principal (reducing the asset), and Cr Interest Income for the interest
+  — a balanced three-line entry (verified: 1000 + 120 → Dr Cash 1120 / Cr Employee Loan
+  1000 / Cr Interest Income 120, Σdebit − Σcredit = 0).
+- **Tracking & closure.** The loan's `repaid_principal` / `interest_paid` roll up and the
+  loan flips to Closed once the principal is fully repaid. A `before_submit` gate
+  (`suppressErrors:false`) blocks over-repayment (repaid + this > loan amount) and
+  repaying a loan that is not Disbursed (verified: a 20000 repayment on an 11000
+  outstanding is rejected). Cancel reverses the GL and unwinds the loan totals, dropping
+  it back to Disbursed.
+- **Report.** A `loan-outstanding` report shows per disbursed loan the amount, principal
+  repaid, outstanding, and interest collected.
 
 ## Known limitations (still open)
 
