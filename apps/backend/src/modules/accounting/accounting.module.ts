@@ -9,6 +9,8 @@ import { BankReconciliationController } from "./bank-reconciliation.controller";
 import { BankReconciliationService } from "./bank-reconciliation.service";
 import { AccountingController } from "./accounting.controller";
 import { PaymentRequestService } from "./payment-request.service";
+import { DeferredRevenueListener } from "./deferred-revenue.listener";
+import { DeferredRevenueService } from "./deferred-revenue.service";
 
 @Module({
   imports: [CoreModule],
@@ -19,6 +21,8 @@ import { PaymentRequestService } from "./payment-request.service";
     JournalListener,
     BankReconciliationService,
     PaymentRequestService,
+    DeferredRevenueListener,
+    DeferredRevenueService,
   ],
 })
 export class AccountingModule extends BusinessModule {

@@ -1,0 +1,12 @@
+{
+  "name": "Deferred Revenue Entry",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "recognition_date", "label": "Recognition Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "recognized", "label": "Recognized", "fieldtype": "Check", "default": "0", "in_list_view": true }
+  ],
+  "permissions": []
+}
