@@ -379,4 +379,15 @@ Accounting, and HR as metadata-defined modules.
   a Sales Order that references it from ordering beyond the remaining qty, and each
   order rolls the blanket's `ordered_qty` (completing it when exhausted).
 
+## Phase 33
+
+- **Journal Entry posting** — a submittable `Journal Entry` of account debit/credit
+  rows now posts to the GL on submit; a `before_submit` gate blocks an unbalanced
+  entry (debit ≠ credit), and cancel reverses the postings.
+- **Payment Request** — a submittable `Payment Request` against an invoice;
+  `POST /api/accounting/payment-request/:name/make-payment` spins up a draft
+  Payment Entry (Receive/Pay by reference), links it back, and marks the request Paid.
+- **Journal register** — a `journal-register` report lists submitted journal
+  entries with their date, remark, and total debit/credit.
+
 See `docs/ARCHITECTURE.md` for the full design.

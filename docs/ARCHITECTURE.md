@@ -637,6 +637,27 @@ cross-module service imports), plus a `sales_person` field on Sales Invoice and 
   to Completed when exhausted), and cancel rolls it back. All quantity roll-ups are
   plain SQL over the sibling table — no shared service.
 
+## Phase 33 — Manual accounting & payment requests
+
+Closes the manual-voucher gap in the accounting module (all inside `Accounting`,
+no cross-module imports):
+
+- **Journal Entry posting.** A `JournalListener` totals the account rows on
+  `before_save`, gates the submit (`suppressErrors:false`) to require a non-zero,
+  balanced entry (`Σ debit == Σ credit`), and on submit writes one GL Entry per
+  row (voucher_type `Journal Entry`); cancel deletes them. Journal Entries were
+  submittable before but posted nothing — now they carry double-entry weight and
+  keep the trial balance balanced (verified end-to-end).
+- **Payment Request.** A submittable request against a Sales/Purchase Invoice.
+  `on_submit` moves it to Requested; `PaymentRequestService.makePayment`
+  (`POST /api/accounting/payment-request/:name/make-payment`) creates a **draft**
+  Payment Entry — Receive for a Sales Invoice, Pay for a Purchase Invoice — carrying
+  the reference allocation, links it back onto the request, and marks it Paid. The
+  actual reconciliation happens when that Payment Entry is submitted, through the
+  existing `GlPostingListener`.
+- **Journal register.** A `journal-register` query-report lists submitted journal
+  entries (date, remark, total debit/credit).
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
