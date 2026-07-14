@@ -352,6 +352,31 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY "against", "account"
           ORDER BY "against"`,
   },
+  "projected-qty": {
+    permDoctype: "Bin",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "actual", label: "On Hand" },
+      { key: "reserved", label: "Reserved" },
+      { key: "projected", label: "Projected" },
+    ],
+    // On-hand from Bin, reserved from submitted Stock Reservations; projected is
+    // what is free to promise (on hand minus reserved).
+    sql: `SELECT b."item_code", b."warehouse",
+                 sum(b."actual_qty")::float8 AS "actual",
+                 coalesce(r."reserved", 0)::float8 AS "reserved",
+                 (sum(b."actual_qty") - coalesce(r."reserved", 0))::float8 AS "projected"
+          FROM "tabBin" b
+          LEFT JOIN (
+            SELECT "item_code", "warehouse", sum("qty") AS "reserved"
+            FROM "tabStock Reservation" WHERE "docstatus" = 1
+            GROUP BY "item_code", "warehouse"
+          ) r ON r."item_code" = b."item_code" AND r."warehouse" = b."warehouse"
+          GROUP BY b."item_code", b."warehouse", r."reserved"
+          HAVING sum(b."actual_qty") <> 0 OR coalesce(r."reserved", 0) <> 0
+          ORDER BY b."item_code", b."warehouse"`,
+  },
   "payment-mode-summary": {
     permDoctype: "Payment Entry",
     columns: [
