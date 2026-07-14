@@ -128,6 +128,7 @@ async function main() {
   await create("Account", { account_name: "Cash", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Bank", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Creditors", account_type: "Liability", company: "FAT Demo Co" });
+  await create("Account", { account_name: "TDS Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "VAT", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Cost of Goods Sold", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Retained Earnings", account_type: "Equity", company: "FAT Demo Co" });
@@ -339,10 +340,18 @@ async function main() {
 
   // Buying: a supplier, plus a reorder-enabled consumable that starts below its
   // reorder level so the reorder run raises a Material Request for it.
+  // Tax withholding: a 10% category; Global Supply Co withholds by default.
+  await create("Tax Withholding Category", {
+    category_name: "TDS 10%",
+    rate: 10,
+    account: "TDS Payable",
+    threshold: 0,
+  });
   await create("Supplier", {
     supplier_name: "Global Supply Co",
     supplier_group: "Raw Material",
     email_id: "sales@globalsupply.example",
+    tax_withholding_category: "TDS 10%",
   });
   await create("Supplier", {
     supplier_name: "Budget Parts Ltd",
