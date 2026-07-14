@@ -839,6 +839,31 @@ same way (positive delta → debit the account); it does not distinguish asset v
 liability accounts, and balances are entered on the voucher rather than derived from
 live foreign-currency ledger positions.
 
+## Phase 44 — Perpetual inventory GL
+
+An `InventoryGlListener` in the accounting module books the accounting side of each
+stock movement, keeping the Stock In Hand asset account in step with the physical
+stock ledger. It reads stock data (Bin valuation, Stock Ledger Entry) via SQL only —
+no cross-module service imports; GL is posted through the generic `DocumentService`.
+
+- **Receipt.** On Purchase Receipt submit it posts Dr Stock In Hand / Cr Stock
+  Received But Not Billed at the received value (Σ qty × rate). Cancel deletes the
+  voucher GL.
+- **Issue.** On Delivery Note submit it posts Dr Cost of Goods Sold / Cr Stock In
+  Hand at the delivered items' current valuation; a sales return reverses the sign.
+  The valuation rate is read from the Bin moving-average rate (preserved across an
+  issue), falling back to the latest stock-ledger rate if a Bin has been drawn to
+  zero — so the COGS is race-independent of the stock-ledger listener that reacts to
+  the same event. Cancel deletes the voucher GL.
+- **Reconciliation report.** An `inventory-valuation` report lists each
+  item/warehouse's Bin stock value beside the running Stock In Hand GL balance
+  (verified: after receiving 10 @ 100 and delivering 4, both read 600; cancelling the
+  delivery restores both to 1000).
+
+Simplification: the Stock Received But Not Billed clearing account is raised on
+receipt but not cleared by the Purchase Invoice (which still books its own expense);
+perpetual and periodic postings therefore coexist rather than fully interlocking.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

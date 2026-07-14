@@ -422,6 +422,31 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "inventory-valuation": {
+    permDoctype: "Bin",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "qty", label: "Qty" },
+      { key: "valuation_rate", label: "Valuation Rate" },
+      { key: "stock_value", label: "Stock Value" },
+      { key: "stock_in_hand_gl", label: "Stock In Hand (GL)" },
+    ],
+    // Per-item Bin stock value alongside the Stock In Hand GL balance, so the
+    // physical ledger can be reconciled against the accounting balance. The GL
+    // figure (same on every row) is the running Dr − Cr of the Stock In Hand account.
+    sql: `SELECT b."item_code", b."warehouse",
+                 sum(b."actual_qty")::float8 AS "qty",
+                 (CASE WHEN sum(b."actual_qty") <> 0
+                       THEN sum(b."stock_value") / sum(b."actual_qty") ELSE 0 END)::float8 AS "valuation_rate",
+                 sum(b."stock_value")::float8 AS "stock_value",
+                 (SELECT coalesce(sum("debit") - sum("credit"), 0)
+                    FROM "tabGL Entry" WHERE "account" = 'Stock In Hand')::float8 AS "stock_in_hand_gl"
+          FROM "tabBin" b
+          GROUP BY b."item_code", b."warehouse"
+          HAVING sum(b."actual_qty") <> 0
+          ORDER BY b."item_code", b."warehouse"`,
+  },
   "exchange-rate-revaluation": {
     permDoctype: "Exchange Rate Revaluation",
     columns: [
