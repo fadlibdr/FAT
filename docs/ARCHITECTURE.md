@@ -741,6 +741,20 @@ DocType + child + a `ScorecardListener`, no cross-module imports):
 - **Report.** A `supplier-scorecard` report lists each supplier's latest score and
   standing.
 
+## Phase 39 — Contact & address book
+
+Fills out the CRM party model (one new DocType + a field on Contact + a
+`ContactListener`, no cross-module imports):
+
+- **Address.** An `Address` DocType records postal addresses against a customer,
+  with a primary flag.
+- **Primary contact.** Contacts gain `is_primary`. On `after_insert`/`after_update`,
+  when a primary contact is saved for a customer the listener rolls its
+  email/mobile onto the `Customer` (canonical details) and demotes any other
+  primary contact of that customer — enforcing one primary per party. Write-backs
+  are direct SQL to avoid event re-entry.
+- **Report.** A `party-contacts` report lists a customer's contacts, primary first.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

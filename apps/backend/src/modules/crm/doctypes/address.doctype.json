@@ -1,0 +1,19 @@
+{
+  "name": "Address",
+  "module": "CRM",
+  "naming_rule": "series:ADDR-.#####",
+  "title_field": "address_title",
+  "fields": [
+    { "fieldname": "address_title", "label": "Address Title", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Link", "options": "Customer", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "address_line1", "label": "Address Line 1", "fieldtype": "Data", "reqd": true },
+    { "fieldname": "city", "label": "City", "fieldtype": "Data", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "country", "label": "Country", "fieldtype": "Data", "in_standard_filter": true },
+    { "fieldname": "phone", "label": "Phone", "fieldtype": "Data" },
+    { "fieldname": "is_primary_address", "label": "Primary Address", "fieldtype": "Check", "default": "0", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

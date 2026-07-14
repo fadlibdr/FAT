@@ -440,4 +440,13 @@ Accounting, and HR as metadata-defined modules.
 - **Scorecard report** — a `supplier-scorecard` report shows each supplier's latest
   score and standing.
 
+## Phase 39
+
+- **Address book** — an `Address` DocType links postal addresses to a customer.
+- **Primary contact** — Contacts gain an `is_primary` flag; saving a primary
+  contact rolls its email/mobile onto the customer and demotes any other primary
+  (one primary per customer).
+- **Contacts report** — a `party-contacts` report lists a customer's contacts,
+  primary first.
+
 See `docs/ARCHITECTURE.md` for the full design.
