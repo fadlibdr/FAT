@@ -475,6 +475,26 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "gratuity-summary": {
+    permDoctype: "Gratuity",
+    columns: [
+      { key: "gratuity", label: "Gratuity" },
+      { key: "employee", label: "Employee" },
+      { key: "relieving_date", label: "Relieving Date" },
+      { key: "service_years", label: "Service Years" },
+      { key: "monthly_salary", label: "Monthly Salary" },
+      { key: "gratuity_amount", label: "Gratuity Amount" },
+      { key: "status", label: "Status" },
+    ],
+    // End-of-service gratuity provisioned per submitted voucher.
+    sql: `SELECT "name" AS "gratuity", "employee", "relieving_date",
+                 coalesce("service_years", 0)::float8 AS "service_years",
+                 coalesce("monthly_salary", 0)::float8 AS "monthly_salary",
+                 coalesce("gratuity_amount", 0)::float8 AS "gratuity_amount", "status"
+          FROM "tabGratuity"
+          WHERE "docstatus" = 1
+          ORDER BY "relieving_date", "name"`,
+  },
   "loan-outstanding": {
     permDoctype: "Loan",
     columns: [

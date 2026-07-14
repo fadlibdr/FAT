@@ -10,11 +10,12 @@ import { EmployeeAdvanceListener } from "./employee-advance.listener";
 import { ShiftListener } from "./shift.listener";
 import { LoanListener } from "./loan.listener";
 import { LoanRepaymentListener } from "./loan-repayment.listener";
+import { GratuityListener } from "./gratuity.listener";
 
 @Module({
   imports: [CoreModule],
   controllers: [HrController],
-  providers: [HrService, HrListener, ExpenseClaimListener, EmployeeAdvanceListener, ShiftListener, LoanListener, LoanRepaymentListener],
+  providers: [HrService, HrListener, ExpenseClaimListener, EmployeeAdvanceListener, ShiftListener, LoanListener, LoanRepaymentListener, GratuityListener],
 })
 export class HrModule extends BusinessModule {
   protected readonly baseDir = __dirname;
