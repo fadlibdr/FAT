@@ -475,6 +475,35 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "budget-utilization": {
+    permDoctype: "Budget",
+    columns: [
+      { key: "cost_center", label: "Cost Center" },
+      { key: "account", label: "Account" },
+      { key: "budget_amount", label: "Budget" },
+      { key: "actual", label: "Actual" },
+      { key: "remaining", label: "Remaining" },
+      { key: "percent_used", label: "% Used" },
+      { key: "action", label: "Action" },
+    ],
+    // Budget vs actual (Σ GL Dr − Cr) per account + cost center, with % used and
+    // the configured over-budget action.
+    sql: `SELECT b."cost_center", b."account",
+                 b."budget_amount"::float8 AS "budget_amount",
+                 coalesce(act."actual", 0)::float8 AS "actual",
+                 (b."budget_amount" - coalesce(act."actual", 0))::float8 AS "remaining",
+                 (CASE WHEN b."budget_amount" <> 0
+                       THEN round(coalesce(act."actual", 0) / b."budget_amount" * 100, 1)
+                       ELSE 0 END)::float8 AS "percent_used",
+                 coalesce(b."action_if_annual_budget_exceeded", 'Warn') AS "action"
+          FROM "tabBudget" b
+          LEFT JOIN (
+            SELECT "account", "cost_center", sum("debit") - sum("credit") AS "actual"
+            FROM "tabGL Entry" GROUP BY "account", "cost_center"
+          ) act ON act."account" = b."account" AND act."cost_center" = b."cost_center"
+          WHERE b."cost_center" IS NOT NULL AND b."cost_center" <> ''
+          ORDER BY b."cost_center", b."account"`,
+  },
   "gratuity-summary": {
     permDoctype: "Gratuity",
     columns: [
