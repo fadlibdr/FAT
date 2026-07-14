@@ -134,6 +134,8 @@ async function main() {
   await create("Account", { account_name: "Stock In Hand", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Stock Received But Not Billed", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Employee Loan", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Gratuity Expense", account_type: "Expense", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Gratuity Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "VAT", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Cost of Goods Sold", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Retained Earnings", account_type: "Equity", company: "FAT Demo Co" });
