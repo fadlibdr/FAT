@@ -7,7 +7,8 @@
     { "fieldname": "supplier_name", "label": "Supplier Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
     { "fieldname": "supplier_group", "label": "Supplier Group", "fieldtype": "Data", "in_standard_filter": true },
     { "fieldname": "email_id", "label": "Email", "fieldtype": "Data", "in_list_view": true },
-    { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" }
+    { "fieldname": "mobile_no", "label": "Mobile", "fieldtype": "Data" },
+    { "fieldname": "tax_withholding_category", "label": "Tax Withholding Category", "fieldtype": "Link", "options": "Tax Withholding Category" }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
