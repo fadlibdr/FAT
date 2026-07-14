@@ -773,6 +773,24 @@ A self-contained deferred-revenue flow in the accounting module (two DocTypes + 
 - **Report.** A `deferred-revenue` report shows total / recognized / remaining per
   schedule. The trial balance stays balanced throughout.
 
+## Phase 41 — Project scheduling & progress
+
+A self-contained project-scheduling flow in the projects module (a `TaskListener`
+added alongside the existing `ProjectsListener`, no cross-module imports):
+
+- **Scheduling gate.** Task gains `exp_start_date`, `depends_on` (a Link to another
+  Task), and `progress`. A `before_save:Task` gate (`suppressErrors:false`) rejects
+  a task whose end precedes its start, and — for a dependent task — a start that
+  falls before the task it depends on finishes (finish-to-start). Date fields
+  deserialize as `Date` objects, so comparisons normalise through epoch
+  milliseconds rather than string order.
+- **Progress rollup.** Project gains a read-only `percent_complete`. On task insert
+  or update the listener recomputes it as the average `progress` of the project's
+  tasks (verified: 40 → 70 on a second task, then 90 after editing the first).
+- **Report.** A `project-progress` report shows, per project, the task count, the
+  completed/open split (NULL status counts as open, since field defaults are
+  UI-applied), average task progress, and the stored percent-complete.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

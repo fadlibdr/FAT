@@ -459,4 +459,14 @@ Accounting, and HR as metadata-defined modules.
 - **Deferred report** — a `deferred-revenue` report shows total, recognized, and
   remaining deferred balance per schedule.
 
+## Phase 41
+
+- **Task scheduling gate** — Tasks gain `exp_start_date`, `depends_on`, and
+  `progress`; a `before_save` gate blocks an end-before-start task and a dependent
+  task that starts before its dependency finishes (finish-to-start).
+- **Project progress** — a Project's `percent_complete` recomputes as the average
+  task progress whenever a task is created or updated.
+- **Progress report** — a `project-progress` report shows per project the task
+  count, completed/open split, average progress, and percent complete.
+
 See `docs/ARCHITECTURE.md` for the full design.
