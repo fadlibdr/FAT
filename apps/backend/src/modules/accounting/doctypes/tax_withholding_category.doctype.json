@@ -1,0 +1,16 @@
+{
+  "name": "Tax Withholding Category",
+  "module": "Accounting",
+  "naming_rule": "field:category_name",
+  "title_field": "category_name",
+  "fields": [
+    { "fieldname": "category_name", "label": "Category Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "rate", "label": "Rate (%)", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "account", "label": "TDS Account", "fieldtype": "Link", "options": "Account", "default": "TDS Payable", "in_list_view": true },
+    { "fieldname": "threshold", "label": "Single Threshold", "fieldtype": "Currency", "default": "0", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
