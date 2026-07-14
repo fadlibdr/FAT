@@ -658,6 +658,22 @@ no cross-module imports):
 - **Journal register.** A `journal-register` query-report lists submitted journal
   entries (date, remark, total debit/credit).
 
+## Phase 34 — Payment modes & cash management
+
+Teaches the Payment Entry which real account it hits, all inside `Accounting`:
+
+- **Mode of Payment.** A master mapping a mode (Cash / Bank / Cheque) to a default
+  account. Payment Entry gains a `mode_of_payment`; the `GlPostingListener`'s
+  payment handler resolves the cash side of the entry from that mode's account
+  (Bank Transfer → Bank, Cash → Cash), falling back to the `Cash` constant when
+  unset — the party control-account side (Debtors/Creditors) is unchanged, so the
+  entry still balances (verified Bank and Cash routings).
+- **Reference gate.** A `before_submit:Payment Entry` gate (`suppressErrors:false`)
+  requires a `reference_no` whenever the mode's type is not Cash, so a cheque or
+  bank transfer can always be traced to its instrument number.
+- **Mode summary.** A `payment-mode-summary` report groups submitted payments by
+  mode into received (Receive) / paid (Pay) / net, over `base_paid_amount`.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

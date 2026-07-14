@@ -126,6 +126,7 @@ async function main() {
   await create("Account", { account_name: "Debtors", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Sales", account_type: "Income", company: "FAT Demo Co" });
   await create("Account", { account_name: "Cash", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Bank", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Creditors", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "VAT", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Cost of Goods Sold", account_type: "Expense", company: "FAT Demo Co" });
@@ -408,6 +409,10 @@ async function main() {
     commission_rate: 5,
     target_amount: 50000,
   });
+
+  // Payment modes: cash routes to Cash, bank transfer routes to Bank.
+  await create("Mode of Payment", { mode_of_payment: "Cash", type: "Cash", default_account: "Cash" });
+  await create("Mode of Payment", { mode_of_payment: "Bank Transfer", type: "Bank", default_account: "Bank" });
 
   // Fleet demo: a vehicle to log fuel/service against.
   await create("Vehicle", {

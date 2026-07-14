@@ -390,4 +390,14 @@ Accounting, and HR as metadata-defined modules.
 - **Journal register** — a `journal-register` report lists submitted journal
   entries with their date, remark, and total debit/credit.
 
+## Phase 34
+
+- **Mode of Payment** — a `Mode of Payment` master (Cash/Bank/Cheque + default
+  account); a Payment Entry tagged with one posts its cash side to that account
+  (e.g. Bank Transfer → Bank), falling back to Cash when unset.
+- **Reference-no gate** — a `before_submit` gate blocks a non-cash payment
+  (Bank/Cheque) that has no reference number, so cheques/transfers stay traceable.
+- **Mode summary** — a `payment-mode-summary` report groups submitted payments by
+  mode into received / paid / net.
+
 See `docs/ARCHITECTURE.md` for the full design.
