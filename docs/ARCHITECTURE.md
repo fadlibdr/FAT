@@ -1009,6 +1009,20 @@ the generic `DocumentService`):
 Verified: a 12000 / 5-year asset depreciates 200 per run (balanced GL); a repeat run for the same
 month is skipped; the next month advances accumulated to 400 and current value to 11600.
 
+## Phase 53 — Accounting period lock
+
+An `Accounting Period` DocType + a `PeriodLockListener` prevent back-posting into closed
+periods (accounting module, no cross-module imports):
+
+- **Period.** An Accounting Period defines a date range and a `is_closed` flag.
+- **Gate.** `before_submit` gates on Journal Entry, Sales Invoice, and Purchase Invoice
+  (`suppressErrors:false`) reject a submit whose posting date falls inside any closed period.
+  Reopening the period (clearing the flag) lets the same voucher post (verified: a 2026-07-15
+  Journal Entry is blocked while July is closed, a 2026-08-15 one posts, and the July entry
+  posts once the period is reopened).
+- **Report.** An `accounting-period-status` report lists each period with its lock state and the
+  count of GL entries already posted in its range.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

@@ -582,4 +582,12 @@ Accounting, and HR as metadata-defined modules.
 - **Schedule report** — an `asset-depreciation-schedule` report shows per asset the gross,
   salvage, monthly charge, accumulated depreciation, current value, and last run date.
 
+## Phase 53
+
+- **Period lock** — an `Accounting Period` (from/to dates + closed flag) locks a date range;
+  a `before_submit` gate blocks submitting a Journal Entry, Sales Invoice, or Purchase Invoice
+  whose posting date falls in a closed period, and reopening the period unblocks it.
+- **Period report** — an `accounting-period-status` report lists each period with its lock
+  state and the count of GL entries posted in range.
+
 See `docs/ARCHITECTURE.md` for the full design.
