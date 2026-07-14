@@ -8,7 +8,8 @@
     { "fieldname": "commission_rate", "label": "Commission Rate (%)", "fieldtype": "Float", "default": "5", "in_list_view": true },
     { "fieldname": "target_amount", "label": "Target Amount", "fieldtype": "Currency", "in_list_view": true },
     { "fieldname": "total_sales", "label": "Total Sales", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
-    { "fieldname": "total_commission", "label": "Total Commission", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+    { "fieldname": "total_commission", "label": "Total Commission", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "paid_commission", "label": "Paid Commission", "fieldtype": "Currency", "read_only": true, "default": "0", "in_list_view": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },

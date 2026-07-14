@@ -247,6 +247,22 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY "campaign"
           ORDER BY "leads" DESC`,
   },
+  "commission-payable": {
+    permDoctype: "Sales Person",
+    columns: [
+      { key: "sales_person", label: "Sales Person" },
+      { key: "accrued", label: "Accrued Commission" },
+      { key: "paid", label: "Paid" },
+      { key: "payable", label: "Outstanding Payable" },
+    ],
+    // Accrued vs paid commission per sales person; the balance is still owed.
+    sql: `SELECT "name" AS "sales_person",
+                 coalesce("total_commission", 0)::float8 AS "accrued",
+                 coalesce("paid_commission", 0)::float8 AS "paid",
+                 (coalesce("total_commission", 0) - coalesce("paid_commission", 0))::float8 AS "payable"
+          FROM "tabSales Person"
+          ORDER BY "payable" DESC`,
+  },
   "sales-commission": {
     permDoctype: "Sales Person",
     columns: [
