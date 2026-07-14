@@ -1,0 +1,18 @@
+{
+  "name": "Supplier Scorecard",
+  "module": "Buying",
+  "naming_rule": "series:SSC-.#####",
+  "is_submittable": true,
+  "title_field": "supplier",
+  "fields": [
+    { "fieldname": "supplier", "label": "Supplier", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "evaluation_date", "label": "Evaluation Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "criteria", "label": "Criteria", "fieldtype": "Table", "options": "Supplier Scorecard Criteria", "reqd": true },
+    { "fieldname": "total_score", "label": "Total Score", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "standing", "label": "Standing", "fieldtype": "Select", "options": "Excellent\nGood\nAverage\nPoor", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Purchase User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

@@ -7,11 +7,12 @@ import { SourcingService } from "./sourcing.service";
 import { PoFulfillmentService } from "./po-fulfillment.service";
 import { PoFulfillmentListener } from "./po-fulfillment.listener";
 import { BuyingController } from "./buying.controller";
+import { ScorecardListener } from "./scorecard.listener";
 
 @Module({
   imports: [CoreModule],
   controllers: [BuyingController],
-  providers: [ReorderService, SourcingService, PoFulfillmentService, PoFulfillmentListener],
+  providers: [ReorderService, SourcingService, PoFulfillmentService, PoFulfillmentListener, ScorecardListener],
 })
 export class BuyingModule extends BusinessModule {
   protected readonly baseDir = __dirname;

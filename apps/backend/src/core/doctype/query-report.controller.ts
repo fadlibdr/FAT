@@ -377,6 +377,22 @@ const REPORTS: Record<string, QueryReport> = {
           HAVING sum(b."actual_qty") <> 0 OR coalesce(r."reserved", 0) <> 0
           ORDER BY b."item_code", b."warehouse"`,
   },
+  "supplier-scorecard": {
+    permDoctype: "Supplier Scorecard",
+    columns: [
+      { key: "supplier", label: "Supplier" },
+      { key: "evaluation_date", label: "Last Evaluated" },
+      { key: "total_score", label: "Score" },
+      { key: "standing", label: "Standing" },
+    ],
+    // Each supplier's most recent submitted scorecard (via DISTINCT ON).
+    sql: `SELECT DISTINCT ON ("supplier")
+                 "supplier", "evaluation_date",
+                 coalesce("total_score", 0)::float8 AS "total_score", "standing"
+          FROM "tabSupplier Scorecard"
+          WHERE "docstatus" = 1
+          ORDER BY "supplier", "evaluation_date" DESC, "creation" DESC`,
+  },
   "payment-mode-summary": {
     permDoctype: "Payment Entry",
     columns: [

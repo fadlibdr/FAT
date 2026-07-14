@@ -727,6 +727,20 @@ Adds availability discipline to the Stock module (one JSON DocType + a
   Stock Reservations (reserved) and reports `on-hand − reserved` — what is free to
   promise, which can legitimately go negative when more is reserved than is held.
 
+## Phase 38 — Supplier scorecard & performance
+
+Supplier performance governs purchasing, in the Buying module (one submittable
+DocType + child + a `ScorecardListener`, no cross-module imports):
+
+- **Scorecard.** A `Supplier Scorecard` holds weighted criteria rows; `before_save`
+  computes `Σ weight·score / Σ weight` into `total_score` and maps it to a standing
+  band (≥80 Excellent, ≥60 Good, ≥40 Average, else Poor).
+- **Purchasing gate.** A `before_submit:Purchase Order` gate looks up the supplier's
+  most recent submitted scorecard (via `DISTINCT ON`) and blocks the order when the
+  standing is Poor — a data-driven approval control that stays out of the ledger.
+- **Report.** A `supplier-scorecard` report lists each supplier's latest score and
+  standing.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
