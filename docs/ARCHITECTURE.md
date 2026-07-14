@@ -674,6 +674,23 @@ Teaches the Payment Entry which real account it hits, all inside `Accounting`:
 - **Mode summary.** A `payment-mode-summary` report groups submitted payments by
   mode into received (Receive) / paid (Pay) / net, over `base_paid_amount`.
 
+## Phase 35 — Shift & attendance
+
+Adds shift scheduling and attendance depth to the HR module (two JSON DocTypes +
+fields on Attendance + a `ShiftListener`, no cross-module imports):
+
+- **Shift Type & Assignment.** A `Shift Type` carries the working window and
+  expected hours; a submittable `Shift Assignment` links an employee to a shift
+  over a date range and flips Active/Cancelled on submit/cancel.
+- **Attendance depth.** Attendance gains `shift`, `check_in`, `check_out`,
+  `working_hours`. A `before_save` (`suppressErrors:false`) computes the worked
+  hours from the check window, downgrades a day shorter than half the shift's
+  expected hours to Half Day, and — since field defaults are UI-applied — defaults
+  the status to Present. The same handler enforces **one attendance per employee
+  per date**, excluding the row itself on update.
+- **Attendance summary.** An `attendance-summary` report tallies Present / Absent /
+  Half Day / On Leave counts and total hours per employee over a date range.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

@@ -414,6 +414,9 @@ async function main() {
   await create("Mode of Payment", { mode_of_payment: "Cash", type: "Cash", default_account: "Cash" });
   await create("Mode of Payment", { mode_of_payment: "Bank Transfer", type: "Bank", default_account: "Bank" });
 
+  // HR shift demo.
+  await create("Shift Type", { shift_type_name: "Day", start_time: "09:00", end_time: "17:00", hours: 8 });
+
   // Fleet demo: a vehicle to log fuel/service against.
   await create("Vehicle", {
     license_plate: "FAT-1234",
