@@ -1,0 +1,20 @@
+{
+  "name": "Payment Request",
+  "module": "Accounting",
+  "naming_rule": "series:PREQ-.#####",
+  "is_submittable": true,
+  "title_field": "party",
+  "fields": [
+    { "fieldname": "party_type", "label": "Party Type", "fieldtype": "Select", "options": "Customer\nSupplier", "default": "Customer", "reqd": true, "in_list_view": true },
+    { "fieldname": "party", "label": "Party", "fieldtype": "Dynamic Link", "options": "party_type", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "reference_doctype", "label": "Reference DocType", "fieldtype": "Select", "options": "Sales Invoice\nPurchase Invoice", "in_standard_filter": true },
+    { "fieldname": "reference_name", "label": "Reference Name", "fieldtype": "Dynamic Link", "options": "reference_doctype" },
+    { "fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "payment_entry", "label": "Payment Entry", "fieldtype": "Link", "options": "Payment Entry", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nRequested\nPaid\nCancelled", "default": "Draft", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
