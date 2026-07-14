@@ -864,6 +864,26 @@ Simplification: the Stock Received But Not Billed clearing account is raised on
 receipt but not cleared by the Purchase Invoice (which still books its own expense);
 perpetual and periodic postings therefore coexist rather than fully interlocking.
 
+## Phase 45 — Sales pipeline forecasting
+
+Extends the existing `CrmListener` (no new module, no cross-module imports):
+
+- **Probability from stage.** `before_save:Opportunity` derives the win probability
+  from the sales stage (Prospecting 10 / Qualification 25 / Proposal 50 / Negotiation
+  75), but only when the save carries no explicit probability — a manually entered
+  value sticks, and clearing it re-derives from the (possibly changed) stage. Running
+  on before_save means it acts on the fields actually being changed.
+- **Terminal override.** Closed Won forces 100% and Closed Lost forces 0%, regardless
+  of any entered probability — a won deal is fully weighted, a lost one drops out.
+- **Weighted value.** `weighted_amount = amount × probability` is computed in
+  after_insert/after_update from the *persisted* row (a partial update may omit the
+  amount, and `name` is not on the before_save payload) and written back with raw SQL,
+  so there is no event re-entry.
+- **Report.** A `sales-pipeline` report totals count, amount, and weighted forecast
+  per open stage (Closed Won/Lost excluded). Verified: Proposal 10000 → 50 % / 5000;
+  a Closed Won override → 100 % / 10000; Closed Lost → 0; re-deriving Negotiation →
+  75 % / 7500.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

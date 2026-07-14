@@ -447,6 +447,26 @@ const REPORTS: Record<string, QueryReport> = {
           HAVING sum(b."actual_qty") <> 0
           ORDER BY b."item_code", b."warehouse"`,
   },
+  "sales-pipeline": {
+    permDoctype: "Opportunity",
+    columns: [
+      { key: "sales_stage", label: "Sales Stage" },
+      { key: "opportunities", label: "Opportunities" },
+      { key: "amount", label: "Total Amount" },
+      { key: "weighted_amount", label: "Weighted (Forecast)" },
+    ],
+    // Live pipeline by stage: open (non-closed) opportunities only, with the
+    // weighted forecast summed per stage.
+    sql: `SELECT coalesce("sales_stage", 'Prospecting') AS "sales_stage",
+                 count(*)::int AS "opportunities",
+                 coalesce(sum("opportunity_amount"), 0)::float8 AS "amount",
+                 coalesce(sum("weighted_amount"), 0)::float8 AS "weighted_amount"
+          FROM "tabOpportunity"
+          WHERE coalesce("sales_stage", 'Prospecting') NOT IN ('Closed Won', 'Closed Lost')
+            AND coalesce("status", 'Open') NOT IN ('Lost', 'Closed')
+          GROUP BY coalesce("sales_stage", 'Prospecting')
+          ORDER BY 1`,
+  },
   "exchange-rate-revaluation": {
     permDoctype: "Exchange Rate Revaluation",
     columns: [
