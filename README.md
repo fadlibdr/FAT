@@ -482,4 +482,15 @@ Accounting, and HR as metadata-defined modules.
 - **Advance report** — an `employee-advance-summary` report shows per advance the
   amount paid, claimed, and outstanding balance.
 
+## Phase 43
+
+- **Exchange rate revaluation** — a submittable `Exchange Rate Revaluation` restates
+  open foreign-currency account balances at a new rate; `before_save` computes each
+  row's gain/loss = balance × (new − current) rate and the header total.
+- **Unrealised gain/loss GL** — on submit it books, per account, the revaluation
+  adjustment (Dr/Cr the account) against an `Exchange Gain/Loss` P&L account as a
+  balanced, net-zero set; cancel reverses.
+- **Revaluation report** — an `exchange-rate-revaluation` report shows each account's
+  balance, current/new rate, and gain/loss per submitted voucher.
+
 See `docs/ARCHITECTURE.md` for the full design.
