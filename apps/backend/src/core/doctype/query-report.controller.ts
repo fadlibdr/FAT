@@ -554,6 +554,40 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "project-progress": {
+    permDoctype: "Project",
+    columns: [
+      { key: "project", label: "Project" },
+      { key: "status", label: "Status" },
+      { key: "total_tasks", label: "Tasks" },
+      { key: "completed_tasks", label: "Completed" },
+      { key: "open_tasks", label: "Open" },
+      { key: "avg_progress", label: "Avg Progress (%)" },
+      { key: "percent_complete", label: "% Complete" },
+    ],
+    filters: [{ fieldname: "project", label: "Project", fieldtype: "Link" }],
+    // Per-project task rollup: counts by status and average task progress
+    // alongside the stored percent_complete (maintained by TaskListener).
+    build: (f) => {
+      const params: unknown[] = [];
+      let clause = "";
+      if (f.project) { params.push(f.project); clause = `WHERE p."name" = $${params.length}`; }
+      return {
+        text: `SELECT p."name" AS "project", p."status" AS "status",
+                      count(t."name")::int AS "total_tasks",
+                      count(t."name") FILTER (WHERE t."status" = 'Completed')::int AS "completed_tasks",
+                      count(t."name") FILTER (WHERE coalesce(t."status", 'Open') NOT IN ('Completed', 'Cancelled'))::int AS "open_tasks",
+                      coalesce(round(avg(coalesce(t."progress", 0))::numeric, 2), 0)::float8 AS "avg_progress",
+                      coalesce(p."percent_complete", 0)::float8 AS "percent_complete"
+               FROM "tabProject" p
+               LEFT JOIN "tabTask" t ON t."project" = p."name"
+               ${clause}
+               GROUP BY p."name", p."status", p."percent_complete"
+               ORDER BY p."name"`,
+        params,
+      };
+    },
+  },
   "sales-register": {
     permDoctype: "Sales Invoice",
     columns: [
