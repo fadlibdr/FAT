@@ -548,4 +548,14 @@ Accounting, and HR as metadata-defined modules.
 - **Payroll register** — a `payroll-register` report lists each submitted slip's
   gross, deduction, and net pay, filterable by payroll run.
 
+## Phase 49
+
+- **Gratuity** — a submittable `Gratuity` provisions a leaving employee's end-of-service
+  benefit; `before_save` computes service years (relieving − joining) and the amount =
+  (monthly salary ÷ 30) × days-per-year × service years.
+- **Provision GL** — on submit it books Dr Gratuity Expense / Cr Gratuity Payable; cancel
+  reverses.
+- **Gratuity report** — a `gratuity-summary` report lists per voucher the employee,
+  service years, monthly salary, and gratuity amount.
+
 See `docs/ARCHITECTURE.md` for the full design.

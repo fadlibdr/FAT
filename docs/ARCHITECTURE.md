@@ -945,6 +945,21 @@ submitted through the generic `DocumentService`):
 Simplification: the entry's headline total uses the structure's nominal net; per-employee
 loss-of-pay proration still applies on each individual slip and shows in the register.
 
+## Phase 49 — End-of-service gratuity
+
+A self-contained gratuity flow in the HR module (a `Gratuity` submittable DocType + a
+`GratuityListener`; GL via the generic `DocumentService`, no cross-module imports):
+
+- **Computation.** `before_save` derives service years from (relieving − joining) ÷ 365.25
+  and the gratuity amount = (monthly salary ÷ 30) × days-per-year × service years
+  (verified: joined 2020-01-01, relieved 2026-01-01, salary 6000, 15 days/year →
+  6.0 years, 18000).
+- **Provision.** On submit the listener books Dr Gratuity Expense / Cr Gratuity Payable
+  for the amount and marks it Submitted; cancel deletes the voucher GL and flips to
+  Cancelled (verified: balanced GL, clean reversal).
+- **Report.** A `gratuity-summary` report shows per submitted voucher the employee,
+  service years, monthly salary, gratuity amount, and status.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
