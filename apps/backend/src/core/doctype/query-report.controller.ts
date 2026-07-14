@@ -402,6 +402,26 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "deferred-revenue": {
+    permDoctype: "Deferred Revenue Schedule",
+    columns: [
+      { key: "schedule", label: "Schedule" },
+      { key: "customer", label: "Customer" },
+      { key: "total_amount", label: "Total" },
+      { key: "recognized_amount", label: "Recognized" },
+      { key: "deferred", label: "Deferred (remaining)" },
+      { key: "status", label: "Status" },
+    ],
+    // Remaining deferred balance per submitted schedule (total − recognized).
+    sql: `SELECT "name" AS "schedule", "customer",
+                 "total_amount"::float8 AS "total_amount",
+                 coalesce("recognized_amount", 0)::float8 AS "recognized_amount",
+                 ("total_amount" - coalesce("recognized_amount", 0))::float8 AS "deferred",
+                 "status"
+          FROM "tabDeferred Revenue Schedule"
+          WHERE "docstatus" = 1
+          ORDER BY "name"`,
+  },
   "supplier-scorecard": {
     permDoctype: "Supplier Scorecard",
     columns: [
