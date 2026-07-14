@@ -1,0 +1,16 @@
+{
+  "name": "Mode of Payment",
+  "module": "Accounting",
+  "naming_rule": "field:mode_of_payment",
+  "title_field": "mode_of_payment",
+  "fields": [
+    { "fieldname": "mode_of_payment", "label": "Mode of Payment", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "type", "label": "Type", "fieldtype": "Select", "options": "Cash\nBank\nCheque", "default": "Cash", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "default_account", "label": "Default Account", "fieldtype": "Link", "options": "Account", "in_list_view": true },
+    { "fieldname": "disabled", "label": "Disabled", "fieldtype": "Check", "default": "0" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

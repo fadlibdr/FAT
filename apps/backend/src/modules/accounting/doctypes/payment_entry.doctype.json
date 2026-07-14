@@ -13,6 +13,7 @@
     { "fieldname": "conversion_rate", "label": "Exchange Rate", "fieldtype": "Float", "default": "1" },
     { "fieldname": "base_paid_amount", "label": "Paid Amount (Base)", "fieldtype": "Currency", "read_only": true },
     { "fieldname": "references", "label": "Invoice References", "fieldtype": "Table", "options": "Payment Entry Reference" },
+    { "fieldname": "mode_of_payment", "label": "Mode of Payment", "fieldtype": "Link", "options": "Mode of Payment", "in_standard_filter": true },
     { "fieldname": "reference_no", "label": "Reference No", "fieldtype": "Data" }
   ],
   "permissions": [
