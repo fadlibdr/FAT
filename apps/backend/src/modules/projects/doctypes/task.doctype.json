@@ -8,7 +8,10 @@
     { "fieldname": "project", "label": "Project", "fieldtype": "Link", "options": "Project", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nWorking\nCompleted\nCancelled", "default": "Open", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "priority", "label": "Priority", "fieldtype": "Select", "options": "Low\nMedium\nHigh", "default": "Medium", "in_list_view": true },
-    { "fieldname": "exp_end_date", "label": "Expected End Date", "fieldtype": "Date" }
+    { "fieldname": "depends_on", "label": "Depends On", "fieldtype": "Link", "options": "Task", "in_standard_filter": true },
+    { "fieldname": "exp_start_date", "label": "Expected Start Date", "fieldtype": "Date" },
+    { "fieldname": "exp_end_date", "label": "Expected End Date", "fieldtype": "Date" },
+    { "fieldname": "progress", "label": "Progress (%)", "fieldtype": "Float", "default": "0", "in_list_view": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
