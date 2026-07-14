@@ -814,6 +814,31 @@ DocType + `EmployeeAdvanceListener`, plus an extension of the existing
 - **Report.** An `employee-advance-summary` report shows per advance the amount
   paid, claimed, and outstanding balance.
 
+## Phase 43 — Exchange rate revaluation
+
+A self-contained revaluation flow in the accounting module (an `Exchange Rate
+Revaluation` submittable DocType + child account table + an
+`ExchangeRevaluationListener`; GL posted through the generic `DocumentService`, no
+cross-module imports). This closes the "single conversion rate, no revaluation"
+multi-currency gap noted below.
+
+- **Computation.** `before_save` walks the account rows and sets each row's
+  `gain_loss = round(balance × (new_rate − current_rate))`, summing them into the
+  header `total_gain_loss` (verified: a 1000-balance row from 1.10→1.20 yields +100,
+  a 500-balance row from 1.40→1.30 yields −50, total +50).
+- **Posting.** On submit the listener books, per account, the adjustment as a
+  balanced pair: a positive revaluation debits the account (its base value rose) and
+  credits the `Exchange Gain/Loss` P&L account; a negative one reverses. The set is
+  net-zero and the trial balance stays balanced (verified: GL Σdebit − Σcredit = 0).
+  Cancel deletes the voucher's GL and flips the status to Cancelled.
+- **Report.** An `exchange-rate-revaluation` report lists each account's balance,
+  current/new rate, and gain/loss per submitted voucher.
+
+Simplification: the gain/loss sign convention treats every revalued account the
+same way (positive delta → debit the account); it does not distinguish asset vs
+liability accounts, and balances are entered on the voucher rather than derived from
+live foreign-currency ledger positions.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

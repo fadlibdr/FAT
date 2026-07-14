@@ -1,0 +1,16 @@
+{
+  "name": "Exchange Rate Revaluation Account",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "account", "label": "Account", "fieldtype": "Link", "options": "Account", "reqd": true, "in_list_view": true },
+    { "fieldname": "party", "label": "Party", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "currency", "label": "Currency", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "balance", "label": "Balance (Account Currency)", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "current_exchange_rate", "label": "Current Rate", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "new_exchange_rate", "label": "New Rate", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "gain_loss", "label": "Gain / Loss", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": []
+}

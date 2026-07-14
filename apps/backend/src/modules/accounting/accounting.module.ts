@@ -11,6 +11,7 @@ import { AccountingController } from "./accounting.controller";
 import { PaymentRequestService } from "./payment-request.service";
 import { DeferredRevenueListener } from "./deferred-revenue.listener";
 import { DeferredRevenueService } from "./deferred-revenue.service";
+import { ExchangeRevaluationListener } from "./exchange-revaluation.listener";
 
 @Module({
   imports: [CoreModule],
@@ -23,6 +24,7 @@ import { DeferredRevenueService } from "./deferred-revenue.service";
     PaymentRequestService,
     DeferredRevenueListener,
     DeferredRevenueService,
+    ExchangeRevaluationListener,
   ],
 })
 export class AccountingModule extends BusinessModule {
