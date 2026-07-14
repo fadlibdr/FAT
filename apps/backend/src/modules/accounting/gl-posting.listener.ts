@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
@@ -221,6 +221,34 @@ export class GlPostingListener {
     });
   }
 
+  /** Resolve the cash/bank account for a Payment Entry from its Mode of Payment. */
+  private async modeAccount(mode: unknown): Promise<{ account: string; type: string } | undefined> {
+    if (!mode || !this.registry.has("Mode of Payment")) return undefined;
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("default_account")} AS account, ${quoteIdent("type")} AS type
+         FROM ${quoteIdent(tableNameFor("Mode of Payment"))} WHERE ${quoteIdent("name")} = $1`,
+        [String(mode)],
+      )
+    )[0];
+    return row ? { account: String(row.account ?? ""), type: String(row.type ?? "Cash") } : undefined;
+  }
+
+  /**
+   * A non-cash Mode of Payment (Bank / Cheque) requires a reference number so
+   * the cheque/transfer can be traced. suppressErrors:false aborts the submit.
+   */
+  @OnEvent("doc.before_submit:Payment Entry", { suppressErrors: false })
+  async gatePaymentReference(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const mode = await this.modeAccount(doc.mode_of_payment);
+    if (mode && mode.type !== "Cash" && !String(doc.reference_no ?? "").trim()) {
+      throw new BadRequestException(
+        `Payment Entry ${doc.name}: a ${mode.type} payment (${doc.mode_of_payment}) requires a reference number`,
+      );
+    }
+  }
+
   @OnEvent("doc.on_submit:Payment Entry")
   async onPaymentSubmit(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
@@ -228,7 +256,10 @@ export class GlPostingListener {
     const paid = Number(doc.paid_amount ?? 0);
     const base = paid * conv;
     const receive = String(doc.payment_type ?? "Receive") === "Receive";
-    const [debit, credit] = receive ? [CASH, DEBTORS] : [CREDITORS, CASH];
+    // The cash side follows the Mode of Payment's account (Bank vs Cash); the
+    // other side is the party control account. Fall back to Cash if unset.
+    const cashAccount = (await this.modeAccount(doc.mode_of_payment))?.account || CASH;
+    const [debit, credit] = receive ? [cashAccount, DEBTORS] : [CREDITORS, cashAccount];
     const ctx = systemContext(payload.user);
     try {
       await this.postLines(ctx, "Payment Entry", String(doc.name), doc.posting_date, [
