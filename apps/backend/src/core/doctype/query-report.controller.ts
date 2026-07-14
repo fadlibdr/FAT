@@ -303,6 +303,35 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "journal-register": {
+    permDoctype: "Journal Entry",
+    columns: [
+      { key: "entry", label: "Journal Entry" },
+      { key: "posting_date", label: "Date" },
+      { key: "user_remark", label: "Remark" },
+      { key: "total_debit", label: "Debit" },
+      { key: "total_credit", label: "Credit" },
+    ],
+    filters: [
+      { fieldname: "from_date", label: "From Date", fieldtype: "Date" },
+      { fieldname: "to_date", label: "To Date", fieldtype: "Date" },
+    ],
+    build: (f) => {
+      const params: unknown[] = [];
+      const where: string[] = [`"docstatus" = 1`];
+      if (f.from_date) { params.push(f.from_date); where.push(`"posting_date" >= $${params.length}`); }
+      if (f.to_date) { params.push(f.to_date); where.push(`"posting_date" <= $${params.length}`); }
+      return {
+        text: `SELECT "name" AS "entry", "posting_date", "user_remark",
+                      coalesce("total_debit", 0)::float8 AS "total_debit",
+                      coalesce("total_credit", 0)::float8 AS "total_credit"
+               FROM "tabJournal Entry"
+               WHERE ${where.join(" AND ")}
+               ORDER BY "posting_date", "name"`,
+        params,
+      };
+    },
+  },
   "general-ledger": {
     permDoctype: "GL Entry",
     columns: [
