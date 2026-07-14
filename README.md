@@ -505,4 +505,15 @@ Accounting, and HR as metadata-defined modules.
   Bin stock value alongside the Stock In Hand GL balance, so the physical ledger
   reconciles against the books.
 
+## Phase 45
+
+- **Pipeline forecasting** — Opportunities gain a `sales_stage`, `probability`, and
+  `weighted_amount`; the probability defaults from the stage (unless entered) and the
+  weighted (forecast) value = amount × probability.
+- **Terminal-stage override** — a Closed Won opportunity is forced to 100% (full
+  weighted value); a Closed Lost one to 0% (dropping out of the forecast), regardless
+  of any entered probability.
+- **Pipeline report** — a `sales-pipeline` report totals count, amount, and weighted
+  forecast per open stage.
+
 See `docs/ARCHITECTURE.md` for the full design.
