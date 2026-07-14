@@ -7,6 +7,7 @@
   "fields": [
     { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "salary_structure", "label": "Salary Structure", "fieldtype": "Link", "options": "Salary Structure", "reqd": true, "in_list_view": true },
+    { "fieldname": "payroll_entry", "label": "Payroll Entry", "fieldtype": "Link", "options": "Payroll Entry", "read_only": true, "in_standard_filter": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "in_list_view": true },
     { "fieldname": "start_date", "label": "Period Start", "fieldtype": "Date" },
