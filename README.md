@@ -420,4 +420,14 @@ Accounting, and HR as metadata-defined modules.
   auto-applies it to a Purchase Invoice when none is set.
 - **TDS report** — a `tds-payable` report totals tax withheld per supplier.
 
+## Phase 37
+
+- **Stock Reservation** — a submittable `Stock Reservation` earmarks item qty in a
+  warehouse; a `before_submit` gate blocks reserving more than is available
+  (on-hand − already reserved).
+- **Delivery availability gate** — a `before_submit` gate blocks a Delivery Note
+  from issuing more of an item than is physically on hand in its warehouse.
+- **Projected quantity** — a `projected-qty` report shows on-hand, reserved, and
+  projected-free (on-hand − reserved) per item + warehouse.
+
 See `docs/ARCHITECTURE.md` for the full design.
