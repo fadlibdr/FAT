@@ -10,6 +10,8 @@
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
     { "fieldname": "expenses", "label": "Expenses", "fieldtype": "Table", "options": "Expense Claim Detail" },
     { "fieldname": "total_claimed", "label": "Total Claimed", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "advance", "label": "Advance", "fieldtype": "Link", "options": "Employee Advance", "in_standard_filter": true },
+    { "fieldname": "advance_adjusted", "label": "Advance Adjusted", "fieldtype": "Currency", "read_only": true, "default": "0" },
     { "fieldname": "payable_account", "label": "Payable Account", "fieldtype": "Link", "options": "Account", "default": "Employee Payable" },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
   ],

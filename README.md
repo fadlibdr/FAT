@@ -469,4 +469,17 @@ Accounting, and HR as metadata-defined modules.
 - **Progress report** — a `project-progress` report shows per project the task
   count, completed/open split, average progress, and percent complete.
 
+## Phase 42
+
+- **Employee Advance** — a submittable `Employee Advance` pays an employee up
+  front: on submit it books Dr Employee Advance (asset) / Cr Cash and tracks the
+  amount later claimed against it; cancel reverses.
+- **Advance settlement** — an `Expense Claim` linked to an advance splits its
+  credit — the part covered by the advance's balance credits the advance account
+  (not the payable) and only the excess hits Employee Payable; a `before_submit`
+  gate blocks adjusting against a wrong-employee or exhausted advance, and cancel
+  unwinds the adjustment.
+- **Advance report** — an `employee-advance-summary` report shows per advance the
+  amount paid, claimed, and outstanding balance.
+
 See `docs/ARCHITECTURE.md` for the full design.
