@@ -449,4 +449,14 @@ Accounting, and HR as metadata-defined modules.
 - **Contacts report** — a `party-contacts` report lists a customer's contacts,
   primary first.
 
+## Phase 40
+
+- **Deferred revenue** — a submittable `Deferred Revenue Schedule` books the whole
+  amount to a deferred-revenue liability on submit (Dr Debtors / Cr Deferred
+  Revenue) and splits it into equal monthly installments.
+- **Recognition run** — `POST /api/accounting/deferred-revenue/run` releases each
+  due installment to income (Dr Deferred Revenue / Cr Sales), idempotently.
+- **Deferred report** — a `deferred-revenue` report shows total, recognized, and
+  remaining deferred balance per schedule.
+
 See `docs/ARCHITECTURE.md` for the full design.
