@@ -303,6 +303,26 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "payment-mode-summary": {
+    permDoctype: "Payment Entry",
+    columns: [
+      { key: "mode_of_payment", label: "Mode of Payment" },
+      { key: "count", label: "# Payments" },
+      { key: "received", label: "Received" },
+      { key: "paid", label: "Paid" },
+      { key: "net", label: "Net" },
+    ],
+    // Submitted payments grouped by mode: received (Receive) vs paid (Pay).
+    sql: `SELECT coalesce(NULLIF("mode_of_payment", ''), '(none)') AS "mode_of_payment",
+                 count(*)::float8 AS "count",
+                 sum(CASE WHEN "payment_type" = 'Receive' THEN "base_paid_amount" ELSE 0 END)::float8 AS "received",
+                 sum(CASE WHEN "payment_type" = 'Pay' THEN "base_paid_amount" ELSE 0 END)::float8 AS "paid",
+                 sum(CASE WHEN "payment_type" = 'Receive' THEN "base_paid_amount" ELSE -"base_paid_amount" END)::float8 AS "net"
+          FROM "tabPayment Entry"
+          WHERE "docstatus" = 1
+          GROUP BY coalesce(NULLIF("mode_of_payment", ''), '(none)')
+          ORDER BY "mode_of_payment"`,
+  },
   "journal-register": {
     permDoctype: "Journal Entry",
     columns: [
