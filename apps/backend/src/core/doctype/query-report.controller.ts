@@ -520,6 +520,32 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE b."cost_center" IS NOT NULL AND b."cost_center" <> ''
           ORDER BY b."cost_center", b."account"`,
   },
+  "asset-depreciation-schedule": {
+    permDoctype: "Asset",
+    columns: [
+      { key: "asset", label: "Asset" },
+      { key: "gross", label: "Gross" },
+      { key: "salvage", label: "Salvage" },
+      { key: "monthly", label: "Monthly Charge" },
+      { key: "accumulated", label: "Accumulated" },
+      { key: "current_value", label: "Current Value" },
+      { key: "last_depreciation_date", label: "Last Run" },
+      { key: "status", label: "Status" },
+    ],
+    // Depreciation position per submitted asset, with the straight-line monthly charge.
+    sql: `SELECT "name" AS "asset",
+                 "gross_purchase_amount"::float8 AS "gross",
+                 coalesce("salvage_value", 0)::float8 AS "salvage",
+                 (CASE WHEN coalesce("useful_life_years", 0) > 0
+                       THEN round((("gross_purchase_amount" - coalesce("salvage_value", 0)) / "useful_life_years" / 12)::numeric, 2)
+                       ELSE 0 END)::float8 AS "monthly",
+                 coalesce("accumulated_depreciation", 0)::float8 AS "accumulated",
+                 coalesce("value_after_depreciation", "gross_purchase_amount")::float8 AS "current_value",
+                 "last_depreciation_date", "status"
+          FROM "tabAsset"
+          WHERE "docstatus" = 1
+          ORDER BY "name"`,
+  },
   "gratuity-summary": {
     permDoctype: "Gratuity",
     columns: [

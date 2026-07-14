@@ -16,7 +16,8 @@
     { "fieldname": "custodian", "label": "Custodian", "fieldtype": "Data", "in_standard_filter": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nPartially Depreciated\nFully Depreciated\nScrapped\nSold\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "accumulated_depreciation", "label": "Accumulated Depreciation", "fieldtype": "Currency", "read_only": true, "default": "0" },
-    { "fieldname": "value_after_depreciation", "label": "Current Value", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+    { "fieldname": "value_after_depreciation", "label": "Current Value", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "last_depreciation_date", "label": "Last Depreciation Date", "fieldtype": "Date", "read_only": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },

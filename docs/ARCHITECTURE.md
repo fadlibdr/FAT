@@ -991,6 +991,24 @@ DocType + a `CommissionPayoutListener` (still Salesteam, no cross-module imports
 - **Report.** A `commission-payable` report shows per sales person the accrued, paid, and
   outstanding commission.
 
+## Phase 52 — Asset depreciation run
+
+An `AssetDepreciationService` (+ an `AssetsController`) adds batch depreciation on top of the
+existing per-entry posting (no cross-module imports — entries are created and submitted through
+the generic `DocumentService`):
+
+- **Run.** `POST /api/assets/depreciation/run` (body `as_of`) walks every submitted asset still
+  above its salvage value and not yet depreciated for the cutoff, computes one month of
+  straight-line depreciation ((gross − salvage) ÷ life ÷ 12, capped at the remaining depreciable
+  base), and creates + submits a Depreciation Entry — the AssetsListener posts Dr Depreciation
+  Expense / Cr Accumulated Depreciation and rolls up the asset's accumulated total. The asset's
+  `last_depreciation_date` is stamped so a repeat run for the same cutoff is a no-op.
+- **Report.** An `asset-depreciation-schedule` report shows per asset the gross, salvage, monthly
+  charge, accumulated depreciation, current value, last run date, and status.
+
+Verified: a 12000 / 5-year asset depreciates 200 per run (balanced GL); a repeat run for the same
+month is skipped; the next month advances accumulated to 400 and current value to 11600.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

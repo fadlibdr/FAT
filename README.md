@@ -574,4 +574,12 @@ Accounting, and HR as metadata-defined modules.
 - **Payable report** — a `commission-payable` report shows per sales person the accrued,
   paid, and outstanding commission.
 
+## Phase 52
+
+- **Depreciation run** — `POST /api/assets/depreciation/run` posts one period's straight-line
+  depreciation for every eligible asset by generating and submitting a Depreciation Entry
+  (which books the GL and rolls up accumulated depreciation), idempotently per period.
+- **Schedule report** — an `asset-depreciation-schedule` report shows per asset the gross,
+  salvage, monthly charge, accumulated depreciation, current value, and last run date.
+
 See `docs/ARCHITECTURE.md` for the full design.
