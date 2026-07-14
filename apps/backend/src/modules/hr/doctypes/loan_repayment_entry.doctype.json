@@ -1,0 +1,23 @@
+{
+  "name": "Loan Repayment Entry",
+  "module": "HR",
+  "naming_rule": "series:LREP-.#####",
+  "is_submittable": true,
+  "title_field": "loan",
+  "fields": [
+    { "fieldname": "loan", "label": "Loan", "fieldtype": "Link", "options": "Loan", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "principal_amount", "label": "Principal", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "interest_amount", "label": "Interest", "fieldtype": "Currency", "default": "0", "in_list_view": true },
+    { "fieldname": "total_amount", "label": "Total Payment", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "received_to", "label": "Received To", "fieldtype": "Link", "options": "Account", "default": "Cash" },
+    { "fieldname": "loan_account", "label": "Loan Account", "fieldtype": "Link", "options": "Account", "default": "Employee Loan" },
+    { "fieldname": "interest_account", "label": "Interest Income Account", "fieldtype": "Link", "options": "Account", "default": "Interest Income" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "report": 1 }
+  ]
+}
