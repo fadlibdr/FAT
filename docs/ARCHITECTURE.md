@@ -977,6 +977,20 @@ no cross-module imports):
 - **Report.** A `budget-utilization` report shows per budget the amount, actual, remaining,
   percent used, and action.
 
+## Phase 51 — Commission payout
+
+Builds on the Salesteam commission accrual (which rolls `total_commission` onto each Sales
+Person as invoices submit) with a settlement flow — a `Commission Payout` submittable
+DocType + a `CommissionPayoutListener` (still Salesteam, no cross-module imports):
+
+- **Payout.** On submit the listener books Dr Commission Expense / Cr Commission Payable for
+  the amount and bumps the sales person's `paid_commission`.
+- **Gate.** A `before_submit` gate (`suppressErrors:false`) blocks a payout that would push
+  paid above accrued (verified: on 500 accrued, a 300 payout posts, a second 300 is rejected
+  as exceeding the 200 unpaid balance). Cancel reverses the GL and unwinds `paid_commission`.
+- **Report.** A `commission-payable` report shows per sales person the accrued, paid, and
+  outstanding commission.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

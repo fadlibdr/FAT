@@ -566,4 +566,12 @@ Accounting, and HR as metadata-defined modules.
 - **Utilisation report** — a `budget-utilization` report shows per budget the amount,
   actual spend, remaining, percent used, and configured action.
 
+## Phase 51
+
+- **Commission payout** — a submittable `Commission Payout` settles a sales person's
+  accrued commission, booking Dr Commission Expense / Cr Commission Payable and tracking
+  the paid amount; a `before_submit` gate blocks paying more than has accrued.
+- **Payable report** — a `commission-payable` report shows per sales person the accrued,
+  paid, and outstanding commission.
+
 See `docs/ARCHITECTURE.md` for the full design.
