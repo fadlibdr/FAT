@@ -377,6 +377,31 @@ const REPORTS: Record<string, QueryReport> = {
           HAVING sum(b."actual_qty") <> 0 OR coalesce(r."reserved", 0) <> 0
           ORDER BY b."item_code", b."warehouse"`,
   },
+  "party-contacts": {
+    permDoctype: "Contact",
+    columns: [
+      { key: "customer", label: "Customer" },
+      { key: "contact", label: "Contact" },
+      { key: "email_id", label: "Email" },
+      { key: "mobile_no", label: "Mobile" },
+      { key: "is_primary", label: "Primary" },
+    ],
+    filters: [{ fieldname: "customer", label: "Customer", fieldtype: "Link" }],
+    build: (f) => {
+      const params: unknown[] = [];
+      let clause = `WHERE "customer" IS NOT NULL AND "customer" <> ''`;
+      if (f.customer) { params.push(f.customer); clause += ` AND "customer" = $${params.length}`; }
+      return {
+        text: `SELECT "customer",
+                      trim(concat("first_name", ' ', coalesce("last_name", ''))) AS "contact",
+                      "email_id", "mobile_no",
+                      (CASE WHEN "is_primary" = 1 THEN 'Yes' ELSE '' END) AS "is_primary"
+               FROM "tabContact" ${clause}
+               ORDER BY "customer", "is_primary" DESC, "first_name"`,
+        params,
+      };
+    },
+  },
   "supplier-scorecard": {
     permDoctype: "Supplier Scorecard",
     columns: [
