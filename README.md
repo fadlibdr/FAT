@@ -493,4 +493,16 @@ Accounting, and HR as metadata-defined modules.
 - **Revaluation report** — an `exchange-rate-revaluation` report shows each account's
   balance, current/new rate, and gain/loss per submitted voucher.
 
+## Phase 44
+
+- **Perpetual inventory** — a Purchase Receipt books Dr Stock In Hand / Cr Stock
+  Received But Not Billed at the received value, keeping the stock asset account in
+  step with the physical ledger; cancel reverses.
+- **COGS on delivery** — a Delivery Note books Dr Cost of Goods Sold / Cr Stock In
+  Hand at the delivered items' current valuation (a sales return reverses the sign);
+  cancel reverses.
+- **Valuation report** — an `inventory-valuation` report shows per item/warehouse the
+  Bin stock value alongside the Stock In Hand GL balance, so the physical ledger
+  reconciles against the books.
+
 See `docs/ARCHITECTURE.md` for the full design.
