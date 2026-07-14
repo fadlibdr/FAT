@@ -588,6 +588,36 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "employee-advance-summary": {
+    permDoctype: "Employee Advance",
+    columns: [
+      { key: "advance", label: "Advance" },
+      { key: "employee", label: "Employee" },
+      { key: "posting_date", label: "Date" },
+      { key: "advance_amount", label: "Paid" },
+      { key: "claimed_amount", label: "Claimed" },
+      { key: "balance", label: "Balance" },
+      { key: "status", label: "Status" },
+    ],
+    filters: [{ fieldname: "employee", label: "Employee", fieldtype: "Link" }],
+    // Per submitted advance: amount paid, claimed against it, and the balance the
+    // employee still owes back (paid − claimed).
+    build: (f) => {
+      const params: unknown[] = [];
+      let clause = `WHERE "docstatus" = 1`;
+      if (f.employee) { params.push(f.employee); clause += ` AND "employee" = $${params.length}`; }
+      return {
+        text: `SELECT "name" AS "advance", "employee", "posting_date",
+                      "advance_amount"::float8 AS "advance_amount",
+                      coalesce("claimed_amount", 0)::float8 AS "claimed_amount",
+                      ("advance_amount" - coalesce("claimed_amount", 0))::float8 AS "balance",
+                      "status"
+               FROM "tabEmployee Advance" ${clause}
+               ORDER BY "employee", "posting_date", "name"`,
+        params,
+      };
+    },
+  },
   "sales-register": {
     permDoctype: "Sales Invoice",
     columns: [
