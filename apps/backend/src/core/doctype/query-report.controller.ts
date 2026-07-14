@@ -447,6 +447,27 @@ const REPORTS: Record<string, QueryReport> = {
           HAVING sum(b."actual_qty") <> 0
           ORDER BY b."item_code", b."warehouse"`,
   },
+  "loan-outstanding": {
+    permDoctype: "Loan",
+    columns: [
+      { key: "loan", label: "Loan" },
+      { key: "employee", label: "Employee" },
+      { key: "loan_amount", label: "Loan Amount" },
+      { key: "repaid_principal", label: "Principal Repaid" },
+      { key: "outstanding", label: "Outstanding" },
+      { key: "interest_paid", label: "Interest Collected" },
+      { key: "status", label: "Status" },
+    ],
+    // Outstanding principal per disbursed loan (loan amount − principal repaid).
+    sql: `SELECT "name" AS "loan", "employee",
+                 "loan_amount"::float8 AS "loan_amount",
+                 coalesce("repaid_principal", 0)::float8 AS "repaid_principal",
+                 ("loan_amount" - coalesce("repaid_principal", 0))::float8 AS "outstanding",
+                 coalesce("interest_paid", 0)::float8 AS "interest_paid", "status"
+          FROM "tabLoan"
+          WHERE "docstatus" = 1
+          ORDER BY "name"`,
+  },
   "loan-repayment-schedule": {
     permDoctype: "Loan",
     columns: [
