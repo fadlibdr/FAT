@@ -884,6 +884,28 @@ Extends the existing `CrmListener` (no new module, no cross-module imports):
   a Closed Won override → 100 % / 10000; Closed Lost → 0; re-deriving Negotiation →
   75 % / 7500.
 
+## Phase 46 — Employee loans
+
+A self-contained loan flow in the HR module (a `Loan` submittable DocType + a
+`Loan Repayment` child schedule + a `LoanListener`; GL via the generic
+`DocumentService`, no cross-module imports):
+
+- **Amortisation.** `before_save` builds the repayment schedule with equal monthly
+  principal and interest charged on the reducing balance
+  (`balance × rate ÷ 12`), the last instalment absorbing any rounding so the loan
+  closes at exactly zero. Total interest and total payable roll up onto the header
+  (verified: 12000 @ 12 % over 12 months → interest 120, 110, … 10, total interest
+  780, total payable 12780, closing balance 0).
+- **Disbursement.** On submit the listener books Dr Employee Loan (an asset the
+  employee owes back) / Cr the disbursing account (Cash/Bank) for the principal and
+  marks the loan Disbursed. Cancel deletes the voucher GL and flips to Cancelled.
+- **Report.** A `loan-repayment-schedule` report lists each instalment's principal,
+  interest, total payment, and outstanding-after balance per submitted loan.
+
+Simplification: repayment collection (deducting instalments from payroll and closing
+the loan) is not yet posted — the schedule and disbursement are modelled, actual
+repayment vouchers are future work.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

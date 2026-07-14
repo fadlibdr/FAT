@@ -516,4 +516,14 @@ Accounting, and HR as metadata-defined modules.
 - **Pipeline report** — a `sales-pipeline` report totals count, amount, and weighted
   forecast per open stage.
 
+## Phase 46
+
+- **Employee loan** — a submittable `Loan` disburses cash and amortises over its
+  tenure; `before_save` builds the repayment schedule (equal monthly principal +
+  interest on the reducing balance) and rolls up total interest/payable.
+- **Disbursement GL** — on submit the loan books Dr Employee Loan (asset) / Cr Cash
+  for the principal and is marked Disbursed; cancel reverses.
+- **Schedule report** — a `loan-repayment-schedule` report lists each instalment's
+  principal, interest, total, and outstanding balance.
+
 See `docs/ARCHITECTURE.md` for the full design.

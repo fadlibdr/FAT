@@ -447,6 +447,37 @@ const REPORTS: Record<string, QueryReport> = {
           HAVING sum(b."actual_qty") <> 0
           ORDER BY b."item_code", b."warehouse"`,
   },
+  "loan-repayment-schedule": {
+    permDoctype: "Loan",
+    columns: [
+      { key: "loan", label: "Loan" },
+      { key: "employee", label: "Employee" },
+      { key: "due_date", label: "Due Date" },
+      { key: "principal", label: "Principal" },
+      { key: "interest", label: "Interest" },
+      { key: "total_payment", label: "Total Payment" },
+      { key: "balance", label: "Outstanding After" },
+    ],
+    filters: [{ fieldname: "loan", label: "Loan", fieldtype: "Link" }],
+    // Amortisation schedule (principal + reducing-balance interest) per submitted loan.
+    build: (f) => {
+      const params: unknown[] = [];
+      let clause = `WHERE l."docstatus" = 1`;
+      if (f.loan) { params.push(f.loan); clause += ` AND l."name" = $${params.length}`; }
+      return {
+        text: `SELECT l."name" AS "loan", l."employee", r."due_date",
+                      r."principal"::float8 AS "principal",
+                      r."interest"::float8 AS "interest",
+                      r."total_payment"::float8 AS "total_payment",
+                      r."balance"::float8 AS "balance"
+               FROM "tabLoan" l
+               JOIN "tabLoan Repayment" r ON r."parent" = l."name"
+               ${clause}
+               ORDER BY l."name", r."due_date"`,
+        params,
+      };
+    },
+  },
   "sales-pipeline": {
     permDoctype: "Opportunity",
     columns: [

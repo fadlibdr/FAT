@@ -1,0 +1,26 @@
+{
+  "name": "Loan",
+  "module": "HR",
+  "naming_rule": "series:LOAN-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "disbursement_date", "label": "Disbursement Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "loan_amount", "label": "Loan Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "interest_rate", "label": "Interest Rate (% p.a.)", "fieldtype": "Float", "default": "12" },
+    { "fieldname": "tenure_months", "label": "Tenure (Months)", "fieldtype": "Int", "reqd": true, "default": "12" },
+    { "fieldname": "loan_account", "label": "Loan Account", "fieldtype": "Link", "options": "Account", "default": "Employee Loan" },
+    { "fieldname": "disbursed_from", "label": "Disbursed From", "fieldtype": "Link", "options": "Account", "default": "Cash" },
+    { "fieldname": "interest_account", "label": "Interest Income Account", "fieldtype": "Link", "options": "Account", "default": "Interest Income" },
+    { "fieldname": "schedule", "label": "Repayment Schedule", "fieldtype": "Table", "options": "Loan Repayment" },
+    { "fieldname": "total_interest", "label": "Total Interest", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "total_payable", "label": "Total Payable", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nDisbursed\nClosed\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "report": 1 }
+  ]
+}
