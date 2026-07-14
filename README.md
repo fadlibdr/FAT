@@ -537,4 +537,15 @@ Accounting, and HR as metadata-defined modules.
 - **Outstanding report** — a `loan-outstanding` report shows per loan the amount,
   principal repaid, outstanding balance, and interest collected.
 
+## Phase 48
+
+- **Batch payroll run** — a submittable `Payroll Entry` generates and submits one
+  Salary Slip per active employee of a company using a chosen salary structure, each
+  slip computing its own pay and posting GL; the entry rolls up employees paid and
+  total net pay.
+- **Cascade cancel** — cancelling the Payroll Entry cancels every slip it produced,
+  reversing their GL.
+- **Payroll register** — a `payroll-register` report lists each submitted slip's
+  gross, deduction, and net pay, filterable by payroll run.
+
 See `docs/ARCHITECTURE.md` for the full design.

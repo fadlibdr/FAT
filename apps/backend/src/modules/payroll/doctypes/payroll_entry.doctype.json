@@ -1,0 +1,23 @@
+{
+  "name": "Payroll Entry",
+  "module": "Payroll",
+  "naming_rule": "series:PREN-.#####",
+  "is_submittable": true,
+  "title_field": "posting_date",
+  "fields": [
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "start_date", "label": "Start Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "end_date", "label": "End Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "salary_structure", "label": "Salary Structure", "fieldtype": "Link", "options": "Salary Structure", "reqd": true, "in_list_view": true },
+    { "fieldname": "payable_account", "label": "Payable Account", "fieldtype": "Link", "options": "Account", "default": "Salaries Payable" },
+    { "fieldname": "total_working_days", "label": "Working Days", "fieldtype": "Int", "default": "30" },
+    { "fieldname": "employees_paid", "label": "Employees Paid", "fieldtype": "Int", "read_only": true, "default": "0", "in_list_view": true },
+    { "fieldname": "total_net_pay", "label": "Total Net Pay", "fieldtype": "Currency", "read_only": true, "default": "0", "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 }
+  ]
+}

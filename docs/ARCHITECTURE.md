@@ -921,6 +921,30 @@ Completes the loan lifecycle with a `Loan Repayment Entry` submittable DocType +
 - **Report.** A `loan-outstanding` report shows per disbursed loan the amount, principal
   repaid, outstanding, and interest collected.
 
+## Phase 48 — Batch payroll run
+
+A `Payroll Entry` submittable DocType + a `PayrollEntryListener` orchestrate payroll at
+scale, still purely over the engine (no cross-module imports — slips are created and
+submitted through the generic `DocumentService`):
+
+- **Generation.** On submit the listener selects the active employees of the entry's
+  company and, for each, creates a Salary Slip stamped with the structure, period, and a
+  back-link to the entry, then submits it — the existing `PayrollListener` computes that
+  slip's gross/net and posts its balanced journal (verified: 6 employees → 6 slips at
+  gross 6000 / deduction 900 / net 5100, all GL balanced).
+- **Rollup.** The entry records employees paid and total net pay. Because the slip
+  `on_submit` hook is fire-and-forget (`emit`, not `emitAsync`), the per-slip `net_pay`
+  is not yet persisted when `setDocStatus` returns; the entry therefore totals the
+  structure's *nominal* net (Σ earnings − Σ deductions) × employees paid, which equals
+  the summed slip nets when attendance is full (verified: total 30600).
+- **Cascade cancel.** Cancelling the entry cancels every slip carrying its back-link,
+  reversing each slip's GL (verified: 6 slips dropped to draft, their GL removed).
+- **Report.** A `payroll-register` report lists each submitted slip's gross, deduction,
+  and net, filterable by payroll run.
+
+Simplification: the entry's headline total uses the structure's nominal net; per-employee
+loss-of-pay proration still applies on each individual slip and shows in the register.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
