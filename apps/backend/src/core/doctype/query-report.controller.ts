@@ -447,6 +447,34 @@ const REPORTS: Record<string, QueryReport> = {
           HAVING sum(b."actual_qty") <> 0
           ORDER BY b."item_code", b."warehouse"`,
   },
+  "payroll-register": {
+    permDoctype: "Salary Slip",
+    columns: [
+      { key: "slip", label: "Salary Slip" },
+      { key: "employee", label: "Employee" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "gross_pay", label: "Gross Pay" },
+      { key: "total_deduction", label: "Deduction" },
+      { key: "net_pay", label: "Net Pay" },
+      { key: "payroll_entry", label: "Payroll Entry" },
+    ],
+    filters: [{ fieldname: "payroll_entry", label: "Payroll Entry", fieldtype: "Link" }],
+    // Submitted salary slips with pay breakdown, optionally scoped to a payroll run.
+    build: (f) => {
+      const params: unknown[] = [];
+      let clause = `WHERE "docstatus" = 1`;
+      if (f.payroll_entry) { params.push(f.payroll_entry); clause += ` AND "payroll_entry" = $${params.length}`; }
+      return {
+        text: `SELECT "name" AS "slip", "employee", "posting_date",
+                      coalesce("gross_pay", 0)::float8 AS "gross_pay",
+                      coalesce("total_deduction", 0)::float8 AS "total_deduction",
+                      coalesce("net_pay", 0)::float8 AS "net_pay", "payroll_entry"
+               FROM "tabSalary Slip" ${clause}
+               ORDER BY "payroll_entry", "employee"`,
+        params,
+      };
+    },
+  },
   "loan-outstanding": {
     permDoctype: "Loan",
     columns: [
