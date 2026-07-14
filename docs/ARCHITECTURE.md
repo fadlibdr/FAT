@@ -691,6 +691,25 @@ fields on Attendance + a `ShiftListener`, no cross-module imports):
 - **Attendance summary.** An `attendance-summary` report tallies Present / Absent /
   Half Day / On Leave counts and total hours per employee over a date range.
 
+## Phase 36 — Tax withholding (TDS)
+
+Withholding tax on purchases, handled entirely in the accounting module's GL
+listener (additive — no new posting listener, no race between writers):
+
+- **Category + posting.** A `Tax Withholding Category` carries a rate, TDS account,
+  and single-invoice threshold. A Purchase Invoice gains `apply_tds` /
+  `tax_withholding_category` / `tds_amount`. Inside the existing
+  `onPurchaseInvoiceSubmit`, when TDS applies and the net is at/above the
+  threshold, two extra lines are appended to the **same** GL post — Dr Creditors
+  and Cr the TDS account for the withheld amount — so the entry stays balanced
+  while the Creditors control account nets to `grand − tds`; the invoice's
+  `outstanding_amount` is set to `grand − tds` in the same write. Cancel already
+  deletes every GL line for the voucher, TDS included.
+- **Supplier default.** Suppliers carry a default `tax_withholding_category`; a
+  `before_save:Purchase Invoice` fills the invoice's category (and turns on
+  `apply_tds`) from the supplier when the invoice hasn't set one.
+- **Report.** A `tds-payable` report totals the withheld credits per supplier.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

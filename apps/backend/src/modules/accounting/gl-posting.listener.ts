@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
-import type { DocEventPayload } from "../../core/doctype/hooks.service";
+import type { BeforeSavePayload, DocEventPayload } from "../../core/doctype/hooks.service";
 import { DoctypeRegistryService } from "../../core/doctype/doctype-registry.service";
 import { DocumentService } from "../../core/doctype/document.service";
 import { systemContext } from "../../core/permissions/system-context";
@@ -168,6 +168,27 @@ export class GlPostingListener {
     await this.setInvoice(String(payload.doc.name), { status: "Cancelled", outstanding_amount: 0 });
   }
 
+  /**
+   * Default a Purchase Invoice's tax withholding from its supplier: if the
+   * supplier has a category and the invoice hasn't set one, apply it.
+   */
+  @OnEvent("doc.before_save:Purchase Invoice")
+  async defaultWithholding(payload: BeforeSavePayload): Promise<void> {
+    const d = payload.data;
+    if (d.tax_withholding_category || !d.supplier || !this.registry.has("Supplier")) return;
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("tax_withholding_category")} AS cat
+         FROM ${quoteIdent(tableNameFor("Supplier"))} WHERE ${quoteIdent("name")} = $1`,
+        [String(d.supplier)],
+      )
+    )[0];
+    if (row?.cat) {
+      d.tax_withholding_category = row.cat;
+      if (d.apply_tds === undefined || d.apply_tds === null) d.apply_tds = 1;
+    }
+  }
+
   @OnEvent("doc.on_submit:Purchase Invoice")
   async onPurchaseInvoiceSubmit(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
@@ -195,13 +216,28 @@ export class GlPostingListener {
       const acct = (t.account_head as string) || expense;
       lines.push({ account: acct, debit: isReturn ? 0 : amt * conv, credit: isReturn ? -amt * conv : 0, against, cost_center: cc });
     }
+    // Tax withholding (TDS): on a normal bill, withhold tax from the payable and
+    // book it to the TDS account. Dr Creditors + Cr TDS both rise by the withheld
+    // amount, keeping the entry balanced while reducing the net payable.
+    let tds = 0;
+    if (!isReturn && Boolean(doc.apply_tds)) {
+      const w = await this.withholding(doc.tax_withholding_category);
+      if (w && net >= w.threshold) {
+        tds = Math.round(net * conv * w.rate) / 100;
+        if (tds > 0) {
+          lines.push({ account: creditTo, debit: tds, credit: 0, against, cost_center: cc });
+          lines.push({ account: w.account, debit: 0, credit: tds, against, cost_center: cc });
+        }
+      }
+    }
     // Stamp the accounting dimension (project) onto every GL line.
     for (const l of lines) l.project = proj;
     try {
       await this.postLines(ctx, "Purchase Invoice", String(doc.name), doc.posting_date, lines);
       await this.setDoc("Purchase Invoice", String(doc.name), {
         base_grand_total: grand * conv,
-        outstanding_amount: grand,
+        outstanding_amount: grand * conv - tds,
+        tds_amount: tds,
         status: isReturn ? "Return" : "Unpaid",
       });
       this.logger.log(
@@ -219,6 +255,23 @@ export class GlPostingListener {
       status: "Cancelled",
       outstanding_amount: 0,
     });
+  }
+
+  /** Resolve rate / account / threshold for a Tax Withholding Category. */
+  private async withholding(
+    category: unknown,
+  ): Promise<{ rate: number; account: string; threshold: number } | undefined> {
+    if (!category || !this.registry.has("Tax Withholding Category")) return undefined;
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("rate")} AS rate, ${quoteIdent("account")} AS account,
+                ${quoteIdent("threshold")} AS threshold
+         FROM ${quoteIdent(tableNameFor("Tax Withholding Category"))} WHERE ${quoteIdent("name")} = $1`,
+        [String(category)],
+      )
+    )[0];
+    if (!row || !row.account) return undefined;
+    return { rate: Number(row.rate ?? 0), account: String(row.account), threshold: Number(row.threshold ?? 0) };
   }
 
   /** Resolve the cash/bank account for a Payment Entry from its Mode of Payment. */

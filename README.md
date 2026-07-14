@@ -410,4 +410,14 @@ Accounting, and HR as metadata-defined modules.
 - **Attendance summary** — an `attendance-summary` report tallies Present / Absent
   / Half Day / On Leave counts and total hours per employee.
 
+## Phase 36
+
+- **Tax withholding (TDS)** — a `Tax Withholding Category` (rate/account/threshold);
+  a Purchase Invoice with `apply_tds` posts a withholding entry on submit
+  (Dr Creditors / Cr TDS Payable) and reduces the outstanding payable, only above
+  the category's threshold.
+- **Supplier default** — Suppliers carry a default category; a `before_save`
+  auto-applies it to a Purchase Invoice when none is set.
+- **TDS report** — a `tds-payable` report totals tax withheld per supplier.
+
 See `docs/ARCHITECTURE.md` for the full design.

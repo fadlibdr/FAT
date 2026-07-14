@@ -337,6 +337,21 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "tds-payable": {
+    permDoctype: "GL Entry",
+    columns: [
+      { key: "supplier", label: "Supplier" },
+      { key: "account", label: "TDS Account" },
+      { key: "tds", label: "Tax Withheld" },
+    ],
+    // Tax withheld per supplier: the credit side of each Purchase Invoice's TDS
+    // lines. The GL against-field carries the supplier; TDS credits a liability.
+    sql: `SELECT "against" AS "supplier", "account", sum("credit")::float8 AS "tds"
+          FROM "tabGL Entry"
+          WHERE "voucher_type" = 'Purchase Invoice' AND "account" LIKE 'TDS%' AND "credit" > 0
+          GROUP BY "against", "account"
+          ORDER BY "against"`,
+  },
   "payment-mode-summary": {
     permDoctype: "Payment Entry",
     columns: [
