@@ -144,6 +144,7 @@ async function main() {
   await create("Account", { account_name: "Tax Withheld Payable", account_type: "Liability", company: "FAT Demo Co" });
   await create("Account", { account_name: "Employee Expense", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Employee Payable", account_type: "Liability", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Employee Advance", account_type: "Asset", company: "FAT Demo Co" });
   await create("Cost Center", { cost_center_name: "Main", company: "FAT Demo Co" });
   await create("Budget", { cost_center: "Main", account: "Sales", budget_amount: 10000 });
   // Accounting dimension: attribute GL to a Project.
