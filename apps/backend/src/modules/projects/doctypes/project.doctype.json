@@ -10,7 +10,8 @@
     { "fieldname": "expected_end_date", "label": "Expected End Date", "fieldtype": "Date" },
     { "fieldname": "total_hours", "label": "Total Hours", "fieldtype": "Float", "read_only": true, "default": "0", "in_list_view": true },
     { "fieldname": "total_billable_amount", "label": "Billable Amount", "fieldtype": "Currency", "read_only": true, "default": "0", "in_list_view": true },
-    { "fieldname": "total_billed_amount", "label": "Billed Amount", "fieldtype": "Currency", "read_only": true, "default": "0" }
+    { "fieldname": "total_billed_amount", "label": "Billed Amount", "fieldtype": "Currency", "read_only": true, "default": "0" },
+    { "fieldname": "percent_complete", "label": "% Complete", "fieldtype": "Float", "read_only": true, "default": "0", "in_list_view": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
