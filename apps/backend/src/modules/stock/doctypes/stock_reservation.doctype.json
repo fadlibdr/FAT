@@ -1,0 +1,18 @@
+{
+  "name": "Stock Reservation",
+  "module": "Stock",
+  "naming_rule": "series:RSV-.#####",
+  "is_submittable": true,
+  "title_field": "item_code",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "qty", "label": "Reserved Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "sales_order", "label": "Sales Order", "fieldtype": "Link", "options": "Sales Order", "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nReserved\nCancelled", "default": "Draft", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

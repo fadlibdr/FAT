@@ -710,6 +710,23 @@ listener (additive — no new posting listener, no race between writers):
   `apply_tds`) from the supplier when the invoice hasn't set one.
 - **Report.** A `tds-payable` report totals the withheld credits per supplier.
 
+## Phase 37 — Stock reservation & availability
+
+Adds availability discipline to the Stock module (one JSON DocType + a
+`ReservationListener`, no cross-module imports), reading the Bin balance directly:
+
+- **Stock Reservation.** A submittable reservation earmarks quantity of an item in
+  a warehouse. Its `before_submit` gate (`suppressErrors:false`) computes
+  availability as `on-hand − already-reserved` (excluding the reservation itself)
+  and blocks over-reserving; submit/cancel flip the status.
+- **Delivery gate.** A `before_submit:Delivery Note` gate blocks issuing more of an
+  item than is physically on hand in the source warehouse (sales returns, which
+  receive goods back, are exempt) — closing the door on silent negative stock at
+  the point of delivery.
+- **Projected quantity.** A `projected-qty` report joins Bin (on-hand) to submitted
+  Stock Reservations (reserved) and reports `on-hand − reserved` — what is free to
+  promise, which can legitimately go negative when more is reserved than is held.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
