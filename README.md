@@ -400,4 +400,14 @@ Accounting, and HR as metadata-defined modules.
 - **Mode summary** — a `payment-mode-summary` report groups submitted payments by
   mode into received / paid / net.
 
+## Phase 35
+
+- **Shifts** — a `Shift Type` (times + expected hours) and a submittable
+  `Shift Assignment` (Active on submit, Cancelled on cancel).
+- **Attendance depth** — Attendance gains shift + check-in/out; a `before_save`
+  derives `working_hours`, downgrades a short day to Half Day against the shift's
+  hours, and blocks a duplicate attendance for the same employee + date.
+- **Attendance summary** — an `attendance-summary` report tallies Present / Absent
+  / Half Day / On Leave counts and total hours per employee.
+
 See `docs/ARCHITECTURE.md` for the full design.

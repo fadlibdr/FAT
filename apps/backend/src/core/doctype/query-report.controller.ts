@@ -303,6 +303,40 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "attendance-summary": {
+    permDoctype: "Attendance",
+    columns: [
+      { key: "employee", label: "Employee" },
+      { key: "present", label: "Present" },
+      { key: "absent", label: "Absent" },
+      { key: "half_day", label: "Half Day" },
+      { key: "on_leave", label: "On Leave" },
+      { key: "working_hours", label: "Total Hours" },
+    ],
+    filters: [
+      { fieldname: "from_date", label: "From Date", fieldtype: "Date" },
+      { fieldname: "to_date", label: "To Date", fieldtype: "Date" },
+    ],
+    build: (f) => {
+      const params: unknown[] = [];
+      const where: string[] = [];
+      if (f.from_date) { params.push(f.from_date); where.push(`"attendance_date" >= $${params.length}`); }
+      if (f.to_date) { params.push(f.to_date); where.push(`"attendance_date" <= $${params.length}`); }
+      const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+      return {
+        text: `SELECT "employee",
+                      count(*) FILTER (WHERE "status" = 'Present')::float8 AS "present",
+                      count(*) FILTER (WHERE "status" = 'Absent')::float8 AS "absent",
+                      count(*) FILTER (WHERE "status" = 'Half Day')::float8 AS "half_day",
+                      count(*) FILTER (WHERE "status" = 'On Leave')::float8 AS "on_leave",
+                      coalesce(sum("working_hours"), 0)::float8 AS "working_hours"
+               FROM "tabAttendance" ${clause}
+               GROUP BY "employee"
+               ORDER BY "employee"`,
+        params,
+      };
+    },
+  },
   "payment-mode-summary": {
     permDoctype: "Payment Entry",
     columns: [

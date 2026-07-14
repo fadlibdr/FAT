@@ -1,0 +1,16 @@
+{
+  "name": "Shift Type",
+  "module": "HR",
+  "naming_rule": "field:shift_type_name",
+  "title_field": "shift_type_name",
+  "fields": [
+    { "fieldname": "shift_type_name", "label": "Shift Type Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "start_time", "label": "Start Time", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "end_time", "label": "End Time", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "hours", "label": "Expected Hours", "fieldtype": "Float", "default": "8", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

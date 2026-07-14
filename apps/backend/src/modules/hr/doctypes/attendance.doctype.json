@@ -7,6 +7,10 @@
     { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "attendance_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Present\nAbsent\nHalf Day\nOn Leave", "default": "Present", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "shift", "label": "Shift", "fieldtype": "Link", "options": "Shift Type", "in_standard_filter": true },
+    { "fieldname": "check_in", "label": "Check In", "fieldtype": "Datetime" },
+    { "fieldname": "check_out", "label": "Check Out", "fieldtype": "Datetime" },
+    { "fieldname": "working_hours", "label": "Working Hours", "fieldtype": "Float", "read_only": true, "in_list_view": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true }
   ],
   "permissions": [
