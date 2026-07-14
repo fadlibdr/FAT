@@ -960,6 +960,23 @@ A self-contained gratuity flow in the HR module (a `Gratuity` submittable DocTyp
 - **Report.** A `gratuity-summary` report shows per submitted voucher the employee,
   service years, monthly salary, gratuity amount, and status.
 
+## Phase 50 — Budget control
+
+A `BudgetGateListener` in the accounting module enforces budgets at spend time (no new
+DocType — the existing Budget gains an over-budget action; the gate reads GL via SQL,
+no cross-module imports):
+
+- **Action.** Budget gains `action_if_annual_budget_exceeded` (Ignore / Warn / Stop).
+- **Gate.** A `before_submit:Purchase Invoice` gate (`suppressErrors:false`) matches a
+  Budget by the bill's expense account + cost centre, sums the cumulative actual
+  (Σ GL Dr − Cr) already posted there, and compares actual + this bill to the budget.
+  Stop throws and aborts the submit; Warn logs and allows; Ignore does nothing (a debit
+  note is exempt). Verified: on a 1000 budget, an 800 bill posts, a following 500 bill
+  is blocked (actual 800 + 500 > 1000); a Warn budget lets a 500 bill through over a 100
+  limit.
+- **Report.** A `budget-utilization` report shows per budget the amount, actual, remaining,
+  percent used, and action.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

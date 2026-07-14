@@ -558,4 +558,12 @@ Accounting, and HR as metadata-defined modules.
 - **Gratuity report** — a `gratuity-summary` report lists per voucher the employee,
   service years, monthly salary, and gratuity amount.
 
+## Phase 50
+
+- **Budget control** — Budgets gain an over-budget action (Ignore / Warn / Stop); a
+  `before_submit` gate on Purchase Invoice checks the bill's expense account + cost
+  centre against its budget and blocks (Stop) or logs (Warn) an overrun.
+- **Utilisation report** — a `budget-utilization` report shows per budget the amount,
+  actual spend, remaining, percent used, and configured action.
+
 See `docs/ARCHITECTURE.md` for the full design.
