@@ -430,4 +430,14 @@ Accounting, and HR as metadata-defined modules.
 - **Projected quantity** — a `projected-qty` report shows on-hand, reserved, and
   projected-free (on-hand − reserved) per item + warehouse.
 
+## Phase 38
+
+- **Supplier Scorecard** — a submittable `Supplier Scorecard` scores a supplier on
+  weighted criteria; a `before_save` computes the weighted total and a standing
+  band (Excellent / Good / Average / Poor).
+- **Purchasing gate** — a `before_submit` gate blocks a Purchase Order to a
+  supplier whose most recent scorecard rates them Poor.
+- **Scorecard report** — a `supplier-scorecard` report shows each supplier's latest
+  score and standing.
+
 See `docs/ARCHITECTURE.md` for the full design.
