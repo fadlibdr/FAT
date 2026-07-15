@@ -1615,6 +1615,26 @@ Work Order for 4 (needing 8) submits and manufactures — the finished good is p
 (status Completed, produced value 80) and raw stock falls from 10 to 2; the
 work-order-status report shows the completed order.
 
+## Phase 84 — Maintenance Schedule → Maintenance Visit
+
+Closes the loop on preventive maintenance. The `MaintenanceListener` already expands
+a Maintenance Schedule into periodic visit slots and, on a submitted Maintenance
+Visit, closes the earliest pending slot; this phase adds the convenience that raises
+that visit. A new `MaintenanceService` builds it through the generic
+`DocumentService` — maintenance imports no other module's services:
+
+- **Next visit.** `POST /api/maintenance/schedule/:name/make-visit` creates a draft
+  Maintenance Visit from a *submitted* schedule, pre-filled with the customer, item,
+  serial number, a link back to the schedule, and the date of the earliest still-
+  pending scheduled visit. It refuses a non-submitted schedule or one with no pending
+  visits. Submitting the visit closes that slot via the existing listener.
+- **Report.** A `maintenance-schedule-status` report lists submitted schedules with
+  their total, completed, and pending visit counts.
+
+Verified: a schedule of 3 monthly visits reports 3 pending; drawing and submitting a
+visit closes the earliest slot (completed 1 / pending 2) and the next draw pre-fills
+the following month's date, closing to completed 2 / pending 1.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
