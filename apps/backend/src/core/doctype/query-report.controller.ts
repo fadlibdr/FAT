@@ -1252,6 +1252,62 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "top-purchased-items": {
+    permDoctype: "Purchase Invoice",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "qty", label: "Qty Purchased" },
+      { key: "spend", label: "Spend" },
+    ],
+    // Quantity and spend per item across submitted (non-return) Purchase Invoices.
+    sql: `SELECT pi_item."item_code",
+                 sum(pi_item."qty")::float8 AS "qty",
+                 sum(coalesce(pi_item."amount", 0))::float8 AS "spend"
+          FROM "tabPurchase Invoice Item" pi_item
+          JOIN "tabPurchase Invoice" pi ON pi."name" = pi_item."parent"
+          WHERE pi."docstatus" = 1 AND coalesce(pi."is_return", 0) = 0
+          GROUP BY pi_item."item_code"
+          ORDER BY "spend" DESC`,
+  },
+  "supplier-spend": {
+    permDoctype: "Purchase Invoice",
+    columns: [
+      { key: "supplier", label: "Supplier" },
+      { key: "invoices", label: "Invoices" },
+      { key: "spend", label: "Spend" },
+      { key: "outstanding", label: "Outstanding" },
+    ],
+    // Per supplier: invoice count, total billed, and total outstanding.
+    sql: `SELECT "supplier",
+                 count(*)::int AS "invoices",
+                 sum(coalesce("grand_total", "total", 0))::float8 AS "spend",
+                 sum(coalesce("outstanding_amount", 0))::float8 AS "outstanding"
+          FROM "tabPurchase Invoice"
+          WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 0
+          GROUP BY "supplier"
+          ORDER BY "spend" DESC`,
+  },
+  "purchase-price-trend": {
+    permDoctype: "Purchase Invoice",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "qty", label: "Qty" },
+      { key: "avg_rate", label: "Avg Rate" },
+      { key: "min_rate", label: "Min Rate" },
+      { key: "max_rate", label: "Max Rate" },
+    ],
+    // Purchase-rate spread per item across submitted Purchase Invoice lines.
+    sql: `SELECT pi_item."item_code",
+                 sum(pi_item."qty")::float8 AS "qty",
+                 round(avg(pi_item."rate")::numeric, 2)::float8 AS "avg_rate",
+                 min(pi_item."rate")::float8 AS "min_rate",
+                 max(pi_item."rate")::float8 AS "max_rate"
+          FROM "tabPurchase Invoice Item" pi_item
+          JOIN "tabPurchase Invoice" pi ON pi."name" = pi_item."parent"
+          WHERE pi."docstatus" = 1 AND coalesce(pi."is_return", 0) = 0 AND pi_item."rate" > 0
+          GROUP BY pi_item."item_code"
+          ORDER BY "item_code"`,
+  },
   "purchase-register": {
     permDoctype: "Purchase Invoice",
     columns: [
