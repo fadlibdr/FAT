@@ -77,6 +77,7 @@ export class JournalListener {
           voucher_type: "Journal Entry",
           voucher_no: String(doc.name),
           account: r.account,
+          cost_center: r.cost_center ?? null,
           debit,
           credit,
           against,

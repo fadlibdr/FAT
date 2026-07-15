@@ -1,0 +1,17 @@
+{
+  "name": "Cost Center Allocation",
+  "module": "Accounting",
+  "naming_rule": "series:CCA-.#####",
+  "is_submittable": true,
+  "title_field": "main_cost_center",
+  "fields": [
+    { "fieldname": "main_cost_center", "label": "Main Cost Center", "fieldtype": "Link", "options": "Cost Center", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "allocations", "label": "Allocation", "fieldtype": "Table", "options": "Cost Center Allocation Percentage" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
