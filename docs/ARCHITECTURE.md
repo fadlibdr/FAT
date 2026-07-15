@@ -1306,6 +1306,29 @@ rate); submitting it rolls ordered_qty to 30; an 80-unit release is rejected
 (exceeds remaining 70); a no-qty release draws the remaining 70; the status report
 shows total 100, ordered 30, remaining 70.
 
+## Phase 70 — Sales Order → Pick List
+
+Adds the warehouse pick step to the outbound flow, which already runs Pick List →
+Delivery Note. `PickListService` gains a generator that turns a submitted Sales
+Order into a draft Pick List through the generic `DocumentService` — stock imports
+no other module's services:
+
+- **Generation.** `POST /api/stock/sales-order/:name/make-pick-list` builds a draft
+  Pick List for the order's customer, one pick location per ordered line. Each
+  line's warehouse is resolved to the `Bin` holding the most available stock
+  (`actual_qty`) for that item; an item with no positive stock anywhere aborts the
+  pick with a clear error. The Pick List links back to the sales order via a new
+  read-only `sales_order` field.
+- **Report.** A `pick-list-status` report lists pick lists with their total picked
+  quantity and their source-order / delivery-note links.
+
+The outbound chain now runs Sales Order → Pick List → Delivery Note end to end.
+
+Verified: a Sales Order for 10 units picks from the warehouse stocked with 50 (over
+the alternate stocked with 20), producing a linked draft Pick List of qty 10; an
+order line with no stock is rejected ("No stock available to pick"); the status
+report shows the pick list with total qty 10 and its sales-order link.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

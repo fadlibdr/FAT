@@ -1246,6 +1246,26 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE coalesce(c."credit_limit", 0) > 0
           ORDER BY "exposure" DESC, c."name"`,
   },
+  "pick-list-status": {
+    permDoctype: "Pick List",
+    columns: [
+      { key: "pick_list", label: "Pick List" },
+      { key: "customer", label: "Customer" },
+      { key: "sales_order", label: "Sales Order" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "total_qty", label: "Total Qty" },
+      { key: "status", label: "Status" },
+      { key: "delivery_note", label: "Delivery Note" },
+    ],
+    // Pick lists with their total picked quantity and their source order / delivery links.
+    sql: `SELECT p."name" AS "pick_list", p."customer", p."sales_order", p."posting_date",
+                 coalesce(sum(l."qty"), 0)::float8 AS "total_qty",
+                 coalesce(p."status", 'Draft') AS "status", p."delivery_note"
+          FROM "tabPick List" p
+          LEFT JOIN "tabPick List Item" l ON l."parent" = p."name"
+          GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
+          ORDER BY p."posting_date" DESC, p."name"`,
+  },
   "blanket-order-status": {
     permDoctype: "Blanket Order",
     columns: [

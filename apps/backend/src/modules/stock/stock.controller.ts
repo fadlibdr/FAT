@@ -13,4 +13,10 @@ export class StockController {
     const deliveryNote = await this.pickList.makeDeliveryNote(name, user);
     return { deliveryNote };
   }
+
+  @Post("sales-order/:name/make-pick-list")
+  async soToPickList(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const pickList = await this.pickList.makeFromSalesOrder(name, user);
+    return { pickList };
+  }
 }
