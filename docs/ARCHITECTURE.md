@@ -1718,6 +1718,28 @@ and a non-manufactured line raises a single draft Work Order for the manufacture
 item — linked to the order at qty 5 with its BOM — and skips the no-BOM line; the
 work-order-by-sales-order report shows the Work Order under its Sales Order.
 
+## Phase 89 — Item Price auto-fill on order lines
+
+Puts the existing Item Price list to work: it was defined but never read. A new
+`ItemPriceListener` prices order lines on save. Pure event-bus, no cross-module
+imports:
+
+- **Auto-fill.** `before_save` on a billing transaction fills any line left without a
+  rate from the current Item Price — `Standard Selling` for customer documents
+  (Quotation / Sales Order / Sales Invoice), `Standard Buying` for supplier ones
+  (Purchase Order / Purchase Invoice). The most recent price effective on or before
+  today wins. A line that already carries a rate is never overwritten, so manual
+  overrides — and the pricing-rule discounts that run after this — take precedence.
+  The listener is registered ahead of the `PricingRuleListener` so the base price is
+  set first.
+- **Report.** An `item-price-list` report lists every item price with its price list,
+  rate, and valid-from date.
+
+Verified: with the item priced at 250 (Standard Selling) and 180 (Standard Buying), a
+Sales Order line entered without a rate is filled to 250, a line entered at 300 keeps
+300, and a Purchase Order line without a rate is filled to 180; the item-price-list
+report shows both prices.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
