@@ -1525,6 +1525,28 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "sales-target-achievement": {
+    permDoctype: "Sales Target",
+    columns: [
+      { key: "target", label: "Target" },
+      { key: "sales_person", label: "Sales Person" },
+      { key: "from_date", label: "From" },
+      { key: "to_date", label: "To" },
+      { key: "target_amount", label: "Target Amount" },
+      { key: "achieved_amount", label: "Achieved" },
+      { key: "percent", label: "Achievement %" },
+      { key: "status", label: "Status" },
+    ],
+    sql: `SELECT "name" AS "target", "sales_person", "from_date", "to_date",
+                 "target_amount", coalesce("achieved_amount", 0) AS "achieved_amount",
+                 CASE WHEN "target_amount" > 0
+                      THEN round(coalesce("achieved_amount", 0) / "target_amount" * 100, 2)
+                      ELSE 0 END AS "percent",
+                 CASE WHEN coalesce("achieved_amount", 0) >= "target_amount" THEN 'Met' ELSE 'In Progress' END AS "status"
+          FROM "tabSales Target"
+          WHERE "docstatus" = 1
+          ORDER BY "from_date" DESC, "sales_person"`,
+  },
   "sla-breach-status": {
     permDoctype: "Issue",
     columns: [
