@@ -1348,6 +1348,22 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "journal-entry-register": {
+    permDoctype: "Journal Entry",
+    columns: [
+      { key: "journal_entry", label: "Journal Entry" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "user_remark", label: "Remark" },
+      { key: "total_debit", label: "Total Debit" },
+      { key: "reversal_of", label: "Reversal Of" },
+    ],
+    // Submitted journal entries with their totals and any entry they reverse.
+    sql: `SELECT "name" AS "journal_entry", "posting_date", "user_remark",
+                 coalesce("total_debit", 0)::float8 AS "total_debit", "reversal_of"
+          FROM "tabJournal Entry"
+          WHERE "docstatus" = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "payment-entry-register": {
     permDoctype: "Payment Entry",
     columns: [
