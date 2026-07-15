@@ -1023,6 +1023,22 @@ periods (accounting module, no cross-module imports):
 - **Report.** An `accounting-period-status` report lists each period with its lock state and the
   count of GL entries already posted in its range.
 
+## Phase 54 — Purchase three-way match
+
+A `ThreeWayMatchListener` in the buying module enforces that received and billed quantities stay
+within what was ordered (event-bus only, reads via SQL, no cross-module imports):
+
+- **Gates.** `before_submit` on Purchase Receipt and Purchase Invoice (`suppressErrors:false`)
+  sums the quantity already received / billed per item against the linked Purchase Order (from
+  other *submitted* documents), adds this document's lines, and rejects the submit if any item
+  would exceed the ordered quantity. Receipts/invoices not linked to a PO are unaffected.
+- **Report.** A `purchase-order-status` report shows per submitted PO the order value, % received,
+  % billed, and status.
+
+Verified: on a PO for 10, a receipt of 6 posts, a further receipt of 6 is blocked (12 > 10), and a
+receipt of 4 (reaching 10) posts; likewise a Purchase Invoice for 12 is blocked while one for 10
+posts, after which the PO reads 100% received / 100% billed.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

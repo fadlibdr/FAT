@@ -590,4 +590,12 @@ Accounting, and HR as metadata-defined modules.
 - **Period report** — an `accounting-period-status` report lists each period with its lock
   state and the count of GL entries posted in range.
 
+## Phase 54
+
+- **Three-way match** — a `before_submit` gate blocks a Purchase Receipt from receiving, or a
+  Purchase Invoice from billing, more of any item than its linked Purchase Order ordered
+  (counting quantities already received/billed against the same PO).
+- **PO status report** — a `purchase-order-status` report shows per order the value, % received,
+  % billed, and status.
+
 See `docs/ARCHITECTURE.md` for the full design.
