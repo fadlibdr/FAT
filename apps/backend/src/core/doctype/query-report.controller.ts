@@ -1525,6 +1525,24 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "sla-breach-status": {
+    permDoctype: "Issue",
+    columns: [
+      { key: "issue", label: "Issue" },
+      { key: "subject", label: "Subject" },
+      { key: "priority", label: "Priority" },
+      { key: "status", label: "Status" },
+      { key: "resolution_by", label: "Resolution By" },
+      { key: "escalated", label: "Escalated" },
+      { key: "agreement_status", label: "SLA" },
+    ],
+    sql: `SELECT "name" AS "issue", "subject", "priority", "status", "resolution_by",
+                 CASE WHEN coalesce("escalated", 0) = 1 THEN 'Yes' ELSE 'No' END AS "escalated",
+                 "agreement_status"
+          FROM "tabIssue"
+          WHERE "agreement_status" = 'Failed' OR coalesce("escalated", 0) = 1
+          ORDER BY "escalation_date" DESC NULLS LAST, "name"`,
+  },
   "opportunity-loss-analysis": {
     permDoctype: "Opportunity",
     columns: [
