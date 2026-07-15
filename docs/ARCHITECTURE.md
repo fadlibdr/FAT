@@ -1763,6 +1763,27 @@ direction, and matching a 480 deposit to a 700 payment is rejected on amount;
 unmatching the reconciled transaction returns it to Unreconciled with the link cleared,
 as the status report reflects.
 
+## Phase 91 — Serial numbers on deliveries
+
+Extends serial tracking to the outbound flow. The stock-ledger listener already
+creates Active serials on a receipt and marks them Delivered when a Stock Entry
+issues them; deliveries carried no serials at all. Pure event-bus, no cross-module
+imports:
+
+- **Track.** Delivery Note Item gains a `serial_no` field. On submit, the delivery's
+  line serials flow into the stock move, so each is marked Delivered (and a return
+  delivery reactivates them to Active).
+- **Gate.** A `before_submit:Delivery Note` gate (returns exempt) verifies every
+  listed serial exists, is Active, and sits in the line's warehouse — so an unknown,
+  already-delivered, or wrong-warehouse serial cannot ship.
+- **Report.** A `serial-no-status` report lists every tracked serial with its item,
+  current warehouse, Active/Delivered status, and source voucher.
+
+Verified: two serials received into a warehouse are Active; delivering one marks it
+Delivered; a second delivery of the same serial is rejected ("is Delivered, not
+Active") and delivering an unknown serial is rejected ("does not exist"); the
+serial-no-status report shows one Delivered and one still Active.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
