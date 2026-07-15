@@ -1452,6 +1452,25 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "bank-reconciliation-status": {
+    permDoctype: "Bank Transaction",
+    columns: [
+      { key: "transaction", label: "Transaction" },
+      { key: "date", label: "Date" },
+      { key: "bank_account", label: "Bank Account" },
+      { key: "deposit", label: "Deposit" },
+      { key: "withdrawal", label: "Withdrawal" },
+      { key: "status", label: "Status" },
+      { key: "payment_entry", label: "Payment Entry" },
+    ],
+    // Bank transactions with their reconciliation status and matched payment entry.
+    sql: `SELECT "name" AS "transaction", "date", "bank_account",
+                 coalesce("deposit", 0)::float8 AS "deposit",
+                 coalesce("withdrawal", 0)::float8 AS "withdrawal",
+                 coalesce("status", 'Unreconciled') AS "status", "payment_entry"
+          FROM "tabBank Transaction"
+          ORDER BY "date" DESC, "name"`,
+  },
   "item-price-list": {
     permDoctype: "Item Price",
     columns: [

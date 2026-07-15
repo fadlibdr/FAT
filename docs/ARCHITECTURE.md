@@ -1740,6 +1740,29 @@ Sales Order line entered without a rate is filled to 250, a line entered at 300 
 300, and a Purchase Order line without a rate is filled to 180; the item-price-list
 report shows both prices.
 
+## Phase 90 — Manual bank reconciliation
+
+Complements the auto-matcher with manual match / unmatch and a status view. The
+`BankReconciliationService` already links Bank Transactions to Payment Entries by
+amount and direction; this phase lets an accounts user override that by hand:
+
+- **Match.** `POST /api/accounting/bank-reconcile/match` (body `{ transaction,
+  payment_entry }`) links a chosen transaction to a chosen submitted Payment Entry,
+  marking it Reconciled. It validates that the transaction is not already reconciled,
+  the payment is submitted and not used by another transaction, and the direction
+  (deposit ↔ Receive, withdrawal ↔ Pay) and amount both match.
+- **Unmatch.** `POST /api/accounting/bank-reconcile/unmatch` (body `{ transaction }`)
+  clears the link and returns the transaction to Unreconciled. Both endpoints are
+  Accounts-only.
+- **Report.** A `bank-reconciliation-status` report lists bank transactions with their
+  deposit/withdrawal, status, and matched Payment Entry.
+
+Verified: a 500 deposit is manually matched to a 500 Receive payment (transaction →
+Reconciled, linked); matching a withdrawal to a Receive payment is rejected on
+direction, and matching a 480 deposit to a 700 payment is rejected on amount;
+unmatching the reconciled transaction returns it to Unreconciled with the link cleared,
+as the status report reflects.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

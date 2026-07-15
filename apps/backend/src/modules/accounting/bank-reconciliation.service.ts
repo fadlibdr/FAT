@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { DoctypeRegistryService } from "../../core/doctype/doctype-registry.service";
@@ -72,6 +72,88 @@ export class BankReconciliationService {
       this.logger.log(`Reconciled ${t.name} <-> ${pe} (${amount})`);
     }
     return matches;
+  }
+
+  /**
+   * Manually reconcile one Bank Transaction against a chosen Payment Entry. The
+   * payment must be submitted, unused by another transaction, and match the
+   * transaction's direction (deposit ↔ Receive, withdrawal ↔ Pay) and amount.
+   */
+  async matchTransaction(transaction: string, paymentEntry: string): Promise<Match> {
+    if (!this.registry.has("Bank Transaction") || !this.registry.has("Payment Entry")) {
+      throw new BadRequestException("Bank Transaction or Payment Entry not registered");
+    }
+    const txn = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("deposit")} AS deposit, ${quoteIdent("withdrawal")} AS withdrawal,
+                ${quoteIdent("status")} AS status, ${quoteIdent("payment_entry")} AS payment_entry
+         FROM ${quoteIdent(tableNameFor("Bank Transaction"))} WHERE ${quoteIdent("name")} = $1`,
+        [transaction],
+      )
+    )[0];
+    if (!txn) throw new BadRequestException(`Bank Transaction ${transaction} not found`);
+    if (txn.payment_entry) throw new BadRequestException(`Bank Transaction ${transaction} already reconciled with ${txn.payment_entry}`);
+
+    const deposit = Number(txn.deposit ?? 0);
+    const withdrawal = Number(txn.withdrawal ?? 0);
+    const amount = deposit > 0 ? deposit : withdrawal;
+    const wantType = deposit > 0 ? "Receive" : "Pay";
+
+    const pe = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("payment_type")} AS type, ${quoteIdent("paid_amount")} AS amount,
+                ${quoteIdent("docstatus")} AS docstatus
+         FROM ${quoteIdent(tableNameFor("Payment Entry"))} WHERE ${quoteIdent("name")} = $1`,
+        [paymentEntry],
+      )
+    )[0];
+    if (!pe) throw new BadRequestException(`Payment Entry ${paymentEntry} not found`);
+    if (Number(pe.docstatus ?? 0) !== 1) throw new BadRequestException(`Payment Entry ${paymentEntry} must be submitted`);
+    if (String(pe.type) !== wantType) {
+      throw new BadRequestException(`Direction mismatch: a ${deposit > 0 ? "deposit" : "withdrawal"} needs a ${wantType} payment, not ${pe.type}`);
+    }
+    if (Math.abs(Number(pe.amount ?? 0) - amount) > 0.0001) {
+      throw new BadRequestException(`Amount mismatch: transaction ${amount} vs payment ${Number(pe.amount ?? 0)}`);
+    }
+    const usedBy = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("name")} AS name FROM ${quoteIdent(tableNameFor("Bank Transaction"))}
+         WHERE ${quoteIdent("payment_entry")} = $1 LIMIT 1`,
+        [paymentEntry],
+      )
+    )[0];
+    if (usedBy) throw new BadRequestException(`Payment Entry ${paymentEntry} already reconciled with ${usedBy.name}`);
+
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Bank Transaction"))}
+       SET ${quoteIdent("status")} = 'Reconciled', ${quoteIdent("payment_entry")} = $1, ${quoteIdent("modified")} = $2
+       WHERE ${quoteIdent("name")} = $3`,
+      [paymentEntry, new Date().toISOString(), transaction],
+    );
+    this.logger.log(`Manually reconciled ${transaction} <-> ${paymentEntry} (${amount})`);
+    return { transaction, payment_entry: paymentEntry, amount };
+  }
+
+  /** Undo a reconciliation: clear the link and mark the transaction Unreconciled. */
+  async unmatchTransaction(transaction: string): Promise<{ transaction: string; status: string }> {
+    if (!this.registry.has("Bank Transaction")) throw new BadRequestException("Bank Transaction not registered");
+    const txn = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("payment_entry")} AS pe FROM ${quoteIdent(tableNameFor("Bank Transaction"))}
+         WHERE ${quoteIdent("name")} = $1`,
+        [transaction],
+      )
+    )[0];
+    if (!txn) throw new BadRequestException(`Bank Transaction ${transaction} not found`);
+    if (!txn.pe) throw new BadRequestException(`Bank Transaction ${transaction} is not reconciled`);
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Bank Transaction"))}
+       SET ${quoteIdent("status")} = 'Unreconciled', ${quoteIdent("payment_entry")} = NULL, ${quoteIdent("modified")} = $1
+       WHERE ${quoteIdent("name")} = $2`,
+      [new Date().toISOString(), transaction],
+    );
+    this.logger.log(`Unreconciled ${transaction} (was <-> ${txn.pe})`);
+    return { transaction, status: "Unreconciled" };
   }
 
   /** Find one submitted, unused Payment Entry of the given amount/type, preferring reference_no. */
