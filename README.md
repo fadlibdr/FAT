@@ -637,4 +637,10 @@ Accounting, and HR as metadata-defined modules.
   a Sales Invoice or Sales Order (when no taxes are entered) auto-populates that document's taxes,
   and the recompute job fills in each tax amount and the grand total.
 
+## Phase 60
+
+- **Purchase tax templates** — the buy-side mirror: a `Purchase Taxes Template` auto-populates a
+  Purchase Invoice's or Purchase Order's taxes (when none are entered), with explicit taxes still
+  taking precedence.
+
 See `docs/ARCHITECTURE.md` for the full design.
