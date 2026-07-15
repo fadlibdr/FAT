@@ -1421,6 +1421,28 @@ Verified: a 1000 Sales Invoice settles to a draft Payment Entry (Receive, party 
 and its status to Paid; a second settle attempt is rejected ("nothing outstanding to
 settle"); the register shows the entry with 1000 allocated.
 
+## Phase 75 — Sales Invoice → Credit Note (Sales Return)
+
+Adds the returns step to the sell side. The GL-posting listener already handles a
+credit note (`is_return`) by mirroring the original posting; this phase adds the
+converter that raises the credit note from an invoice, through the generic
+`DocumentService` — selling imports no other module's services:
+
+- **Return.** `POST /api/selling/sales-invoice/:name/make-return` creates a draft
+  Credit Note against a *submitted, non-return* Sales Invoice: it mirrors the
+  original lines at negative quantity, sets `is_return` and `return_against`, and
+  carries the invoice's `sales_order` link. On submit the GL-posting listener
+  reverses the original posting (Dr Sales / Cr Debtors) and books a negative
+  outstanding. It refuses a non-submitted invoice or one that is itself a return.
+- **Report.** A `credit-note-register` report lists submitted credit notes with the
+  invoice each reverses, the return value, and its outstanding.
+
+Verified: a 1000 Sales Invoice returns to a Credit Note mirroring its line at qty
+−4; submitting the credit note posts Dr Sales 1000 / Cr Debtors 1000 (the exact
+reverse of the sale) and a −1000 outstanding with status Return; returning a return
+is rejected ("already a return"); the register shows the credit note against its
+source invoice.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

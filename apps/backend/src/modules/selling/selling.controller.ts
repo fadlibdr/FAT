@@ -39,6 +39,12 @@ export class SellingController {
     return { salesInvoice };
   }
 
+  @Post("sales-invoice/:name/make-return")
+  async makeSalesReturn(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const creditNote = await this.fulfillment.makeSalesReturn(name, user);
+    return { creditNote };
+  }
+
   @Post("item/:template/make-variants")
   async makeVariants(@CurrentUser() user: UserContext, @Param("template") template: string) {
     return this.variants.makeVariants(template, user);
