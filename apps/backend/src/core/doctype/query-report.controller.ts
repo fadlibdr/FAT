@@ -97,6 +97,25 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY gl."account", a."account_type"
           ORDER BY a."account_type", gl."account"`,
   },
+  "write-off-register": {
+    permDoctype: "Write Off Entry",
+    columns: [
+      { key: "write_off", label: "Write Off" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "customer", label: "Customer" },
+      { key: "sales_invoice", label: "Sales Invoice" },
+      { key: "write_off_amount", label: "Amount" },
+      { key: "write_off_account", label: "Account" },
+      { key: "reason", label: "Reason" },
+    ],
+    // Submitted bad-debt write-offs.
+    sql: `SELECT "name" AS "write_off", "posting_date", "customer", "sales_invoice",
+                 coalesce("write_off_amount", 0)::float8 AS "write_off_amount",
+                 coalesce("write_off_account", 'Bad Debt Expense') AS "write_off_account", "reason"
+          FROM "tabWrite Off Entry"
+          WHERE "docstatus" = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "cash-flow-statement": {
     permDoctype: "GL Entry",
     columns: [
