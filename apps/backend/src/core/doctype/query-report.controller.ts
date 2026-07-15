@@ -1471,6 +1471,21 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabBank Transaction"
           ORDER BY "date" DESC, "name"`,
   },
+  "serial-no-status": {
+    permDoctype: "Serial No",
+    columns: [
+      { key: "serial_no", label: "Serial No" },
+      { key: "item", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "status", label: "Status" },
+      { key: "voucher_no", label: "Voucher" },
+    ],
+    // Every tracked serial with its current location and Active/Delivered status.
+    sql: `SELECT "serial_no", "item", "warehouse",
+                 coalesce("status", 'Active') AS "status", "voucher_no"
+          FROM "tabSerial No"
+          ORDER BY "item", "serial_no"`,
+  },
   "item-price-list": {
     permDoctype: "Item Price",
     columns: [

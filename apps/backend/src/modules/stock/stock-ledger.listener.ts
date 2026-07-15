@@ -255,10 +255,11 @@ export class StockLedgerListener {
     for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
       const qty = Number(row.qty ?? 0);
       if (!qty || !row.warehouse) continue;
+      const serials = String(row.serial_no ?? "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
       try {
         await this.post(
           ctx,
-          { item: String(row.item_code), warehouse: String(row.warehouse), delta: isReturn ? qty : -qty },
+          { item: String(row.item_code), warehouse: String(row.warehouse), delta: isReturn ? qty : -qty, serials },
           "Delivery Note",
           String(doc.name),
           doc.posting_date,
@@ -268,6 +269,43 @@ export class StockLedgerListener {
       }
     }
     this.logger.log(`Posted stock ledger for Delivery Note ${doc.name}${isReturn ? " (return)" : ""}`);
+  }
+
+  /**
+   * Before a (non-return) Delivery Note is submitted, verify each listed serial
+   * number is a known, Active unit sitting in the line's warehouse — so an unknown,
+   * already-delivered, or wrong-warehouse serial can't ship. suppressErrors:false so
+   * the throw aborts the submit.
+   */
+  @OnEvent("doc.before_submit:Delivery Note", { suppressErrors: false })
+  async gateDeliverySerials(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    if (Boolean(doc.is_return) || !this.registry.has("Serial No")) return;
+    for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
+      const serials = String(row.serial_no ?? "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+      if (serials.length === 0) continue;
+      const warehouse = String(row.warehouse ?? "");
+      for (const sn of serials) {
+        const rec = (
+          await this.dataSource.query(
+            `SELECT ${quoteIdent("status")} AS status, ${quoteIdent("warehouse")} AS warehouse
+             FROM ${quoteIdent(tableNameFor("Serial No"))} WHERE ${quoteIdent("name")} = $1`,
+            [sn],
+          )
+        )[0];
+        if (!rec) {
+          throw new BadRequestException(`Delivery Note ${doc.name}: serial ${sn} does not exist`);
+        }
+        if (String(rec.status) !== "Active") {
+          throw new BadRequestException(`Delivery Note ${doc.name}: serial ${sn} is ${rec.status}, not Active`);
+        }
+        if (warehouse && String(rec.warehouse) !== warehouse) {
+          throw new BadRequestException(
+            `Delivery Note ${doc.name}: serial ${sn} is in ${rec.warehouse}, not ${warehouse}`,
+          );
+        }
+      }
+    }
   }
 
   @OnEvent("doc.on_submit:Purchase Receipt")
