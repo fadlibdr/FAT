@@ -1187,6 +1187,24 @@ Verified: WIDGET-1 stock (95 units across two warehouses, valued 9500) shows an 
 2026-07-25; the Receiving balance (never sold) tops the slow-moving list; stock-value-by-group rolls
 the Products group to 9500.
 
+## Phase 64 — Quotation → Sales Order
+
+Completes the quote-to-order step of the sales cycle. The existing `FulfillmentService` gains a
+`makeSalesOrder` method and the selling controller an endpoint (no cross-module imports — everything
+goes through the generic `DocumentService`):
+
+- **Conversion.** `POST /api/selling/quotation/:name/make-sales-order` loads a *submitted* Quotation,
+  creates a draft Sales Order from its items (delivery date defaulted from the quotation's valid-till),
+  links the order back to the quotation, and stamps the quotation `Ordered`. It refuses an unsubmitted
+  quotation or one already converted.
+- **Fields.** Quotation gains a `status` (Draft / Open / Ordered / Expired) and a `sales_order`
+  back-link; Sales Order gains a `quotation` link.
+- **Report.** A `quotation-status` report lists submitted quotations with their status and linked order.
+
+Verified: converting before submit is rejected; a submitted quotation (grand total 450) produces
+SO-00004 with the item copied, both linked, and the quotation marked Ordered; a second conversion is
+rejected as already ordered.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
