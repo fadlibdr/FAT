@@ -1144,6 +1144,21 @@ The buy-side mirror of Phase 59. A `Purchase Taxes Template` DocType and the sam
 Verified: a Purchase Invoice and a Purchase Order (net 400) naming the template each recompute to
 tax 40 / grand total 440; an explicit tax row (25) on a document overrides the template.
 
+## Phase 61 — Internal transfer
+
+A `Contra Entry` submittable DocType + a `ContraEntryListener` move money between the company's own
+accounts (accounting module, GL via the generic `DocumentService`, no cross-module imports):
+
+- **Gate.** A `before_submit` gate (`suppressErrors:false`) rejects a non-positive amount or a
+  from-account equal to the to-account.
+- **Posting.** On submit the listener books Dr the receiving account / Cr the paying account; cancel
+  deletes the voucher GL. Because both legs sit on cash/bank accounts, the transfer nets to zero in
+  the cash-flow statement while moving the per-account balances in the bank/cash summary.
+- **Report.** A `contra-entry-register` report lists submitted transfers.
+
+Verified: a Cash → Bank transfer of 1000 books Dr Bank 1000 / Cr Cash 1000 (balanced) and the
+bank/cash summary shows Bank +1000; a same-account transfer is blocked; cancel restores the balances.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
