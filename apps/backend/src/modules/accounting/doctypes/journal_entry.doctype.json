@@ -8,6 +8,7 @@
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
     { "fieldname": "user_remark", "label": "Remark", "fieldtype": "Text" },
+    { "fieldname": "recurring_journal", "label": "Recurring Journal", "fieldtype": "Link", "options": "Recurring Journal", "read_only": true, "in_standard_filter": true },
     { "fieldname": "accounts", "label": "Accounting Entries", "fieldtype": "Table", "options": "Journal Entry Account" },
     { "fieldname": "total_debit", "label": "Total Debit", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
     { "fieldname": "total_credit", "label": "Total Credit", "fieldtype": "Currency", "read_only": true, "in_list_view": true }

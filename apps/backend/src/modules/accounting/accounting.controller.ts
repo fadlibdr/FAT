@@ -1,6 +1,7 @@
 import { Body, Controller, Param, Post } from "@nestjs/common";
 import { PaymentRequestService } from "./payment-request.service";
 import { DeferredRevenueService } from "./deferred-revenue.service";
+import { RecurringJournalService } from "./recurring-journal.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -10,7 +11,13 @@ export class AccountingController {
   constructor(
     private readonly paymentRequests: PaymentRequestService,
     private readonly deferredRevenue: DeferredRevenueService,
+    private readonly recurringJournals: RecurringJournalService,
   ) {}
+
+  @Post("recurring-journal/run")
+  async runRecurringJournals(@CurrentUser() user: UserContext, @Body() body: { as_of?: string }) {
+    return this.recurringJournals.run(body?.as_of, user);
+  }
 
   @Post("payment-request/:name/make-payment")
   async makePayment(@CurrentUser() user: UserContext, @Param("name") name: string) {

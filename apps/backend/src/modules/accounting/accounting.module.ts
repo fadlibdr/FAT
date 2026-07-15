@@ -11,6 +11,7 @@ import { AccountingController } from "./accounting.controller";
 import { PaymentRequestService } from "./payment-request.service";
 import { DeferredRevenueListener } from "./deferred-revenue.listener";
 import { DeferredRevenueService } from "./deferred-revenue.service";
+import { RecurringJournalService } from "./recurring-journal.service";
 import { ExchangeRevaluationListener } from "./exchange-revaluation.listener";
 import { InventoryGlListener } from "./inventory-gl.listener";
 import { BudgetGateListener } from "./budget-gate.listener";
@@ -27,6 +28,7 @@ import { PeriodLockListener } from "./period-lock.listener";
     PaymentRequestService,
     DeferredRevenueListener,
     DeferredRevenueService,
+    RecurringJournalService,
     ExchangeRevaluationListener,
     InventoryGlListener,
     BudgetGateListener,

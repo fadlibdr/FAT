@@ -491,6 +491,25 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "recurring-journal-status": {
+    permDoctype: "Recurring Journal",
+    columns: [
+      { key: "recurring_journal", label: "Template" },
+      { key: "title", label: "Title" },
+      { key: "frequency", label: "Frequency" },
+      { key: "next_date", label: "Next Posting Date" },
+      { key: "enabled", label: "Enabled" },
+      { key: "entries", label: "Entries Posted" },
+    ],
+    // Each recurring-journal template with its schedule and the count of Journal
+    // Entries it has posted so far.
+    sql: `SELECT r."name" AS "recurring_journal", r."title", r."frequency",
+                 r."next_date", coalesce(r."enabled", 0)::int AS "enabled",
+                 (SELECT count(*) FROM "tabJournal Entry" j
+                  WHERE j."recurring_journal" = r."name" AND j."docstatus" = 1)::int AS "entries"
+          FROM "tabRecurring Journal" r
+          ORDER BY r."name"`,
+  },
   "accounting-period-status": {
     permDoctype: "Accounting Period",
     columns: [
