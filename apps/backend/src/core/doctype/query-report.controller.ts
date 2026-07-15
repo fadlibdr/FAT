@@ -1525,6 +1525,37 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "expiring-batches": {
+    permDoctype: "Bin",
+    columns: [
+      { key: "item", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "batch", label: "Batch" },
+      { key: "actual_qty", label: "On Hand" },
+      { key: "expiry_date", label: "Expiry" },
+      { key: "days_to_expiry", label: "Days to Expiry" },
+    ],
+    filters: [
+      { fieldname: "as_of", label: "As Of", fieldtype: "Date" },
+      { fieldname: "within_days", label: "Within Days", fieldtype: "Int" },
+    ],
+    build: (f) => {
+      const asOf = f.as_of || today();
+      const within = Number(f.within_days ?? 30) || 30;
+      return {
+        text: `SELECT b."item_code" AS "item", b."warehouse", b."batch_no" AS "batch",
+                      b."actual_qty", bt."expiry_date",
+                      (bt."expiry_date"::date - $1::date) AS "days_to_expiry"
+               FROM "tabBin" b
+               JOIN "tabBatch" bt ON bt."name" = b."batch_no"
+               WHERE coalesce(b."batch_no", '') <> '' AND b."actual_qty" > 0
+                 AND bt."expiry_date" IS NOT NULL
+                 AND bt."expiry_date"::date <= ($1::date + $2::int)
+               ORDER BY bt."expiry_date" ASC, b."item_code", b."warehouse"`,
+        params: [asOf, within],
+      };
+    },
+  },
   "serial-no-status": {
     permDoctype: "Serial No",
     columns: [
