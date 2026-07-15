@@ -144,7 +144,7 @@
       "fieldname": "status",
       "label": "Status",
       "fieldtype": "Select",
-      "options": "Draft\nUnpaid\nPaid\nReturn\nCancelled",
+      "options": "Draft\nUnpaid\nPaid\nReturn\nWritten Off\nCancelled",
       "default": "Draft",
       "in_list_view": true,
       "in_standard_filter": true
