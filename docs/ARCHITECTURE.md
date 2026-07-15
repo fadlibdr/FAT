@@ -1256,6 +1256,31 @@ Verified: an opportunity with two items converts to QTN-00002 (customer and both
 second conversion is rejected; the funnel report shows the opportunity with weighted amount 4500
 (7500 × 60% probability) and its quotation link.
 
+## Phase 68 — Customer credit control on Sales Orders
+
+Extends the existing Sales-Invoice credit gate (`ReceivablesListener`) to the order
+stage, so a customer can't stack orders past their limit before any is invoiced.
+Pure event-bus behaviour, no cross-module service imports:
+
+- **Gate.** `before_submit:Sales Order` (with `suppressErrors:false` so a throw
+  aborts the submit) blocks the transition when exposure exceeds
+  `Customer.credit_limit` (0 / unset = no limit). Exposure = open sales-invoice
+  receivable + the un-billed backlog of *other* submitted Sales Orders + this
+  order's value.
+- **Un-billed backlog.** `unbilledSalesOrderOf` sums Σ grand_total × (1 −
+  per_billed/100) over the customer's submitted Sales Orders — committed orders
+  consume credit even before they turn into a receivable.
+- **Order value at gate time.** Grand total is rolled up by an async job that runs
+  *after* submit, so it is still unset in the `before_submit` payload; the gate
+  values the current order from its own line items (Σ qty × rate) instead.
+- **Report.** A `customer-credit-exposure` report lists each customer with a limit,
+  their open receivable, un-billed order backlog, total exposure, and the headroom
+  left (negative = over limit).
+
+Verified: with a 5000 limit, a first 3000 order submits (exposure 3000); a second
+3000 order is rejected (receivable 0 + unbilled 3000 + this 3000 = 6000 > 5000);
+the exposure report shows limit 5000, unbilled 3000, exposure 3000, available 2000.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

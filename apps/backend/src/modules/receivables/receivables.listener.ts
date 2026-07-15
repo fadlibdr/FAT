@@ -22,6 +22,10 @@ const INTEREST_INCOME = "Interest Income";
  *  3. before_submit on a Sales Invoice gates the transition against the
  *     customer's credit limit: existing open receivable + this invoice must not
  *     exceed Customer.credit_limit (0 / unset = no limit).
+ *  4. before_submit on a Sales Order gates the same credit limit, counting the
+ *     open receivable plus the un-billed backlog of other submitted Sales Orders
+ *     plus this order's grand total — so committed-but-unbilled orders consume
+ *     credit too, not only invoiced amounts.
  */
 @Injectable()
 export class ReceivablesListener {
@@ -100,6 +104,45 @@ export class ReceivablesListener {
     this.logger.log(`Sales Invoice ${doc.name} passed credit gate (${exposure} <= ${limit})`);
   }
 
+  // Gate a Sales Order against the customer's credit limit. Exposure counts the
+  // open receivable, the un-billed backlog of other already-submitted orders, and
+  // this order — so a customer can't stack orders past their limit before any of
+  // them are invoiced. suppressErrors:false so the throw aborts the submit.
+  @OnEvent("doc.before_submit:Sales Order", { suppressErrors: false })
+  async gateSalesOrderCreditLimit(payload: DocEventPayload): Promise<void> {
+    if (!this.registry.has("Customer")) return;
+    const doc = payload.doc;
+    const customer = String(doc.customer ?? "");
+    if (!customer) return;
+    const limit = await this.creditLimitOf(customer);
+    if (limit <= 0) return; // unset / zero = no limit enforced
+
+    const receivable = await this.openReceivableOf(customer);
+    // The order being submitted is still docstatus 0, so the docstatus=1 backlog
+    // query naturally excludes it — no self-subtraction needed.
+    const backlog = await this.unbilledSalesOrderOf(customer);
+    // Grand total is rolled up by an async job that runs after submit, so it is
+    // still unset here — value this order from its own line items instead.
+    const thisOrder = this.orderValueOf(doc);
+    const exposure = this.round(receivable + backlog + thisOrder);
+    if (exposure > limit) {
+      throw new BadRequestException(
+        `Sales Order ${doc.name}: customer ${customer} credit limit ${limit} exceeded ` +
+          `(receivable ${this.round(receivable)} + unbilled orders ${this.round(backlog)} + ` +
+          `this ${this.round(thisOrder)} = ${exposure})`,
+      );
+    }
+    this.logger.log(`Sales Order ${doc.name} passed credit gate (${exposure} <= ${limit})`);
+  }
+
+  /** Persisted grand total if already rolled up, else the sum of the line items. */
+  private orderValueOf(doc: Record<string, unknown>): number {
+    const persisted = Number(doc.grand_total ?? doc.total ?? 0);
+    if (persisted > 0) return persisted;
+    const items = (doc.items as Array<Record<string, unknown>>) ?? [];
+    return items.reduce((sum, r) => sum + Number(r.qty ?? 0) * Number(r.rate ?? 0), 0);
+  }
+
   private async creditLimitOf(customer: string): Promise<number> {
     const row = (
       await this.dataSource.query(
@@ -118,6 +161,27 @@ export class ReceivablesListener {
       await this.dataSource.query(
         `SELECT coalesce(sum(${quoteIdent("outstanding_amount")}), 0) AS o
          FROM ${quoteIdent(tableNameFor("Sales Invoice"))}
+         WHERE ${quoteIdent("customer")} = $1 AND ${quoteIdent("docstatus")} = 1`,
+        [customer],
+      )
+    )[0];
+    return Number(row?.o ?? 0);
+  }
+
+  /**
+   * Un-billed value of the customer's submitted Sales Orders: Σ grand_total ×
+   * (1 − per_billed/100), clamped to [0, grand_total]. Represents committed
+   * orders that have not yet turned into a receivable.
+   */
+  private async unbilledSalesOrderOf(customer: string): Promise<number> {
+    if (!this.registry.has("Sales Order")) return 0;
+    const row = (
+      await this.dataSource.query(
+        `SELECT coalesce(sum(
+                  coalesce(${quoteIdent("grand_total")}, ${quoteIdent("total")}, 0)
+                  * greatest(0, least(1, 1 - coalesce(${quoteIdent("per_billed")}, 0) / 100.0))
+                ), 0) AS o
+         FROM ${quoteIdent(tableNameFor("Sales Order"))}
          WHERE ${quoteIdent("customer")} = $1 AND ${quoteIdent("docstatus")} = 1`,
         [customer],
       )
