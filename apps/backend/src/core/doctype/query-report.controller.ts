@@ -1268,6 +1268,28 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."material_request_type", m."transaction_date", m."status", m."purchase_order"
           ORDER BY m."transaction_date" DESC, m."name"`,
   },
+  "payment-entry-register": {
+    permDoctype: "Payment Entry",
+    columns: [
+      { key: "payment_entry", label: "Payment Entry" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "payment_type", label: "Type" },
+      { key: "party", label: "Party" },
+      { key: "paid_amount", label: "Paid Amount" },
+      { key: "allocated", label: "Allocated" },
+      { key: "mode_of_payment", label: "Mode" },
+    ],
+    // Submitted payment entries with the total they allocated across referenced invoices.
+    sql: `SELECT p."name" AS "payment_entry", p."posting_date", p."payment_type", p."party",
+                 coalesce(p."paid_amount", 0)::float8 AS "paid_amount",
+                 coalesce(sum(r."allocated_amount"), 0)::float8 AS "allocated",
+                 p."mode_of_payment"
+          FROM "tabPayment Entry" p
+          LEFT JOIN "tabPayment Entry Reference" r ON r."parent" = p."name"
+          WHERE p."docstatus" = 1
+          GROUP BY p."name", p."posting_date", p."payment_type", p."party", p."paid_amount", p."mode_of_payment"
+          ORDER BY p."posting_date" DESC, p."name"`,
+  },
   "receipt-billing-status": {
     permDoctype: "Purchase Receipt",
     columns: [

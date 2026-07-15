@@ -1397,6 +1397,30 @@ Invoice carrying the received line; the receipt is stamped with the invoice; a
 second billing is rejected ("already billed"); the status report shows the receipt
 with received value 200 and billed = Yes.
 
+## Phase 74 — Invoice → Payment Entry
+
+Adds the settle step to close the order-to-cash and procure-to-pay loops. The
+GL-posting listener already posts a Payment Entry's cash/party GL and reconciles
+its references (reducing invoice outstanding, flipping status to Paid) on submit;
+this phase adds the convenience that pre-fills that Payment Entry from an invoice.
+A new `PaymentService` builds the draft through the generic `DocumentService` —
+accounting posts GL through events, never by importing another module:
+
+- **Settle.** `POST /api/accounting/sales-invoice/:name/make-payment-entry`
+  (Receive) and `POST /api/accounting/purchase-invoice/:name/make-payment-entry`
+  (Pay) draw a draft Payment Entry for the invoice's party and open amount, with a
+  single reference row allocating that amount to the invoice. The amount is the
+  posted `outstanding_amount`; a *null* outstanding (the async GL post has not yet
+  stamped a freshly-submitted invoice) falls back to the grand total, while an
+  explicit 0 (fully settled) is rejected. Refuses a non-submitted invoice.
+- **Report.** A `payment-entry-register` report lists submitted payment entries with
+  the total they allocated across their referenced invoices.
+
+Verified: a 1000 Sales Invoice settles to a draft Payment Entry (Receive, party and
+1000 allocated to the invoice); submitting it drops the invoice's outstanding to 0
+and its status to Paid; a second settle attempt is rejected ("nothing outstanding to
+settle"); the register shows the entry with 1000 allocated.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
