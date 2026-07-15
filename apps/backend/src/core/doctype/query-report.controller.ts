@@ -1525,6 +1525,24 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "onboarding-status": {
+    permDoctype: "Employee Onboarding",
+    columns: [
+      { key: "onboarding", label: "Onboarding" },
+      { key: "employee", label: "Employee" },
+      { key: "total_activities", label: "Total" },
+      { key: "completed_activities", label: "Completed" },
+      { key: "percent_complete", label: "% Complete" },
+      { key: "status", label: "Status" },
+    ],
+    sql: `SELECT "name" AS "onboarding", "employee",
+                 coalesce("total_activities", 0) AS "total_activities",
+                 coalesce("completed_activities", 0) AS "completed_activities",
+                 coalesce("percent_complete", 0) AS "percent_complete",
+                 CASE "docstatus" WHEN 1 THEN 'Completed' WHEN 2 THEN 'Cancelled' ELSE 'In Progress' END AS "status"
+          FROM "tabEmployee Onboarding"
+          ORDER BY "name" DESC`,
+  },
   "sales-target-achievement": {
     permDoctype: "Sales Target",
     columns: [

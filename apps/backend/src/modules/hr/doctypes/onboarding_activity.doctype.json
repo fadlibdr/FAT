@@ -1,0 +1,13 @@
+{
+  "name": "Onboarding Activity",
+  "module": "HR",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "activity", "label": "Activity", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Pending\nCompleted", "default": "Pending", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

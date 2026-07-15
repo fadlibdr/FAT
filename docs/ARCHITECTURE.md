@@ -2099,6 +2099,28 @@ zero-amount target is rejected at submit.
 Achievement accrues on invoice net only (no tax, and no split across multiple
 overlapping targets is prevented — an invoice in two windows accrues to both).
 
+## Phase 104 — Employee onboarding
+
+Tracks a new hire's onboarding checklist and only lets the onboarding be signed
+off once every task is done. Pure event-bus listener, no cross-module service
+imports.
+
+- **Track.** A submittable `Employee Onboarding` DocType (employee, `Onboarding
+  Activity` rows each Pending/Completed). On every save a `before_save` listener
+  recomputes the total, completed count, and completion percentage.
+- **Gate.** A `before_submit` gate requires at least one activity and blocks
+  completing the onboarding while any activity is still Pending.
+- **Report.** An `onboarding-status` report lists each onboarding's employee,
+  total/completed activity counts, completion percentage, and In Progress /
+  Completed status.
+
+Verified: an onboarding with one of two activities done reads 50 % and cannot be
+submitted ("1 of 2 activities still pending"); after both are marked Completed it
+reads 100 % and submits; the onboarding-status report shows 2/2, 100 %, Completed.
+
+Onboarding is a checklist only — activities carry no owner, due date, or
+auto-generated follow-up task.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
