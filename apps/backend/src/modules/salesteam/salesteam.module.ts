@@ -4,10 +4,13 @@ import { DoctypeLoaderService } from "../../core/doctype/doctype-loader.service"
 import { BusinessModule } from "../module-base";
 import { SalesteamListener } from "./salesteam.listener";
 import { CommissionPayoutListener } from "./commission-payout.listener";
+import { SalesteamService } from "./salesteam.service";
+import { SalesteamController } from "./salesteam.controller";
 
 @Module({
   imports: [CoreModule],
-  providers: [SalesteamListener, CommissionPayoutListener],
+  controllers: [SalesteamController],
+  providers: [SalesteamListener, CommissionPayoutListener, SalesteamService],
 })
 export class SalesteamModule extends BusinessModule {
   protected readonly baseDir = __dirname;
