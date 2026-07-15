@@ -1471,6 +1471,31 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabBank Transaction"
           ORDER BY "date" DESC, "name"`,
   },
+  "batch-expiry-status": {
+    permDoctype: "Batch",
+    columns: [
+      { key: "batch", label: "Batch" },
+      { key: "item", label: "Item" },
+      { key: "manufacturing_date", label: "Manufactured" },
+      { key: "expiry_date", label: "Expiry" },
+      { key: "days_to_expiry", label: "Days to Expiry" },
+      { key: "expired", label: "Expired" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT "name" AS "batch", "item", "manufacturing_date", "expiry_date",
+                      CASE WHEN "expiry_date" IS NULL THEN NULL
+                           ELSE ("expiry_date"::date - $1::date) END AS "days_to_expiry",
+                      CASE WHEN "expiry_date" IS NOT NULL AND "expiry_date"::date <= $1::date
+                           THEN 'Yes' ELSE 'No' END AS "expired"
+               FROM "tabBatch"
+               ORDER BY "expiry_date" NULLS LAST, "name"`,
+        params: [asOf],
+      };
+    },
+  },
   "serial-no-status": {
     permDoctype: "Serial No",
     columns: [

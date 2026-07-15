@@ -256,10 +256,11 @@ export class StockLedgerListener {
       const qty = Number(row.qty ?? 0);
       if (!qty || !row.warehouse) continue;
       const serials = String(row.serial_no ?? "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+      const batch = (row.batch_no as string) || null;
       try {
         await this.post(
           ctx,
-          { item: String(row.item_code), warehouse: String(row.warehouse), delta: isReturn ? qty : -qty, serials },
+          { item: String(row.item_code), warehouse: String(row.warehouse), delta: isReturn ? qty : -qty, batch, serials },
           "Delivery Note",
           String(doc.name),
           doc.posting_date,
@@ -277,6 +278,51 @@ export class StockLedgerListener {
    * already-delivered, or wrong-warehouse serial can't ship. suppressErrors:false so
    * the throw aborts the submit.
    */
+  /**
+   * Before a (non-return) Delivery Note is submitted, block any line whose batch has
+   * expired on or before the posting date, so expired stock can't ship.
+   */
+  /**
+   * Normalize a date value to a YYYY-MM-DD string. TypeORM returns `date` columns
+   * as JS Date objects and the in-memory payload may already carry a Date, so a
+   * naive String(value).slice(0,10) yields weekday-prefixed text ("Thu Dec 31")
+   * whose lexicographic order is meaningless. Format explicitly instead.
+   */
+  private isoDay(value: unknown): string {
+    if (!value) return "";
+    if (value instanceof Date) {
+      const y = value.getUTCFullYear();
+      const m = String(value.getUTCMonth() + 1).padStart(2, "0");
+      const d = String(value.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+    return String(value).slice(0, 10);
+  }
+
+  @OnEvent("doc.before_submit:Delivery Note", { suppressErrors: false })
+  async gateDeliveryBatchExpiry(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    if (Boolean(doc.is_return) || !this.registry.has("Batch")) return;
+    const asOf = doc.posting_date ? this.isoDay(doc.posting_date) : new Date().toISOString().slice(0, 10);
+    for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
+      const batch = String(row.batch_no ?? "");
+      if (!batch) continue;
+      const rec = (
+        await this.dataSource.query(
+          `SELECT ${quoteIdent("expiry_date")} AS expiry FROM ${quoteIdent(tableNameFor("Batch"))}
+           WHERE ${quoteIdent("name")} = $1`,
+          [batch],
+        )
+      )[0];
+      const expiry = this.isoDay(rec?.expiry);
+      if (expiry && expiry <= asOf) {
+        throw new BadRequestException(
+          `Delivery Note ${doc.name}: batch ${batch} expired ${expiry} (on or before ${asOf})`,
+        );
+      }
+    }
+  }
+
   @OnEvent("doc.before_submit:Delivery Note", { suppressErrors: false })
   async gateDeliverySerials(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;

@@ -26,13 +26,15 @@ export class ReservationListener {
   ) {}
 
   /** On-hand quantity for an item+warehouse (batch-agnostic bin). */
-  private async onHand(item: string, warehouse: string): Promise<number> {
+  private async onHand(item: string, warehouse: string, batch = ""): Promise<number> {
     if (!this.registry.has("Bin")) return 0;
+    // Bins are keyed item::warehouse::batch — a batched line checks its own batch's
+    // balance, an unbatched line the plain (empty-batch) bin.
     const row = (
       await this.dataSource.query(
         `SELECT ${quoteIdent("actual_qty")} AS qty FROM ${quoteIdent(tableNameFor("Bin"))}
          WHERE ${quoteIdent("name")} = $1`,
-        [`${item}::${warehouse}::`],
+        [`${item}::${warehouse}::${batch}`],
       )
     )[0];
     return Number(row?.qty ?? 0);
@@ -97,10 +99,11 @@ export class ReservationListener {
       const wh = String(row.warehouse ?? "");
       const qty = Number(row.qty ?? 0);
       if (!item || !wh || !qty) continue;
-      const onHand = await this.onHand(item, wh);
+      const batch = String(row.batch_no ?? "");
+      const onHand = await this.onHand(item, wh, batch);
       if (qty > onHand + 1e-9) {
         throw new BadRequestException(
-          `Delivery Note ${doc.name}: cannot deliver ${qty} of ${item} from ${wh} — only ${onHand} on hand`,
+          `Delivery Note ${doc.name}: cannot deliver ${qty} of ${item}${batch ? ` (batch ${batch})` : ""} from ${wh} — only ${onHand} on hand`,
         );
       }
     }

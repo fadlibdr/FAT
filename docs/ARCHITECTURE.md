@@ -1784,10 +1784,38 @@ Delivered; a second delivery of the same serial is rejected ("is Delivered, not
 Active") and delivering an unknown serial is rejected ("does not exist"); the
 serial-no-status report shows one Delivered and one still Active.
 
+## Phase 92 — Batch expiry gate on deliveries
+
+Extends batch tracking to the outbound flow. A batched receipt already keeps a
+per-batch on-hand balance in its Bin (`item::warehouse::batch`); deliveries could
+name a batch but never checked its expiry or drew from the right bin. Pure
+event-bus, no cross-module imports:
+
+- **Track.** Delivery Note Item gains a `batch_no` field. On submit, the delivery's
+  line batch flows into the stock move so the correct per-batch Bin is decremented
+  (a return delivery credits it back), and the availability gate reads the batched
+  bin instead of the empty-batch one.
+- **Gate.** A `before_submit:Delivery Note` gate (returns exempt) rejects any line
+  whose batch has an `expiry_date` on or before the posting date, so expired stock
+  cannot ship. Dates are normalized to `YYYY-MM-DD` before comparison — TypeORM
+  returns `date` columns as JS `Date` objects, so a naive `String(d).slice(0,10)`
+  would yield weekday-prefixed text ("Thu Dec 31") whose lexicographic order is
+  meaningless.
+- **Report.** A `batch-expiry-status` report lists every batch with its item,
+  expiry date, days-to-expiry, and an expired Yes/No flag (evaluated in SQL).
+
+Verified: two batches received into a warehouse (one fresh, one already past its
+expiry); delivering the fresh batch succeeds; delivering the expired batch is
+rejected ("batch … expired 2026-06-30 (on or before 2026-07-15)"); the
+batch-expiry-status report flags the past-dated batch Yes (days −15) and the fresh
+one No (days 169).
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
-  track status/movement but not per-serial valuation.
+  track status/movement but not per-serial valuation. Batches track per-batch
+  on-hand and gate delivery on expiry, but valuation is not per-batch and picking
+  does not auto-select the earliest-expiring batch (FEFO).
 - Email is log-only without SMTP; SSE stream is unauthenticated (doctype + name
   only); webhooks/print are best-effort.
 - POS offline retry can duplicate a *payment* (not the invoice) if the invoice
