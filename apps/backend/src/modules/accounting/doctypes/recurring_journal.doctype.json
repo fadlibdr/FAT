@@ -1,0 +1,19 @@
+{
+  "name": "Recurring Journal",
+  "module": "Accounting",
+  "naming_rule": "series:RJ-.#####",
+  "title_field": "title",
+  "fields": [
+    { "fieldname": "title", "label": "Title", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "frequency", "label": "Frequency", "fieldtype": "Select", "options": "Weekly\nMonthly", "default": "Monthly", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "next_date", "label": "Next Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "enabled", "label": "Enabled", "fieldtype": "Check", "default": "1", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company" },
+    { "fieldname": "user_remark", "label": "Remark", "fieldtype": "Data" },
+    { "fieldname": "accounts", "label": "Accounts", "fieldtype": "Table", "options": "Recurring Journal Account" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
