@@ -1218,6 +1218,24 @@ to the Phase 62 sales analytics (no schema changes):
 Verified: WIDGET-1 purchased 10 @ 100 shows spend 1000 and a flat avg/min/max rate of 100; supplier
 Budget Parts Ltd rolls up to 1 invoice / 1000 spend / 1000 outstanding.
 
+## Phase 66 — Lead → Opportunity
+
+Completes the front of the CRM funnel. A `CrmService` + `CrmController` add an on-demand conversion
+(the `CrmListener` still handles the automatic status-triggered ones); documents are created through
+the generic `DocumentService`, so CRM imports no other module's services:
+
+- **Conversion.** `POST /api/crm/lead/:name/make-opportunity` ensures the lead has a Customer (reusing
+  its already-converted customer, or creating one named after the lead), opens an Opportunity against
+  that customer linked back to the lead, and stamps the lead with the customer, the opportunity, and a
+  Qualified status. It refuses a lead that already has an opportunity.
+- **Report.** A `lead-conversion` report shows every lead with its funnel links (customer, opportunity).
+
+With the earlier Opportunity → Quotation (CrmListener) and Quotation → Sales Order (Phase 64), the
+funnel now runs Lead → Opportunity → Quotation → Sales Order, each step linked.
+
+Verified: a fresh lead with no customer converts to a new Customer and Opportunity (both linked back,
+lead marked Qualified); a second conversion is rejected as already having an opportunity.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
