@@ -893,6 +893,25 @@ const REPORTS: Record<string, QueryReport> = {
     ],
     build: (f) => registerSql("Sales Invoice", "customer", f),
   },
+  "purchase-order-status": {
+    permDoctype: "Purchase Order",
+    columns: [
+      { key: "purchase_order", label: "Purchase Order" },
+      { key: "supplier", label: "Supplier" },
+      { key: "grand_total", label: "Order Value" },
+      { key: "per_received", label: "% Received" },
+      { key: "per_billed", label: "% Billed" },
+      { key: "status", label: "Status" },
+    ],
+    // Fulfilment position per submitted Purchase Order (received / billed progress).
+    sql: `SELECT "name" AS "purchase_order", "supplier",
+                 coalesce("grand_total", "total", 0)::float8 AS "grand_total",
+                 coalesce("per_received", 0)::float8 AS "per_received",
+                 coalesce("per_billed", 0)::float8 AS "per_billed", "status"
+          FROM "tabPurchase Order"
+          WHERE "docstatus" = 1
+          ORDER BY "name"`,
+  },
   "purchase-register": {
     permDoctype: "Purchase Invoice",
     columns: [
