@@ -1376,6 +1376,27 @@ receipt) bills to a linked Sales Invoice carrying the delivered line; the note i
 stamped with the invoice; a second billing is rejected ("already billed"); the
 status report shows the note with delivered value 240 and billed = Yes.
 
+## Phase 73 — Purchase Receipt → Purchase Invoice
+
+The buying-side mirror of Phase 72: bill what you received. Alongside the existing
+Purchase Order → Receipt and Purchase Order → Invoice conversions,
+`PoFulfillmentService` gains a converter that raises the bill from a receipt,
+through the generic `DocumentService` — buying imports no other module's services:
+
+- **Billing.** `POST /api/buying/purchase-receipt/:name/make-purchase-invoice`
+  creates a draft Purchase Invoice from a *submitted* Purchase Receipt: it copies
+  the received lines and carries the receipt's own `purchase_order` link, so the
+  order's `per_billed` recomputes as normal. The invoice links back via a new
+  `purchase_receipt` field and the receipt is stamped with a `purchase_invoice`.
+  It refuses a non-submitted receipt or one already billed.
+- **Report.** A `receipt-billing-status` report lists submitted purchase receipts
+  with their received value and whether each has been billed.
+
+Verified: a Purchase Receipt for 25 units at rate 8 bills to a linked Purchase
+Invoice carrying the received line; the receipt is stamped with the invoice; a
+second billing is rejected ("already billed"); the status report shows the receipt
+with received value 200 and billed = Yes.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

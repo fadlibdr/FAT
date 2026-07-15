@@ -1268,6 +1268,25 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."material_request_type", m."transaction_date", m."status", m."purchase_order"
           ORDER BY m."transaction_date" DESC, m."name"`,
   },
+  "receipt-billing-status": {
+    permDoctype: "Purchase Receipt",
+    columns: [
+      { key: "purchase_receipt", label: "Purchase Receipt" },
+      { key: "supplier", label: "Supplier" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "purchase_order", label: "Purchase Order" },
+      { key: "total", label: "Received Value" },
+      { key: "purchase_invoice", label: "Purchase Invoice" },
+      { key: "billed", label: "Billed" },
+    ],
+    // Submitted purchase receipts and whether each has been billed.
+    sql: `SELECT "name" AS "purchase_receipt", "supplier", "posting_date", "purchase_order",
+                 coalesce("total", 0)::float8 AS "total", "purchase_invoice",
+                 CASE WHEN "purchase_invoice" IS NOT NULL THEN 'Yes' ELSE 'No' END AS "billed"
+          FROM "tabPurchase Receipt"
+          WHERE "docstatus" = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "delivery-billing-status": {
     permDoctype: "Delivery Note",
     columns: [

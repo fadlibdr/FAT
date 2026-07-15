@@ -68,4 +68,10 @@ export class BuyingController {
     const purchaseInvoice = await this.poFulfillment.makeFromPurchaseOrder(name, "Purchase Invoice", user);
     return { purchaseInvoice };
   }
+
+  @Post("purchase-receipt/:name/make-purchase-invoice")
+  async receiptToInvoice(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const purchaseInvoice = await this.poFulfillment.makePurchaseInvoiceFromReceipt(name, user);
+    return { purchaseInvoice };
+  }
 }

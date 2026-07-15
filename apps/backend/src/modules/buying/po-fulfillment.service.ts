@@ -71,6 +71,44 @@ export class PoFulfillmentService {
     return String(doc.name);
   }
 
+  /**
+   * Create a draft Purchase Invoice billing a submitted Purchase Receipt. Copies
+   * the received lines and carries the receipt's own Purchase Order link, so the
+   * order's per_billed recomputes as usual; stamps the receipt with the invoice.
+   * Refuses a non-submitted receipt or one already billed.
+   */
+  async makePurchaseInvoiceFromReceipt(pr: string, ctx?: UserContext): Promise<string> {
+    const prDt = this.registry.get("Purchase Receipt");
+    const piDt = this.registry.get("Purchase Invoice");
+    if (!prDt || !piDt) throw new BadRequestException("Purchase Receipt or Purchase Invoice not registered");
+    const context = ctx ?? systemContext();
+    const receipt = await this.documents.get(prDt, pr);
+    if ((receipt.docstatus ?? 0) !== 1) throw new BadRequestException("Purchase Receipt must be submitted");
+    if (receipt.purchase_invoice) {
+      throw new BadRequestException(`Purchase Receipt ${pr} already billed via ${receipt.purchase_invoice}`);
+    }
+
+    const items = ((receipt.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Number(r.qty ?? 0),
+      rate: Number(r.rate ?? 0),
+    }));
+    const pi = await this.documents.create(piDt, context, {
+      supplier: receipt.supplier,
+      posting_date: new Date().toISOString().slice(0, 10),
+      purchase_order: receipt.purchase_order ?? null,
+      purchase_receipt: pr,
+      items,
+    });
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Purchase Receipt"))}
+       SET ${quoteIdent("purchase_invoice")} = $1 WHERE ${quoteIdent("name")} = $2`,
+      [String(pi.name), pr],
+    );
+    this.logger.log(`Purchase Receipt ${pr} -> Purchase Invoice ${pi.name}`);
+    return String(pi.name);
+  }
+
   private async qtyByItem(
     childDoctype: string,
     parentDoctype: string,
