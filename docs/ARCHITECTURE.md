@@ -1810,12 +1810,44 @@ rejected ("batch … expired 2026-06-30 (on or before 2026-07-15)"); the
 batch-expiry-status report flags the past-dated batch Yes (days −15) and the fresh
 one No (days 169).
 
+## Phase 93 — FEFO batch auto-allocation on deliveries
+
+Builds on the Phase 92 batch work: a Delivery Note line for a batched item no
+longer needs its batch chosen by hand. Pure `before_save` listener, no
+cross-module imports.
+
+- **Auto-allocate.** For each Delivery Note line whose item `has_batch_no` and
+  carries no `batch_no`, the FEFO listener looks up the item+warehouse's on-hand
+  batches (from `tabBin`, `actual_qty > 0`) joined to their expiry, orders them
+  nearest-expiry-first, and splits the line across them — each produced line
+  carries its own batch and allocated qty. A line of 8 becomes `5×batch-A,
+  3×batch-B`.
+- **Skip expired.** Batches whose `expiry_date` is on or before the posting date
+  are excluded from allocation entirely (null-expiry batches sort last), so FEFO
+  never draws expired stock — and each split line still passes through the
+  Phase 92 expiry and availability gates on submit. Any shortfall the non-expired
+  batches can't cover stays on an unbatched line so the availability gate rejects
+  it.
+- **Report.** A `batch-wise-stock-balance` report shows on-hand qty per
+  item+warehouse+batch with expiry date, days-to-expiry, and an expired Yes/No
+  flag (evaluated in SQL) — the picture FEFO draws from.
+
+Verified: three batches received (near-expiry, far-expiry, already-expired);
+delivering 8 units with no batch auto-splits into 5 from the nearest-expiry batch
+and 3 from the next, skipping the expired one; after submit the batch-wise balance
+shows the near-expiry batch drained to 0 (dropped from the report), the far batch
+at 2, and the expired batch untouched at 5.
+
+Only Delivery Notes auto-allocate today (not Sales Invoice `update_stock` or Stock
+Entry); allocation is greedy earliest-expiry with no reservation awareness.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
   track status/movement but not per-serial valuation. Batches track per-batch
-  on-hand and gate delivery on expiry, but valuation is not per-batch and picking
-  does not auto-select the earliest-expiring batch (FEFO).
+  on-hand, gate delivery on expiry, and auto-allocate by FEFO on Delivery Notes,
+  but valuation is not per-batch and FEFO does not yet cover Sales Invoice
+  `update_stock` or reserve against open reservations.
 - Email is log-only without SMTP; SSE stream is unauthenticated (doctype + name
   only); webhooks/print are best-effort.
 - POS offline retry can duplicate a *payment* (not the invoice) if the invoice

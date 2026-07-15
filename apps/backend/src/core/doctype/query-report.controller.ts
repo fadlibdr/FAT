@@ -1496,6 +1496,35 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "batch-wise-stock-balance": {
+    permDoctype: "Bin",
+    columns: [
+      { key: "item", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "batch", label: "Batch" },
+      { key: "actual_qty", label: "On Hand" },
+      { key: "expiry_date", label: "Expiry" },
+      { key: "days_to_expiry", label: "Days to Expiry" },
+      { key: "expired", label: "Expired" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT b."item_code" AS "item", b."warehouse", b."batch_no" AS "batch",
+                      b."actual_qty", bt."expiry_date",
+                      CASE WHEN bt."expiry_date" IS NULL THEN NULL
+                           ELSE (bt."expiry_date"::date - $1::date) END AS "days_to_expiry",
+                      CASE WHEN bt."expiry_date" IS NOT NULL AND bt."expiry_date"::date <= $1::date
+                           THEN 'Yes' ELSE 'No' END AS "expired"
+               FROM "tabBin" b
+               JOIN "tabBatch" bt ON bt."name" = b."batch_no"
+               WHERE coalesce(b."batch_no", '') <> '' AND b."actual_qty" <> 0
+               ORDER BY b."item_code", b."warehouse", bt."expiry_date" NULLS LAST, b."batch_no"`,
+        params: [asOf],
+      };
+    },
+  },
   "serial-no-status": {
     permDoctype: "Serial No",
     columns: [

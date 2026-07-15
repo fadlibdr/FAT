@@ -6,11 +6,12 @@ import { StockLedgerListener } from "./stock-ledger.listener";
 import { StockController } from "./stock.controller";
 import { PickListService } from "./pick-list.service";
 import { ReservationListener } from "./reservation.listener";
+import { FefoAllocationListener } from "./fefo-allocation.listener";
 
 @Module({
   imports: [CoreModule],
   controllers: [StockController],
-  providers: [StockLedgerListener, PickListService, ReservationListener],
+  providers: [StockLedgerListener, PickListService, ReservationListener, FefoAllocationListener],
 })
 export class StockModule extends BusinessModule {
   protected readonly baseDir = __dirname;
