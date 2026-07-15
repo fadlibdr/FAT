@@ -1268,6 +1268,26 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."material_request_type", m."transaction_date", m."status", m."purchase_order"
           ORDER BY m."transaction_date" DESC, m."name"`,
   },
+  "debit-note-register": {
+    permDoctype: "Purchase Invoice",
+    columns: [
+      { key: "debit_note", label: "Debit Note" },
+      { key: "supplier", label: "Supplier" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "return_against", label: "Return Against" },
+      { key: "total", label: "Return Value" },
+      { key: "outstanding", label: "Outstanding" },
+      { key: "status", label: "Status" },
+    ],
+    // Submitted debit notes (return purchase invoices) with the bill they reverse.
+    sql: `SELECT "name" AS "debit_note", "supplier", "posting_date", "return_against",
+                 coalesce("grand_total", "total", 0)::float8 AS "total",
+                 coalesce("outstanding_amount", 0)::float8 AS "outstanding",
+                 coalesce("status", 'Return') AS "status"
+          FROM "tabPurchase Invoice"
+          WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "credit-note-register": {
     permDoctype: "Sales Invoice",
     columns: [

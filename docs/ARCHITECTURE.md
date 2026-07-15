@@ -1443,6 +1443,27 @@ reverse of the sale) and a −1000 outstanding with status Return; returning a r
 is rejected ("already a return"); the register shows the credit note against its
 source invoice.
 
+## Phase 76 — Purchase Invoice → Debit Note (Purchase Return)
+
+The buying-side mirror of Phase 75. The GL-posting listener already handles a debit
+note (`is_return`) by reversing the bill's posting; this phase adds the converter
+that raises it from an invoice, through the generic `DocumentService` — buying
+imports no other module's services:
+
+- **Return.** `POST /api/buying/purchase-invoice/:name/make-return` creates a draft
+  Debit Note against a *submitted, non-return* Purchase Invoice: it mirrors the
+  original lines at negative quantity, sets `is_return` and `return_against`, and
+  carries the invoice's `purchase_order` link. On submit the GL-posting listener
+  reverses the original posting (Dr Creditors / Cr expense) and books a negative
+  outstanding. It refuses a non-submitted invoice or one that is itself a return.
+- **Report.** A `debit-note-register` report lists submitted debit notes with the
+  bill each reverses, the return value, and its outstanding.
+
+Verified: a 600 Purchase Invoice (Dr COGS 600 / Cr Creditors 600) returns to a Debit
+Note mirroring its line at qty −6; submitting it posts Dr Creditors 600 / Cr COGS
+600 (the exact reverse) and a −600 outstanding with status Return; returning a return
+is rejected; the register shows the debit note against its source bill.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

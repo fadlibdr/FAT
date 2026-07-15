@@ -109,6 +109,38 @@ export class PoFulfillmentService {
     return String(pi.name);
   }
 
+  /**
+   * Create a draft Debit Note (return Purchase Invoice) against a submitted bill:
+   * mirrors the original lines at negative quantity and marks is_return with
+   * return_against set. On submit the GL-posting listener reverses the original
+   * posting (Dr Creditors / Cr expense) and books a negative outstanding. Refuses a
+   * non-submitted invoice or one that is itself a return.
+   */
+  async makePurchaseReturn(pi: string, ctx?: UserContext): Promise<string> {
+    const piDt = this.registry.get("Purchase Invoice");
+    if (!piDt) throw new BadRequestException("Purchase Invoice not registered");
+    const context = ctx ?? systemContext();
+    const inv = await this.documents.get(piDt, pi);
+    if ((inv.docstatus ?? 0) !== 1) throw new BadRequestException("Purchase Invoice must be submitted");
+    if (Boolean(inv.is_return)) throw new BadRequestException(`Purchase Invoice ${pi} is already a return`);
+
+    const items = ((inv.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: -Math.abs(Number(r.qty ?? 0)),
+      rate: Number(r.rate ?? 0),
+    }));
+    const debit = await this.documents.create(piDt, context, {
+      supplier: inv.supplier,
+      posting_date: new Date().toISOString().slice(0, 10),
+      is_return: 1,
+      return_against: pi,
+      purchase_order: inv.purchase_order ?? null,
+      items,
+    });
+    this.logger.log(`Purchase Invoice ${pi} -> Debit Note ${debit.name}`);
+    return String(debit.name);
+  }
+
   private async qtyByItem(
     childDoctype: string,
     parentDoctype: string,
