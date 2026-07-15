@@ -9,6 +9,7 @@
     { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Purchase Order Item" },
     { "fieldname": "total", "label": "Net Total", "fieldtype": "Currency", "read_only": true },
+    { "fieldname": "taxes_template", "label": "Taxes Template", "fieldtype": "Link", "options": "Purchase Taxes Template" },
     { "fieldname": "taxes", "label": "Taxes and Charges", "fieldtype": "Table", "options": "Purchase Taxes and Charges" },
     { "fieldname": "total_taxes_and_charges", "label": "Total Taxes", "fieldtype": "Currency", "read_only": true },
     { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
