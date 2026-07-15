@@ -1246,6 +1246,28 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE coalesce(c."credit_limit", 0) > 0
           ORDER BY "exposure" DESC, c."name"`,
   },
+  "material-request-status": {
+    permDoctype: "Material Request",
+    columns: [
+      { key: "material_request", label: "Material Request" },
+      { key: "material_request_type", label: "Type" },
+      { key: "transaction_date", label: "Date" },
+      { key: "total_qty", label: "Total Qty" },
+      { key: "ordered_qty", label: "Ordered Qty" },
+      { key: "status", label: "Status" },
+      { key: "purchase_order", label: "Purchase Order" },
+    ],
+    // Submitted material requests with their requested vs ordered quantities and status.
+    sql: `SELECT m."name" AS "material_request", m."material_request_type", m."transaction_date",
+                 coalesce(sum(i."qty"), 0)::float8 AS "total_qty",
+                 coalesce(sum(i."ordered_qty"), 0)::float8 AS "ordered_qty",
+                 coalesce(m."status", 'Pending') AS "status", m."purchase_order"
+          FROM "tabMaterial Request" m
+          LEFT JOIN "tabMaterial Request Item" i ON i."parent" = m."name"
+          WHERE m."docstatus" = 1
+          GROUP BY m."name", m."material_request_type", m."transaction_date", m."status", m."purchase_order"
+          ORDER BY m."transaction_date" DESC, m."name"`,
+  },
   "pick-list-status": {
     permDoctype: "Pick List",
     columns: [

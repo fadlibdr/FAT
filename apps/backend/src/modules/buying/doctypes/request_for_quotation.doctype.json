@@ -7,6 +7,7 @@
   "fields": [
     { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "material_request", "label": "Material Request", "fieldtype": "Link", "options": "Material Request", "read_only": true, "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Request for Quotation Item" },
     { "fieldname": "suppliers", "label": "Suppliers", "fieldtype": "Table", "options": "Request for Quotation Supplier" },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }

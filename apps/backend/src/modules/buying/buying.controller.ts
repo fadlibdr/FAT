@@ -36,6 +36,16 @@ export class BuyingController {
     return { purchaseOrder };
   }
 
+  @Post("material-request/:name/make-rfq")
+  async mrToRfq(
+    @CurrentUser() user: UserContext,
+    @Param("name") name: string,
+    @Body() body: { suppliers?: string[] },
+  ) {
+    const requestForQuotation = await this.sourcing.makeRequestForQuotation(name, body?.suppliers ?? [], user);
+    return { requestForQuotation };
+  }
+
   @Get("rfq-comparison/:name")
   async rfqComparison(@Param("name") name: string) {
     return { rfq: name, comparison: await this.sourcing.compare(name) };
