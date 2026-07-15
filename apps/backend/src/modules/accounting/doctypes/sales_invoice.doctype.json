@@ -52,6 +52,14 @@
       "in_standard_filter": true
     },
     {
+      "fieldname": "delivery_note",
+      "label": "Delivery Note",
+      "fieldtype": "Link",
+      "options": "Delivery Note",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
       "fieldname": "cost_center",
       "label": "Cost Center",
       "fieldtype": "Link",

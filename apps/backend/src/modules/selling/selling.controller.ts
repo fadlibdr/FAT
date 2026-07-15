@@ -33,6 +33,12 @@ export class SellingController {
     return { salesOrder };
   }
 
+  @Post("delivery-note/:name/make-sales-invoice")
+  async billDelivery(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const salesInvoice = await this.fulfillment.makeSalesInvoiceFromDelivery(name, user);
+    return { salesInvoice };
+  }
+
   @Post("item/:template/make-variants")
   async makeVariants(@CurrentUser() user: UserContext, @Param("template") template: string) {
     return this.variants.makeVariants(template, user);

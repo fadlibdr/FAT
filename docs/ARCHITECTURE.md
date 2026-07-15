@@ -1355,6 +1355,27 @@ item and two invited suppliers; submitting that RFQ fans out two Supplier Quotat
 Material Request can raise a Request for Quotation"); the status report shows the
 request with total qty 15.
 
+## Phase 72 — Delivery Note → Sales Invoice
+
+Adds the bill-what-you-shipped step. Alongside the existing Sales Order → Delivery
+Note and Sales Order → Sales Invoice conversions, `FulfillmentService` gains a
+converter that raises the invoice from a delivery, through the generic
+`DocumentService` — selling imports no other module's services:
+
+- **Billing.** `POST /api/selling/delivery-note/:name/make-sales-invoice` creates a
+  draft Sales Invoice from a *submitted, non-return* Delivery Note: it copies the
+  delivered lines and carries the note's own `sales_order` link, so the order's
+  `per_billed` recomputes as normal. The invoice links back via a new
+  `delivery_note` field and the Delivery Note is stamped with a `sales_invoice`.
+  It refuses a non-submitted delivery, a return, or one already billed.
+- **Report.** A `delivery-billing-status` report lists submitted (non-return)
+  delivery notes with their delivered value and whether each has been billed.
+
+Verified: a Delivery Note for 12 units at rate 20 (backed by a 100-unit stock
+receipt) bills to a linked Sales Invoice carrying the delivered line; the note is
+stamped with the invoice; a second billing is rejected ("already billed"); the
+status report shows the note with delivered value 240 and billed = Yes.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

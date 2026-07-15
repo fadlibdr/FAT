@@ -1268,6 +1268,25 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."material_request_type", m."transaction_date", m."status", m."purchase_order"
           ORDER BY m."transaction_date" DESC, m."name"`,
   },
+  "delivery-billing-status": {
+    permDoctype: "Delivery Note",
+    columns: [
+      { key: "delivery_note", label: "Delivery Note" },
+      { key: "customer", label: "Customer" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "sales_order", label: "Sales Order" },
+      { key: "total", label: "Delivered Value" },
+      { key: "sales_invoice", label: "Sales Invoice" },
+      { key: "billed", label: "Billed" },
+    ],
+    // Submitted (non-return) delivery notes and whether each has been billed.
+    sql: `SELECT "name" AS "delivery_note", "customer", "posting_date", "sales_order",
+                 coalesce("total", 0)::float8 AS "total", "sales_invoice",
+                 CASE WHEN "sales_invoice" IS NOT NULL THEN 'Yes' ELSE 'No' END AS "billed"
+          FROM "tabDelivery Note"
+          WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 0
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "pick-list-status": {
     permDoctype: "Pick List",
     columns: [
