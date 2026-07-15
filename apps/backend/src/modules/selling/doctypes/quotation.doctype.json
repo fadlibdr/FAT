@@ -62,6 +62,24 @@
       "fieldtype": "Currency",
       "read_only": true,
       "in_list_view": true
+    },
+    {
+      "fieldname": "sales_order",
+      "label": "Sales Order",
+      "fieldtype": "Link",
+      "options": "Sales Order",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Draft\nOpen\nOrdered\nExpired",
+      "default": "Draft",
+      "read_only": true,
+      "in_list_view": true,
+      "in_standard_filter": true
     }
   ],
   "permissions": [

@@ -46,6 +46,14 @@
       "options": "Sales Taxes Template"
     },
     {
+      "fieldname": "quotation",
+      "label": "Quotation",
+      "fieldtype": "Link",
+      "options": "Quotation",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
       "fieldname": "items",
       "label": "Items",
       "fieldtype": "Table",

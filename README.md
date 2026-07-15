@@ -662,4 +662,10 @@ Accounting, and HR as metadata-defined modules.
   their last movement), `slow-moving-items` (in-stock items ranked by days since last sale), and
   `stock-value-by-group` (qty and valuation per item group).
 
+## Phase 64
+
+- **Quotation → Sales Order** — `POST /api/selling/quotation/:name/make-sales-order` turns a
+  submitted Quotation into a draft Sales Order (copying its items, linking both, and marking the
+  quotation Ordered); a `quotation-status` report tracks each quotation's status and linked order.
+
 See `docs/ARCHITECTURE.md` for the full design.
