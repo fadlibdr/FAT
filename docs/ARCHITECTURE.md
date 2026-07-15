@@ -1039,6 +1039,24 @@ Verified: on a PO for 10, a receipt of 6 posts, a further receipt of 6 is blocke
 receipt of 4 (reaching 10) posts; likewise a Purchase Invoice for 12 is blocked while one for 10
 posts, after which the PO reads 100% received / 100% billed.
 
+## Phase 55 — Sales fulfilment control
+
+A `SoFulfillmentGateListener` in the selling module is the sell-side mirror of the purchase
+three-way match (event-bus only, reads via SQL, no cross-module imports):
+
+- **Gates.** `before_submit` on Delivery Note and Sales Invoice (`suppressErrors:false`) sum the
+  quantity already delivered / billed per item against the linked Sales Order (from other
+  *submitted*, non-return documents), add this document's lines, and reject the submit if any item
+  would exceed the ordered quantity. Returns (`is_return`) and documents without a Sales Order are
+  exempt. This composes with the existing stock-availability and quality-inspection gates.
+- **Report.** A `sales-order-status` report shows per submitted Sales Order the order value,
+  % delivered, % billed, and status.
+
+Verified: on a Sales Order for 10, a delivery of 6 posts, a further delivery of 6 is blocked
+(12 > 10), and a delivery of 4 posts; a Sales Invoice for 12 is blocked while one for 10 posts.
+(The demo "buy 5 WIDGET-1 get 1 WIDGET-F free" pricing rule adds a free line to the order, which
+the report's % delivered correctly reflects.)
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

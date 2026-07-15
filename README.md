@@ -598,4 +598,12 @@ Accounting, and HR as metadata-defined modules.
 - **PO status report** — a `purchase-order-status` report shows per order the value, % received,
   % billed, and status.
 
+## Phase 55
+
+- **Sales fulfilment control** — mirroring the purchase side, a `before_submit` gate blocks a
+  Delivery Note from delivering, or a Sales Invoice from billing, more of any item than its linked
+  Sales Order ordered (returns exempt).
+- **SO status report** — a `sales-order-status` report shows per order the value, % delivered,
+  % billed, and status.
+
 See `docs/ARCHITECTURE.md` for the full design.
