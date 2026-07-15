@@ -17,6 +17,7 @@ import { InventoryGlListener } from "./inventory-gl.listener";
 import { BudgetGateListener } from "./budget-gate.listener";
 import { PeriodLockListener } from "./period-lock.listener";
 import { WriteOffListener } from "./write-off.listener";
+import { TaxTemplateListener } from "./tax-template.listener";
 
 @Module({
   imports: [CoreModule],
@@ -35,6 +36,7 @@ import { WriteOffListener } from "./write-off.listener";
     BudgetGateListener,
     PeriodLockListener,
     WriteOffListener,
+    TaxTemplateListener,
   ],
 })
 export class AccountingModule extends BusinessModule {
