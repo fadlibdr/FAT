@@ -1675,6 +1675,26 @@ submission ("requires an accepted Quality Inspection"); after an Accepted Qualit
 Inspection referencing that delivery is submitted, the delivery submits; the
 inspection-status report shows the outgoing inspection as Accepted.
 
+## Phase 87 — Contract expiry sweep
+
+Keeps contract status honest over time. The `EngagementListener` sets a Contract's
+status when it is submitted, but a contract that was Active then keeps that status
+past its end date. A new `EngagementService` adds a sweep, mirroring the recurring-
+journal / deferred-revenue run pattern — pure SQL over the engine's tables, no
+cross-module service imports:
+
+- **Run.** `POST /api/engagement/run-contract-expiry` (System Manager; body optional
+  `as_of`) flips every submitted, Active contract whose end date is before the as-of
+  date (default today) to Expired, and returns the list of contracts expired.
+- **Report.** A `contract-status` report lists submitted contracts with their party,
+  value, dates, status, and days remaining until the end date (relative to an as-of
+  filter).
+
+Verified: a contract ending 2026-08-31 submits as Active; running the expiry sweep as
+of 2026-12-31 returns it in the expired list and its status becomes Expired; the
+contract-status report shows it with value 5000 and days-remaining computed from the
+as-of date.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
