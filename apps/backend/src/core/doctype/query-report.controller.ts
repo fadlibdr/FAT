@@ -1525,6 +1525,33 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "packing-slip-status": {
+    permDoctype: "Delivery Note",
+    columns: [
+      { key: "delivery_note", label: "Delivery Note" },
+      { key: "item_code", label: "Item" },
+      { key: "delivered", label: "Delivered" },
+      { key: "packed", label: "Packed" },
+      { key: "remaining", label: "Remaining" },
+    ],
+    sql: `SELECT d."delivery_note", d."item_code", d."delivered",
+                 coalesce(p."packed", 0) AS "packed",
+                 (d."delivered" - coalesce(p."packed", 0)) AS "remaining"
+          FROM (
+            SELECT dni."parent" AS "delivery_note", dni."item_code",
+                   sum(dni."qty") AS "delivered"
+            FROM "tabDelivery Note Item" dni
+            JOIN "tabDelivery Note" dn ON dn."name" = dni."parent" AND dn."docstatus" = 1
+            GROUP BY dni."parent", dni."item_code"
+          ) d
+          LEFT JOIN (
+            SELECT ps."delivery_note", psi."item_code", sum(psi."qty") AS "packed"
+            FROM "tabPacking Slip Item" psi
+            JOIN "tabPacking Slip" ps ON ps."name" = psi."parent" AND ps."docstatus" = 1
+            GROUP BY ps."delivery_note", psi."item_code"
+          ) p ON p."delivery_note" = d."delivery_note" AND p."item_code" = d."item_code"
+          ORDER BY d."delivery_note", d."item_code"`,
+  },
   "drop-ship-status": {
     permDoctype: "Sales Order",
     columns: [

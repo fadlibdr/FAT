@@ -1,0 +1,18 @@
+{
+  "name": "Packing Slip",
+  "module": "Stock",
+  "naming_rule": "series:PS-.#####",
+  "is_submittable": true,
+  "title_field": "delivery_note",
+  "fields": [
+    { "fieldname": "delivery_note", "label": "Delivery Note", "fieldtype": "Link", "options": "Delivery Note", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "from_case_no", "label": "From Case No", "fieldtype": "Int", "default": "1", "in_list_view": true },
+    { "fieldname": "to_case_no", "label": "To Case No", "fieldtype": "Int", "default": "1", "in_list_view": true },
+    { "fieldname": "net_weight", "label": "Net Weight", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Packing Slip Item" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

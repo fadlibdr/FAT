@@ -1920,6 +1920,30 @@ drop-ship-status report shows the order line, supplier, and Purchase Order.
 Billing of the drop-ship order stays on the selling side; the report keys the PO to
 a line by item, so the same item drop-shipped by two suppliers is not split per PO.
 
+## Phase 97 — Packing Slips
+
+Breaks a submitted Delivery Note into physical cases for shipping. Pure use of the
+generic DocumentService over sibling tables; no cross-module imports.
+
+- **Pack.** A submittable `Packing Slip` DocType (Delivery Note link, from/to case
+  numbers, net weight, `Packing Slip Item` lines).
+  `POST /api/stock/delivery-note/:name/make-packing-slip` builds a draft slip pre-
+  filled with the note's still-unpacked quantities (delivered minus already packed)
+  and the next case number.
+- **Gate.** A `before_submit:Packing Slip` gate keeps the cumulative packed qty per
+  item across the note's submitted slips from exceeding what the note delivered,
+  and rejects a reversed case range (`from > to`).
+- **Report.** A `packing-slip-status` report shows, per delivery note + item, the
+  delivered qty, packed qty, and remaining.
+
+Verified: a Delivery Note for 10 units is packed 6 on the first slip; a slip made
+from the note pre-fills the remaining 4 (case 2) and submits; a third slip for one
+more unit is rejected ("packing 1 … exceeds … delivered 10, already packed 10"); the
+packing-slip-status report shows delivered 10, packed 10, remaining 0.
+
+Packing Slips are a shipping record only — they do not themselves move stock (the
+Delivery Note already did) and carry no per-case weights beyond a slip total.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
