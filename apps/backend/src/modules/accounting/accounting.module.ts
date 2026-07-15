@@ -3,6 +3,7 @@ import { CoreModule } from "../../core/core.module";
 import { DoctypeLoaderService } from "../../core/doctype/doctype-loader.service";
 import { BusinessModule } from "../module-base";
 import { GlPostingListener } from "./gl-posting.listener";
+import { PaymentAllocationListener } from "./payment-allocation.listener";
 import { PaymentTermsListener } from "./payment-terms.listener";
 import { JournalListener } from "./journal.listener";
 import { BankReconciliationController } from "./bank-reconciliation.controller";
@@ -27,6 +28,7 @@ import { ContraEntryListener } from "./contra-entry.listener";
   controllers: [BankReconciliationController, AccountingController],
   providers: [
     GlPostingListener,
+    PaymentAllocationListener,
     PaymentTermsListener,
     JournalListener,
     BankReconciliationService,
