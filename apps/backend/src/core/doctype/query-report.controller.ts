@@ -97,6 +97,99 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY gl."account", a."account_type"
           ORDER BY a."account_type", gl."account"`,
   },
+  "cash-flow-statement": {
+    permDoctype: "GL Entry",
+    columns: [
+      { key: "category", label: "Category" },
+      { key: "inflow", label: "Inflow" },
+      { key: "outflow", label: "Outflow" },
+      { key: "net", label: "Net Cash Flow" },
+    ],
+    filters: [
+      { fieldname: "from_date", label: "From", fieldtype: "Date" },
+      { fieldname: "to_date", label: "To", fieldtype: "Date" },
+    ],
+    // Direct-method cash flow: movements on the Cash/Bank accounts, classified into
+    // Operating / Investing / Financing by the voucher type that moved the cash.
+    build: (f) => {
+      const params: unknown[] = [];
+      let range = "";
+      if (f.from_date) { params.push(f.from_date); range += ` AND "posting_date" >= $${params.length}`; }
+      if (f.to_date) { params.push(f.to_date); range += ` AND "posting_date" <= $${params.length}`; }
+      const CATEGORY = `CASE
+        WHEN "voucher_type" IN ('Asset','Depreciation Entry','Asset Disposal','Asset Repair','Asset Movement') THEN '2 - Investing'
+        WHEN "voucher_type" IN ('Loan','Loan Repayment Entry','Gratuity','Commission Payout','Period Closing Voucher') THEN '3 - Financing'
+        ELSE '1 - Operating' END`;
+      return {
+        text: `SELECT ${CATEGORY} AS "category",
+                      sum("debit")::float8 AS "inflow",
+                      sum("credit")::float8 AS "outflow",
+                      (sum("debit") - sum("credit"))::float8 AS "net"
+               FROM "tabGL Entry"
+               WHERE "account" IN ('Cash','Bank')${range}
+               GROUP BY ${CATEGORY}
+               ORDER BY 1`,
+        params,
+      };
+    },
+  },
+  "bank-cash-summary": {
+    permDoctype: "GL Entry",
+    columns: [
+      { key: "account", label: "Account" },
+      { key: "inflow", label: "Inflow" },
+      { key: "outflow", label: "Outflow" },
+      { key: "balance", label: "Balance" },
+    ],
+    // Per cash/bank account: total received, total paid, and current balance.
+    sql: `SELECT "account",
+                 sum("debit")::float8 AS "inflow",
+                 sum("credit")::float8 AS "outflow",
+                 (sum("debit") - sum("credit"))::float8 AS "balance"
+          FROM "tabGL Entry"
+          WHERE "account" IN ('Cash','Bank')
+          GROUP BY "account"
+          ORDER BY "account"`,
+  },
+  "cash-flow-forecast": {
+    permDoctype: "Sales Invoice",
+    columns: [
+      { key: "bucket", label: "Due Window" },
+      { key: "inflow", label: "Expected Inflow" },
+      { key: "outflow", label: "Expected Outflow" },
+      { key: "net", label: "Net" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    // Forward cash projection: open receivables (Sales Invoices) as inflows and open
+    // payables (Purchase Invoices) as outflows, bucketed by how far off the due date is.
+    build: (f) => {
+      const asOf = f.as_of || today();
+      const BUCKET = (due: string) => `CASE
+        WHEN ${due} <= $1::date THEN '1 - Overdue'
+        WHEN ${due} <= $1::date + 30 THEN '2 - 0-30 days'
+        WHEN ${due} <= $1::date + 60 THEN '3 - 31-60 days'
+        ELSE '4 - 60+ days' END`;
+      return {
+        text: `WITH flow AS (
+                 SELECT ${BUCKET('"due_date"')} AS bucket,
+                        coalesce("outstanding_amount", 0) AS inflow, 0 AS outflow
+                 FROM "tabSales Invoice"
+                 WHERE "docstatus" = 1 AND coalesce("outstanding_amount", 0) > 0
+                 UNION ALL
+                 SELECT ${BUCKET('"due_date"')} AS bucket,
+                        0 AS inflow, coalesce("outstanding_amount", 0) AS outflow
+                 FROM "tabPurchase Invoice"
+                 WHERE "docstatus" = 1 AND coalesce("outstanding_amount", 0) > 0
+               )
+               SELECT bucket,
+                      sum(inflow)::float8 AS "inflow",
+                      sum(outflow)::float8 AS "outflow",
+                      (sum(inflow) - sum(outflow))::float8 AS "net"
+               FROM flow GROUP BY bucket ORDER BY bucket`,
+        params: [asOf],
+      };
+    },
+  },
   "budget-variance": {
     permDoctype: "GL Entry",
     columns: [
