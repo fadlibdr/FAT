@@ -22,6 +22,55 @@ export class PickListService {
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
+  /**
+   * Build a draft Pick List from a submitted Sales Order. Each ordered line
+   * becomes a pick location, its warehouse resolved to the Bin holding the most
+   * available stock for that item; an item with no positive stock anywhere aborts
+   * the pick. The Pick List links back to the sales order.
+   */
+  async makeFromSalesOrder(so: string, ctx?: UserContext): Promise<string> {
+    const soDt = this.registry.get("Sales Order");
+    const pickDt = this.registry.get("Pick List");
+    if (!soDt || !pickDt) throw new BadRequestException("Sales Order / Pick List not registered");
+    const context = ctx ?? systemContext();
+    const order = await this.documents.get(soDt, so);
+    if ((order.docstatus ?? 0) !== 1) throw new BadRequestException("Sales Order must be submitted");
+
+    const locations: Array<Record<string, unknown>> = [];
+    for (const r of (order.items as Array<Record<string, unknown>>) ?? []) {
+      const item = String(r.item_code ?? "");
+      const warehouse = await this.resolveWarehouse(item);
+      locations.push({ item_code: item, warehouse, qty: Number(r.qty ?? 0), rate: Number(r.rate ?? 0) });
+    }
+    if (locations.length === 0) throw new BadRequestException(`Sales Order ${so} has no items to pick`);
+
+    const pick = await this.documents.create(pickDt, context, {
+      customer: order.customer,
+      posting_date: new Date().toISOString().slice(0, 10),
+      sales_order: so,
+      locations,
+    });
+    this.logger.log(`Sales Order ${so} -> draft Pick List ${pick.name} (${locations.length} lines)`);
+    return String(pick.name);
+  }
+
+  /** Warehouse with the most available stock for an item, else abort the pick. */
+  private async resolveWarehouse(item: string): Promise<string> {
+    if (!this.registry.has("Bin")) throw new BadRequestException("Bin not registered");
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("warehouse")} AS warehouse
+         FROM ${quoteIdent(tableNameFor("Bin"))}
+         WHERE ${quoteIdent("item_code")} = $1 AND coalesce(${quoteIdent("actual_qty")}, 0) > 0
+         ORDER BY ${quoteIdent("actual_qty")} DESC
+         LIMIT 1`,
+        [item],
+      )
+    )[0];
+    if (!row) throw new BadRequestException(`No stock available to pick for item ${item}`);
+    return String(row.warehouse);
+  }
+
   async makeDeliveryNote(name: string, ctx?: UserContext): Promise<string> {
     const pickDt = this.registry.get("Pick List");
     const dnDt = this.registry.get("Delivery Note");
