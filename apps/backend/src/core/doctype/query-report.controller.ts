@@ -1211,6 +1211,41 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabLead"
           ORDER BY "name"`,
   },
+  "customer-credit-exposure": {
+    permDoctype: "Customer",
+    columns: [
+      { key: "customer", label: "Customer" },
+      { key: "credit_limit", label: "Credit Limit" },
+      { key: "open_receivable", label: "Open Receivable" },
+      { key: "unbilled_orders", label: "Unbilled Orders" },
+      { key: "exposure", label: "Exposure" },
+      { key: "available", label: "Available" },
+    ],
+    // Per customer with a credit limit: open sales-invoice receivable plus the
+    // un-billed backlog of submitted Sales Orders, the resulting total exposure,
+    // and the headroom left against the limit (negative = over limit).
+    sql: `WITH recv AS (
+            SELECT "customer", coalesce(sum("outstanding_amount"), 0)::float8 AS amt
+            FROM "tabSales Invoice" WHERE "docstatus" = 1 GROUP BY "customer"
+          ), so AS (
+            SELECT "customer", coalesce(sum(
+                     coalesce("grand_total", "total", 0)
+                     * greatest(0, least(1, 1 - coalesce("per_billed", 0) / 100.0))
+                   ), 0)::float8 AS amt
+            FROM "tabSales Order" WHERE "docstatus" = 1 GROUP BY "customer"
+          )
+          SELECT c."name" AS "customer",
+                 coalesce(c."credit_limit", 0)::float8 AS "credit_limit",
+                 coalesce(recv.amt, 0) AS "open_receivable",
+                 coalesce(so.amt, 0) AS "unbilled_orders",
+                 (coalesce(recv.amt, 0) + coalesce(so.amt, 0)) AS "exposure",
+                 (coalesce(c."credit_limit", 0)::float8 - coalesce(recv.amt, 0) - coalesce(so.amt, 0)) AS "available"
+          FROM "tabCustomer" c
+          LEFT JOIN recv ON recv."customer" = c."name"
+          LEFT JOIN so ON so."customer" = c."name"
+          WHERE coalesce(c."credit_limit", 0) > 0
+          ORDER BY "exposure" DESC, c."name"`,
+  },
   "opportunity-funnel": {
     permDoctype: "Opportunity",
     columns: [
