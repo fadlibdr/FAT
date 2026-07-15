@@ -89,6 +89,43 @@ export class CrmService {
     return String(qtn.name);
   }
 
+  /**
+   * Close an Opportunity Won or Lost. Won marks it Converted / Closed Won; Lost
+   * marks it Lost / Closed Lost and records the (required) lost reason. An
+   * Opportunity already Lost or Converted cannot be re-closed.
+   */
+  async closeOpportunity(
+    opportunity: string,
+    outcome: "Won" | "Lost",
+    reason: string,
+    ctx?: UserContext,
+  ): Promise<{ status: string; sales_stage: string }> {
+    const oppDt = this.registry.get("Opportunity");
+    if (!oppDt) throw new BadRequestException("Opportunity not registered");
+    void ctx;
+    const opp = await this.documents.get(oppDt, opportunity);
+    const current = String(opp.status ?? "Open");
+    if (current === "Lost" || current === "Converted") {
+      throw new BadRequestException(`Opportunity ${opportunity} is already ${current}`);
+    }
+    if (outcome !== "Won" && outcome !== "Lost") {
+      throw new BadRequestException(`Outcome must be Won or Lost (got ${outcome})`);
+    }
+    if (outcome === "Lost" && !String(reason ?? "").trim()) {
+      throw new BadRequestException("A lost reason is required to close an Opportunity as Lost");
+    }
+    const status = outcome === "Won" ? "Converted" : "Lost";
+    const salesStage = outcome === "Won" ? "Closed Won" : "Closed Lost";
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Opportunity"))}
+       SET ${quoteIdent("status")} = $1, ${quoteIdent("sales_stage")} = $2, ${quoteIdent("lost_reason")} = $3
+       WHERE ${quoteIdent("name")} = $4`,
+      [status, salesStage, outcome === "Lost" ? String(reason).trim() : null, opportunity],
+    );
+    this.logger.log(`Opportunity ${opportunity} closed ${outcome} (${salesStage})`);
+    return { status, sales_stage: salesStage };
+  }
+
   /** Reuse the lead's converted customer, else create one named after the lead. */
   private async ensureCustomer(lead: Record<string, unknown>, ctx: UserContext): Promise<string> {
     if (lead.customer) return String(lead.customer);
