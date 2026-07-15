@@ -1,0 +1,16 @@
+import { Controller, Param, Post } from "@nestjs/common";
+import { CrmService } from "./crm.service";
+import { CurrentUser } from "../../auth/current-user.decorator";
+import type { UserContext } from "../../core/permissions/permission.service";
+
+/** CRM conversion endpoints. */
+@Controller("api/crm")
+export class CrmController {
+  constructor(private readonly crm: CrmService) {}
+
+  @Post("lead/:name/make-opportunity")
+  async makeOpportunity(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const opportunity = await this.crm.makeOpportunity(name, user);
+    return { opportunity };
+  }
+}

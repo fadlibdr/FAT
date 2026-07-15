@@ -674,4 +674,11 @@ Accounting, and HR as metadata-defined modules.
   (qty + spend per item), `supplier-spend` (invoices / spend / outstanding per supplier), and
   `purchase-price-trend` (avg / min / max purchase rate per item).
 
+## Phase 66
+
+- **Lead → Opportunity** — `POST /api/crm/lead/:name/make-opportunity` ensures the lead has a customer
+  (reusing or creating one) and opens an Opportunity against it linked back to the lead; a
+  `lead-conversion` report tracks each lead's funnel progress (customer + opportunity). This completes
+  the CRM funnel Lead → Opportunity → Quotation → Sales Order.
+
 See `docs/ARCHITECTURE.md` for the full design.
