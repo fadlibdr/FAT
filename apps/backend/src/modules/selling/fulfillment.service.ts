@@ -52,6 +52,39 @@ export class FulfillmentService {
     return String(doc.name);
   }
 
+  /** Create a draft Sales Order from a submitted Quotation, linking both. */
+  async makeSalesOrder(quotation: string, ctx?: UserContext): Promise<string> {
+    const qtnDt = this.registry.get("Quotation");
+    const soDt = this.registry.get("Sales Order");
+    if (!qtnDt || !soDt) throw new BadRequestException("Quotation or Sales Order not registered");
+    const context = ctx ?? systemContext();
+    const qtn = await this.documents.get(qtnDt, quotation);
+    if ((qtn.docstatus ?? 0) !== 1) throw new BadRequestException("Quotation must be submitted");
+    if (qtn.sales_order) throw new BadRequestException(`Quotation ${quotation} already ordered (${qtn.sales_order})`);
+
+    const items = ((qtn.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Number(r.qty ?? 0),
+      rate: Number(r.rate ?? 0),
+    }));
+    const today = new Date().toISOString().slice(0, 10);
+    const so = await this.documents.create(soDt, context, {
+      customer: qtn.customer,
+      transaction_date: today,
+      delivery_date: (qtn.valid_till as string) ?? today,
+      quotation,
+      items,
+    });
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Quotation"))}
+       SET ${quoteIdent("sales_order")} = $1, ${quoteIdent("status")} = 'Ordered'
+       WHERE ${quoteIdent("name")} = $2`,
+      [String(so.name), quotation],
+    );
+    this.logger.log(`Quotation ${quotation} -> Sales Order ${so.name}`);
+    return String(so.name);
+  }
+
   async recomputeSalesOrder(so: string): Promise<void> {
     if (!this.registry.has("Sales Order") || !so) return;
     const ordered = await this.qtyByItem("Sales Order Item", "Sales Order", "name", so, false);
