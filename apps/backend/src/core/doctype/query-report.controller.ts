@@ -1525,6 +1525,24 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "product-bundle-availability": {
+    permDoctype: "Product Bundle",
+    columns: [
+      { key: "bundle", label: "Bundle Item" },
+      { key: "components", label: "Components" },
+      { key: "buildable", label: "Buildable Qty" },
+    ],
+    sql: `SELECT pb."new_item_code" AS "bundle",
+                 count(pbi."name") AS "components",
+                 coalesce(min(floor(coalesce(oh."qty", 0) / nullif(pbi."qty", 0))), 0) AS "buildable"
+          FROM "tabProduct Bundle" pb
+          JOIN "tabProduct Bundle Item" pbi ON pbi."parent" = pb."name"
+          LEFT JOIN (
+            SELECT "item_code", sum("actual_qty") AS "qty" FROM "tabBin" GROUP BY "item_code"
+          ) oh ON oh."item_code" = pbi."item_code"
+          GROUP BY pb."new_item_code"
+          ORDER BY pb."new_item_code"`,
+  },
   "expiring-batches": {
     permDoctype: "Bin",
     columns: [

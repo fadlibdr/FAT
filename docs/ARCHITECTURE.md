@@ -1867,6 +1867,31 @@ rejected on both Purchase Receipt and Stock Entry ("cannot receive batch … exp
 2026-06-30 (on or before 2026-07-15)"); the expiring-batches report (30-day window)
 lists only the near-expiry batch (17 days) and omits the far and expired ones.
 
+## Phase 95 — Product Bundles (sales kits)
+
+A Product Bundle sells a non-stock parent item as a kit whose components are the
+things actually shipped. Pure event-bus, no cross-module imports.
+
+- **Define.** A `Product Bundle` DocType (named by its `new_item_code` bundle
+  item) holds a `Product Bundle Item` child table of component `item_code` + per-
+  bundle `qty`.
+- **Explode on delivery.** On Delivery Note submit, a line whose item is a bundle
+  parent issues stock for each component (component qty × line qty) from the line's
+  warehouse instead of the parent, so the non-stock parent never gets a Bin (a
+  return credits the components back). The delivery availability gate is bundle-
+  aware too: it checks each component's on-hand, not the parent, so a bundle line
+  is blocked only when a component is genuinely short.
+- **Report.** A `product-bundle-availability` report shows each bundle's buildable
+  quantity — the min over its components of ⌊on-hand ÷ component qty⌋.
+
+Verified: a bundle of 2×A + 1×B with 10 A and 3 B on hand reports buildable 3;
+delivering 2 bundles issues 4 A and 2 B (leaving A=6, B=1, and no Bin for the
+parent) and buildable drops to 1; a further 2-bundle delivery is rejected
+("component … needs 2, only 1 on hand").
+
+Bundles explode on Delivery Notes only (not Sales Invoice `update_stock`); COGS is
+booked against the components' moves, and the parent line carries the sale price.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
