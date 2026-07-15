@@ -141,6 +141,38 @@ export class PoFulfillmentService {
     return String(debit.name);
   }
 
+  /**
+   * Create a draft return Purchase Receipt against a submitted receipt: mirrors the
+   * received lines (same warehouses) and marks is_return with return_against set.
+   * On submit the stock-ledger listener issues the goods back out of stock at the
+   * current valuation. Refuses a non-submitted receipt or one already a return.
+   */
+  async makeReceiptReturn(pr: string, ctx?: UserContext): Promise<string> {
+    const prDt = this.registry.get("Purchase Receipt");
+    if (!prDt) throw new BadRequestException("Purchase Receipt not registered");
+    const context = ctx ?? systemContext();
+    const receipt = await this.documents.get(prDt, pr);
+    if ((receipt.docstatus ?? 0) !== 1) throw new BadRequestException("Purchase Receipt must be submitted");
+    if (Boolean(receipt.is_return)) throw new BadRequestException(`Purchase Receipt ${pr} is already a return`);
+
+    const items = ((receipt.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Math.abs(Number(r.qty ?? 0)),
+      rate: Number(r.rate ?? 0),
+      warehouse: r.warehouse,
+    }));
+    const ret = await this.documents.create(prDt, context, {
+      supplier: receipt.supplier,
+      posting_date: new Date().toISOString().slice(0, 10),
+      is_return: 1,
+      return_against: pr,
+      purchase_order: receipt.purchase_order ?? null,
+      items,
+    });
+    this.logger.log(`Purchase Receipt ${pr} -> return Purchase Receipt ${ret.name}`);
+    return String(ret.name);
+  }
+
   private async qtyByItem(
     childDoctype: string,
     parentDoctype: string,

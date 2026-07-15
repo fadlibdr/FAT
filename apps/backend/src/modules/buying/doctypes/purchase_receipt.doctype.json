@@ -7,6 +7,8 @@
   "fields": [
     { "fieldname": "supplier", "label": "Supplier", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "is_return", "label": "Is Return (Purchase Return)", "fieldtype": "Check", "in_standard_filter": true },
+    { "fieldname": "return_against", "label": "Return Against", "fieldtype": "Link", "options": "Purchase Receipt" },
     { "fieldname": "purchase_order", "label": "Purchase Order", "fieldtype": "Link", "options": "Purchase Order", "in_standard_filter": true },
     { "fieldname": "purchase_invoice", "label": "Purchase Invoice", "fieldtype": "Link", "options": "Purchase Invoice", "read_only": true, "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Purchase Receipt Item" },
