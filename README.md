@@ -656,4 +656,10 @@ Accounting, and HR as metadata-defined modules.
   per item), `customer-revenue` (invoices / revenue / outstanding per customer), and `gross-profit`
   (revenue vs moving-average cost per item, with margin %).
 
+## Phase 63
+
+- **Inventory analytics** — three stock reports: `stock-ageing` (on-hand balances with the age since
+  their last movement), `slow-moving-items` (in-stock items ranked by days since last sale), and
+  `stock-value-by-group` (qty and valuation per item group).
+
 See `docs/ARCHITECTURE.md` for the full design.

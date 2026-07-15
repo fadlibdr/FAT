@@ -1172,6 +1172,21 @@ Verified: with WIDGET-1 sold at revenue 1900 against an average cost of 100/unit
 gross-profit report reads gross profit 500 / margin 26.3 %; customer-revenue shows Acme Inc with
 1900 billed and 1500 outstanding; the free promotional line (WIDGET-F) reports zero revenue.
 
+## Phase 63 — Inventory analytics
+
+Three read-only query-reports over the Bin balances and Stock Ledger Entry history (no schema
+changes):
+
+- **stock-ageing** — on-hand item/warehouse balances with the date of their last stock movement and
+  the age in days (relative to an `as_of` filter), surfacing stagnant stock.
+- **slow-moving-items** — in-stock items ranked by days since their last *outbound* (sale) movement;
+  items never sold sort to the top.
+- **stock-value-by-group** — on-hand quantity and valuation aggregated per item group.
+
+Verified: WIDGET-1 stock (95 units across two warehouses, valued 9500) shows an age of 10 days as of
+2026-07-25; the Receiving balance (never sold) tops the slow-moving list; stock-value-by-group rolls
+the Products group to 9500.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
