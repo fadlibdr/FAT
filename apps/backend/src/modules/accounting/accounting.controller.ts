@@ -1,6 +1,7 @@
 import { Body, Controller, Param, Post } from "@nestjs/common";
 import { PaymentRequestService } from "./payment-request.service";
 import { PaymentService } from "./payment.service";
+import { JournalService } from "./journal.service";
 import { DeferredRevenueService } from "./deferred-revenue.service";
 import { RecurringJournalService } from "./recurring-journal.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
@@ -12,6 +13,7 @@ export class AccountingController {
   constructor(
     private readonly paymentRequests: PaymentRequestService,
     private readonly payments: PaymentService,
+    private readonly journals: JournalService,
     private readonly deferredRevenue: DeferredRevenueService,
     private readonly recurringJournals: RecurringJournalService,
   ) {}
@@ -42,5 +44,11 @@ export class AccountingController {
   async payPurchaseInvoice(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const paymentEntry = await this.payments.makePaymentEntry("Purchase Invoice", name, user);
     return { paymentEntry };
+  }
+
+  @Post("journal-entry/:name/make-reversal")
+  async reverseJournalEntry(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const reversal = await this.journals.makeReversal(name, user);
+    return { reversal };
   }
 }

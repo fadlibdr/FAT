@@ -10,6 +10,7 @@ import { BankReconciliationService } from "./bank-reconciliation.service";
 import { AccountingController } from "./accounting.controller";
 import { PaymentRequestService } from "./payment-request.service";
 import { PaymentService } from "./payment.service";
+import { JournalService } from "./journal.service";
 import { DeferredRevenueListener } from "./deferred-revenue.listener";
 import { DeferredRevenueService } from "./deferred-revenue.service";
 import { RecurringJournalService } from "./recurring-journal.service";
@@ -31,6 +32,7 @@ import { ContraEntryListener } from "./contra-entry.listener";
     BankReconciliationService,
     PaymentRequestService,
     PaymentService,
+    JournalService,
     DeferredRevenueListener,
     DeferredRevenueService,
     RecurringJournalService,

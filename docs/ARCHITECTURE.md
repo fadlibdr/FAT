@@ -1509,6 +1509,25 @@ Verified: a receipt takes 40 units into stock (→ 40), and its return issues 40
 out (→ 0); the return links to the original receipt; returning a return is rejected;
 the register shows the return with returned qty 40.
 
+## Phase 79 — Journal Entry reversal
+
+Adds a one-click reversal for manual vouchers. A new `JournalService` draws the
+mirror through the generic `DocumentService`; the existing `JournalListener` posts
+and balances it like any other entry:
+
+- **Reversal.** `POST /api/accounting/journal-entry/:name/make-reversal` creates a
+  draft Journal Entry against a *submitted* entry with every row's debit and credit
+  swapped, linked back via a new `reversal_of` field. Submitting it unwinds the
+  original's GL exactly. It refuses an unsubmitted entry, one that is itself a
+  reversal, or one already reversed by a live (non-cancelled) entry.
+- **Report.** A `journal-entry-register` report lists submitted journal entries with
+  their totals and any entry they reverse.
+
+Verified: an entry posting Dr Cash 500 / Cr Sales 500 reverses to an entry with the
+rows swapped (`reversal_of` set); submitting it nets both accounts to zero (Cash
+500/500, Sales 500/500); reversing the reversal and reversing the original a second
+time are both rejected; the register shows the reversal linked to its source.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
