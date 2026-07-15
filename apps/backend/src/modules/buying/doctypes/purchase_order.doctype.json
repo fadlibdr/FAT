@@ -7,6 +7,8 @@
   "fields": [
     { "fieldname": "supplier", "label": "Supplier", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "sales_order", "label": "Against Sales Order", "fieldtype": "Link", "options": "Sales Order", "in_standard_filter": true },
+    { "fieldname": "is_drop_ship", "label": "Is Drop Ship", "fieldtype": "Check", "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Purchase Order Item" },
     { "fieldname": "total", "label": "Net Total", "fieldtype": "Currency", "read_only": true },
     { "fieldname": "taxes_template", "label": "Taxes Template", "fieldtype": "Link", "options": "Purchase Taxes Template" },

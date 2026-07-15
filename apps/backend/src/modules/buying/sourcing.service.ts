@@ -187,4 +187,54 @@ export class SourcingService {
     this.logger.log(`Supplier Quotation ${sqName} -> Purchase Order ${po.name} (${sq.supplier})`);
     return String(po.name);
   }
+
+  /**
+   * Drop ship: from a submitted Sales Order, raise one draft Purchase Order per
+   * supplier for the lines flagged `delivered_by_supplier`. Each PO is marked
+   * `is_drop_ship` and linked back to the Sales Order (header `sales_order` and
+   * per-line `against_sales_order`), so the supplier ships straight to the
+   * customer. When such a PO is later submitted, the linked Sales Order is marked
+   * delivered (see PoFulfillmentListener). Reuses the generic DocumentService —
+   * Buying imports no other module's services.
+   */
+  async makeDropShipPurchaseOrders(soName: string, ctx?: UserContext): Promise<string[]> {
+    const soDt = this.registry.get("Sales Order");
+    const poDt = this.registry.get("Purchase Order");
+    if (!soDt || !poDt) throw new BadRequestException("Sales Order or Purchase Order not registered");
+    const context = ctx ?? systemContext();
+
+    const so = await this.documents.get(soDt, soName);
+    if ((so.docstatus ?? 0) !== 1) throw new BadRequestException("Sales Order must be submitted");
+
+    // Collect drop-ship lines grouped by supplier.
+    const bySupplier = new Map<string, Array<Record<string, unknown>>>();
+    for (const row of (so.items as Array<Record<string, unknown>>) ?? []) {
+      if (!Boolean(row.delivered_by_supplier)) continue;
+      const supplier = String(row.supplier ?? "");
+      if (!supplier) throw new BadRequestException(`Drop-ship line ${row.item_code} has no supplier`);
+      if (!bySupplier.has(supplier)) bySupplier.set(supplier, []);
+      bySupplier.get(supplier)!.push({
+        item_code: row.item_code,
+        qty: Number(row.qty ?? 0),
+        rate: Number(row.rate ?? 0),
+        against_sales_order: soName,
+      });
+    }
+    if (bySupplier.size === 0) throw new BadRequestException(`Sales Order ${soName} has no drop-ship lines`);
+
+    const created: string[] = [];
+    for (const [supplier, items] of bySupplier) {
+      const po = await this.documents.create(poDt, context, {
+        supplier,
+        transaction_date: new Date().toISOString().slice(0, 10),
+        company: so.company ?? null,
+        sales_order: soName,
+        is_drop_ship: 1,
+        items,
+      });
+      created.push(String(po.name));
+      this.logger.log(`Sales Order ${soName} -> drop-ship Purchase Order ${po.name} (${supplier}, ${items.length} item(s))`);
+    }
+    return created;
+  }
 }

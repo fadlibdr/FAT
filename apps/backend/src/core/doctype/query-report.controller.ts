@@ -1525,6 +1525,30 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "drop-ship-status": {
+    permDoctype: "Sales Order",
+    columns: [
+      { key: "sales_order", label: "Sales Order" },
+      { key: "customer", label: "Customer" },
+      { key: "item_code", label: "Item" },
+      { key: "ordered", label: "Ordered" },
+      { key: "supplier", label: "Supplier" },
+      { key: "purchase_order", label: "Purchase Order" },
+      { key: "po_status", label: "PO Status" },
+    ],
+    sql: `SELECT so."name" AS "sales_order", so."customer", soi."item_code",
+                 soi."qty" AS "ordered", soi."supplier",
+                 po."name" AS "purchase_order",
+                 coalesce(po."status", 'Not Ordered') AS "po_status"
+          FROM "tabSales Order Item" soi
+          JOIN "tabSales Order" so ON so."name" = soi."parent"
+          LEFT JOIN "tabPurchase Order Item" poi
+            ON poi."against_sales_order" = so."name" AND poi."item_code" = soi."item_code"
+          LEFT JOIN "tabPurchase Order" po
+            ON po."name" = poi."parent" AND po."is_drop_ship" = 1
+          WHERE coalesce(soi."delivered_by_supplier", 0) <> 0
+          ORDER BY so."name", soi."item_code"`,
+  },
   "product-bundle-availability": {
     permDoctype: "Product Bundle",
     columns: [

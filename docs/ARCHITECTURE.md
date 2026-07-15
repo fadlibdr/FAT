@@ -1892,6 +1892,34 @@ parent) and buildable drops to 1; a further 2-bundle delivery is rejected
 Bundles explode on Delivery Notes only (not Sales Invoice `update_stock`); COGS is
 booked against the components' moves, and the parent line carries the sale price.
 
+## Phase 96 — Drop shipping
+
+Lets a supplier ship goods straight to the customer against a Sales Order, with no
+own-warehouse stock movement. Pure event-bus, no cross-module imports (Buying
+reads/writes sibling tables by SQL, coupling through Link fields + events).
+
+- **Raise.** Sales Order Item gains `delivered_by_supplier` (a drop-ship flag) and
+  a `supplier`. `POST /api/buying/sales-order/:name/make-drop-ship-po` groups the
+  submitted order's flagged lines by supplier and creates one draft Purchase Order
+  each, marked `is_drop_ship` and linked back to the order (header `sales_order`,
+  per-line `against_sales_order`).
+- **Fulfil.** When a drop-ship Purchase Order is submitted, the linked Sales Order
+  is marked delivered — its `per_delivered` is recomputed from the qty shipped by
+  all its submitted drop-ship POs over the total ordered, advancing the order to
+  `To Bill` at 100%. No Delivery Note or stock ledger entry is created, because the
+  goods never touch own inventory.
+- **Report.** A `drop-ship-status` report lists each order's drop-ship lines with
+  their supplier, the raised Purchase Order, and its status (`Not Ordered` until
+  one exists).
+
+Verified: a Sales Order with a drop-ship line (qty 6, supplier set) raises a linked
+drop-ship Purchase Order; the order sits at 0% delivered / `To Deliver and Bill`;
+submitting the Purchase Order moves it to 100% delivered / `To Bill`; the
+drop-ship-status report shows the order line, supplier, and Purchase Order.
+
+Billing of the drop-ship order stays on the selling side; the report keys the PO to
+a line by item, so the same item drop-shipped by two suppliers is not split per PO.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

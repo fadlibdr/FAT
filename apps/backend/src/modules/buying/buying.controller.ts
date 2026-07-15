@@ -46,6 +46,12 @@ export class BuyingController {
     return { requestForQuotation };
   }
 
+  @Post("sales-order/:name/make-drop-ship-po")
+  async soToDropShipPo(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const purchaseOrders = await this.sourcing.makeDropShipPurchaseOrders(name, user);
+    return { purchaseOrders };
+  }
+
   @Get("rfq-comparison/:name")
   async rfqComparison(@Param("name") name: string) {
     return { rfq: name, comparison: await this.sourcing.compare(name) };

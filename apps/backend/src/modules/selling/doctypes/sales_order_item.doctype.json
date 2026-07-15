@@ -38,6 +38,17 @@
       "fieldtype": "Currency",
       "read_only": true,
       "in_list_view": true
+    },
+    {
+      "fieldname": "delivered_by_supplier",
+      "label": "Drop Ship",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "supplier",
+      "label": "Supplier",
+      "fieldtype": "Link",
+      "options": "Supplier"
     }
   ],
   "permissions": [

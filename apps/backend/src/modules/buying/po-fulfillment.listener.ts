@@ -15,6 +15,10 @@ export class PoFulfillmentListener {
   @OnEvent("doc.on_submit:Purchase Order")
   async onOrder(payload: DocEventPayload): Promise<void> {
     await this.fulfillment.recomputePurchaseOrder(String(payload.doc.name));
+    // A drop-ship order fulfils its linked Sales Order — the supplier ships direct.
+    if (Boolean(payload.doc.is_drop_ship) && payload.doc.sales_order) {
+      await this.fulfillment.markDropShipDelivery(String(payload.doc.sales_order));
+    }
   }
 
   @OnEvent("doc.on_submit:Purchase Receipt")
