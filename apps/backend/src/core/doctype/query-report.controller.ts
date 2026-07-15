@@ -1408,6 +1408,33 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."customer", m."item_code", m."status"
           ORDER BY m."name"`,
   },
+  "contract-status": {
+    permDoctype: "Contract",
+    columns: [
+      { key: "contract", label: "Contract" },
+      { key: "party", label: "Party" },
+      { key: "start_date", label: "Start" },
+      { key: "end_date", label: "End" },
+      { key: "contract_value", label: "Value" },
+      { key: "days_remaining", label: "Days Remaining" },
+      { key: "status", label: "Status" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT "name" AS "contract", "party", "start_date", "end_date",
+                      coalesce("contract_value", 0)::float8 AS "contract_value",
+                      CASE WHEN "end_date" IS NULL THEN NULL
+                           ELSE ("end_date"::date - $1::date) END AS "days_remaining",
+                      coalesce("status", 'Draft') AS "status"
+               FROM "tabContract"
+               WHERE "docstatus" = 1
+               ORDER BY "end_date", "name"`,
+        params: [asOf],
+      };
+    },
+  },
   "quality-inspection-status": {
     permDoctype: "Quality Inspection",
     columns: [
