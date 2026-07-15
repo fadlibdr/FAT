@@ -1570,6 +1570,27 @@ Verified against a 1000 invoice: a payment of 500 allocating 800 is rejected
 invoice's 1000 outstanding), and a payment of 1000 allocating 600 submits and shows
 in the unallocated-payments report with 400 on account.
 
+## Phase 82 — Leave → Attendance auto-marking
+
+Extends the leave flow so an approved leave shows up in attendance and can't be
+double-booked. All on the event bus in `HrListener`, no cross-module service imports:
+
+- **Auto-mark.** `on_submit` of a Leave Application creates an `On Leave` Attendance
+  row for each inclusive day of the range, linked back via a new `leave_application`
+  field (skipping days that already have an attendance row); `on_cancel` deletes those
+  rows. The Attendance doctype gains the `leave_application` link.
+- **Overlap gate.** The existing `before_submit` balance gate now also rejects a leave
+  whose date range overlaps another *submitted* leave for the same employee.
+- **Report.** A `leave-balance` report shows, per employee and leave type, the
+  allocated days (submitted allocations), used days (submitted applications), and
+  remaining balance.
+
+Verified: with 20 days allocated, a 3-day leave (Aug 3–5) approves and marks three
+On Leave attendance rows; a leave overlapping those dates is rejected; a 91-day leave
+is rejected for insufficient balance (17 available); the leave-balance report shows
+allocated 20 / used 3 / balance 17; cancelling the leave removes its three attendance
+rows.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
