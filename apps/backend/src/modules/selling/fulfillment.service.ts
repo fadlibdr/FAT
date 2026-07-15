@@ -52,6 +52,43 @@ export class FulfillmentService {
     return String(doc.name);
   }
 
+  /**
+   * Create a draft Sales Invoice billing a submitted Delivery Note. Copies the
+   * delivered lines and carries the Delivery Note's own Sales Order link, so the
+   * order's per_billed recomputes as usual; stamps the Delivery Note with the
+   * invoice. Refuses a non-submitted delivery, a return, or one already billed.
+   */
+  async makeSalesInvoiceFromDelivery(dn: string, ctx?: UserContext): Promise<string> {
+    const dnDt = this.registry.get("Delivery Note");
+    const siDt = this.registry.get("Sales Invoice");
+    if (!dnDt || !siDt) throw new BadRequestException("Delivery Note or Sales Invoice not registered");
+    const context = ctx ?? systemContext();
+    const note = await this.documents.get(dnDt, dn);
+    if ((note.docstatus ?? 0) !== 1) throw new BadRequestException("Delivery Note must be submitted");
+    if (Boolean(note.is_return)) throw new BadRequestException("Cannot bill a return Delivery Note");
+    if (note.sales_invoice) throw new BadRequestException(`Delivery Note ${dn} already billed via ${note.sales_invoice}`);
+
+    const items = ((note.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Number(r.qty ?? 0),
+      rate: Number(r.rate ?? 0),
+    }));
+    const si = await this.documents.create(siDt, context, {
+      customer: note.customer,
+      posting_date: new Date().toISOString().slice(0, 10),
+      sales_order: note.sales_order ?? null,
+      delivery_note: dn,
+      items,
+    });
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Delivery Note"))}
+       SET ${quoteIdent("sales_invoice")} = $1 WHERE ${quoteIdent("name")} = $2`,
+      [String(si.name), dn],
+    );
+    this.logger.log(`Delivery Note ${dn} -> Sales Invoice ${si.name}`);
+    return String(si.name);
+  }
+
   /** Create a draft Sales Order from a submitted Quotation, linking both. */
   async makeSalesOrder(quotation: string, ctx?: UserContext): Promise<string> {
     const qtnDt = this.registry.get("Quotation");
