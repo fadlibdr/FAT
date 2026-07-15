@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { CoreModule } from "../../core/core.module";
 import { DoctypeLoaderService } from "../../core/doctype/doctype-loader.service";
 import { BusinessModule } from "../module-base";
+import { ItemPriceListener } from "./item-price.listener";
 import { PricingRuleListener } from "./pricing-rule.listener";
 import { FulfillmentService } from "./fulfillment.service";
 import { FulfillmentListener } from "./fulfillment.listener";
@@ -15,6 +16,7 @@ import { SellingController } from "./selling.controller";
   imports: [CoreModule],
   controllers: [SellingController],
   providers: [
+    ItemPriceListener,
     PricingRuleListener,
     FulfillmentService,
     FulfillmentListener,

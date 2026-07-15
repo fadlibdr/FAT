@@ -1452,6 +1452,21 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "item-price-list": {
+    permDoctype: "Item Price",
+    columns: [
+      { key: "item_price", label: "Item Price" },
+      { key: "item_code", label: "Item" },
+      { key: "price_list", label: "Price List" },
+      { key: "rate", label: "Rate" },
+      { key: "valid_from", label: "Valid From" },
+    ],
+    // All item prices with their price list and effective-from date.
+    sql: `SELECT "name" AS "item_price", "item_code", "price_list",
+                 coalesce("rate", 0)::float8 AS "rate", "valid_from"
+          FROM "tabItem Price"
+          ORDER BY "item_code", "price_list", "valid_from" DESC NULLS LAST`,
+  },
   "work-order-by-sales-order": {
     permDoctype: "Work Order",
     columns: [
