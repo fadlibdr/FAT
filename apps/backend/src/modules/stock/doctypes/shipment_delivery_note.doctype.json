@@ -1,0 +1,14 @@
+{
+  "name": "Shipment Delivery Note",
+  "module": "Stock",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "delivery_note", "label": "Delivery Note", "fieldtype": "Link", "options": "Delivery Note", "reqd": true, "in_list_view": true },
+    { "fieldname": "customer", "label": "Customer", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "weight", "label": "Weight", "fieldtype": "Float", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

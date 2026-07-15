@@ -1,0 +1,18 @@
+{
+  "name": "Shipment",
+  "module": "Stock",
+  "naming_rule": "series:SHIP-.#####",
+  "is_submittable": true,
+  "title_field": "awb_number",
+  "fields": [
+    { "fieldname": "pickup_date", "label": "Pickup Date", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "carrier", "label": "Carrier", "fieldtype": "Data", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "awb_number", "label": "AWB / Tracking No", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "total_weight", "label": "Total Weight", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "delivery_notes", "label": "Delivery Notes", "fieldtype": "Table", "options": "Shipment Delivery Note" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
