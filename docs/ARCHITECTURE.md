@@ -1550,6 +1550,26 @@ for its project's customer with a `Timesheet Billing` line of 8 × 150; the time
 is stamped and the project's billed amount rises to 1200; a second billing is
 rejected; the status report shows the timesheet billed.
 
+## Phase 81 — Payment Entry allocation integrity
+
+Guards how a payment is split across the invoices it settles. A new
+`PaymentAllocationListener` adds a `before_submit:Payment Entry` gate
+(`suppressErrors:false`), complementing the existing reference-number gate — pure
+event-bus, no cross-module service imports:
+
+- **Gate.** On submit, every reference allocation must be positive; the total
+  allocated across references may not exceed the amount paid (any excess is an
+  unallocated advance, not an over-settlement); and no single allocation may exceed
+  the referenced invoice's own outstanding. A pure on-account payment with no
+  references is left alone.
+- **Report.** An `unallocated-payments` report lists submitted payments whose paid
+  amount exceeds what they allocated — the on-account advances awaiting application.
+
+Verified against a 1000 invoice: a payment of 500 allocating 800 is rejected
+(allocated exceeds paid), a payment of 2000 allocating 1500 is rejected (exceeds the
+invoice's 1000 outstanding), and a payment of 1000 allocating 600 submits and shows
+in the unallocated-payments report with 400 on account.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

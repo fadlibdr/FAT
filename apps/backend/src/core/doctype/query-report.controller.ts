@@ -1385,6 +1385,31 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "unallocated-payments": {
+    permDoctype: "Payment Entry",
+    columns: [
+      { key: "payment_entry", label: "Payment Entry" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "payment_type", label: "Type" },
+      { key: "party", label: "Party" },
+      { key: "paid_amount", label: "Paid Amount" },
+      { key: "allocated", label: "Allocated" },
+      { key: "unallocated", label: "Unallocated" },
+    ],
+    // Submitted payments whose paid amount exceeds what they allocated — on-account advances.
+    sql: `SELECT p."name" AS "payment_entry", p."posting_date", p."payment_type", p."party",
+                 coalesce(p."paid_amount", 0)::float8 AS "paid_amount",
+                 coalesce(a.allocated, 0)::float8 AS "allocated",
+                 (coalesce(p."paid_amount", 0) - coalesce(a.allocated, 0))::float8 AS "unallocated"
+          FROM "tabPayment Entry" p
+          LEFT JOIN (
+            SELECT "parent", sum("allocated_amount") AS allocated
+            FROM "tabPayment Entry Reference" GROUP BY "parent"
+          ) a ON a."parent" = p."name"
+          WHERE p."docstatus" = 1
+            AND coalesce(p."paid_amount", 0) - coalesce(a.allocated, 0) > 0.0001
+          ORDER BY p."posting_date" DESC, p."name"`,
+  },
   "payment-entry-register": {
     permDoctype: "Payment Entry",
     columns: [
