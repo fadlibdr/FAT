@@ -114,6 +114,45 @@ export class SourcingService {
     return [...byItem.values()];
   }
 
+  /**
+   * Create a draft Request for Quotation from a submitted Purchase Material
+   * Request: copy the requested items and invite the given suppliers, linking the
+   * RFQ back to the material request. When the RFQ is later submitted, onRfqSubmit
+   * fans out one Supplier Quotation per invited supplier — completing the funnel
+   * Material Request → RFQ → Supplier Quotation → Purchase Order.
+   */
+  async makeRequestForQuotation(mrName: string, suppliers: string[] = [], ctx?: UserContext): Promise<string> {
+    const mrDt = this.registry.get("Material Request");
+    const rfqDt = this.registry.get("Request for Quotation");
+    if (!mrDt || !rfqDt) throw new BadRequestException("Material Request or Request for Quotation not registered");
+    const context = ctx ?? systemContext();
+    const mr = await this.documents.get(mrDt, mrName);
+    if ((mr.docstatus ?? 0) !== 1) throw new BadRequestException("Material Request must be submitted");
+    if (String(mr.material_request_type ?? "Purchase") !== "Purchase") {
+      throw new BadRequestException("Only a Purchase Material Request can raise a Request for Quotation");
+    }
+
+    const items = ((mr.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Number(r.qty ?? 0),
+      warehouse: r.warehouse ?? null,
+    }));
+    if (items.length === 0) throw new BadRequestException(`Material Request ${mrName} has no items`);
+
+    const invited = [...new Set(suppliers.filter(Boolean).map(String))].map((supplier) => ({ supplier }));
+    const rfq = await this.documents.create(rfqDt, context, {
+      transaction_date: mr.transaction_date ?? new Date().toISOString().slice(0, 10),
+      company: mr.company ?? null,
+      material_request: mrName,
+      items,
+      suppliers: invited,
+    });
+    this.logger.log(
+      `Material Request ${mrName} -> Request for Quotation ${rfq.name} (${items.length} items, ${invited.length} suppliers)`,
+    );
+    return String(rfq.name);
+  }
+
   /** Create a draft Purchase Order from a submitted Supplier Quotation. */
   async makePurchaseOrder(sqName: string, ctx?: UserContext): Promise<string> {
     const sqDt = this.registry.get("Supplier Quotation");

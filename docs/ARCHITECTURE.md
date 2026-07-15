@@ -1329,6 +1329,32 @@ the alternate stocked with 20), producing a linked draft Pick List of qty 10; an
 order line with no stock is rejected ("No stock available to pick"); the status
 report shows the pick list with total qty 10 and its sales-order link.
 
+## Phase 71 — Material Request → Request for Quotation
+
+Closes the front of the procurement funnel. `SourcingService` already fans a
+submitted RFQ into one Supplier Quotation per invited supplier and turns a chosen
+quote into a Purchase Order; this phase adds the step that raises the RFQ from a
+Material Request. All through the generic `DocumentService` — buying imports no
+other module's services:
+
+- **Conversion.** `POST /api/buying/material-request/:name/make-rfq` (body:
+  optional `suppliers[]`) creates a draft RFQ from a *submitted, Purchase-type*
+  Material Request: it copies the requested items (item, qty, warehouse) and adds
+  one RFQ Supplier row per invited supplier, linking the RFQ back via a new
+  read-only `material_request` field. It refuses a non-submitted request, a
+  non-Purchase type, or an empty item list.
+- **Report.** A `material-request-status` report lists submitted material requests
+  with their requested vs ordered quantities, status, and any linked Purchase Order.
+
+The procurement funnel now runs Material Request → RFQ → Supplier Quotation →
+Purchase Order, each step linked.
+
+Verified: a Purchase Material Request for 15 units raises a linked RFQ carrying the
+item and two invited suppliers; submitting that RFQ fans out two Supplier Quotations
+(one per supplier); a Material-Transfer request is rejected ("Only a Purchase
+Material Request can raise a Request for Quotation"); the status report shows the
+request with total qty 15.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
