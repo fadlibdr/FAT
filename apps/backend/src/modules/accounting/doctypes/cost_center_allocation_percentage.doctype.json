@@ -1,0 +1,13 @@
+{
+  "name": "Cost Center Allocation Percentage",
+  "module": "Accounting",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Link", "options": "Cost Center", "reqd": true, "in_list_view": true },
+    { "fieldname": "percentage", "label": "Percentage", "fieldtype": "Float", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

@@ -1969,6 +1969,36 @@ Submitted.
 Shipment weight is only as good as the Packing-Slip weights entered; there is no
 carrier-rate or label integration.
 
+## Phase 99 — Cost Center Allocation
+
+Reallocates a "main" cost center's booked balance across several target cost
+centers by percentage — the tool controllers use to spread shared overhead onto
+the departments that consumed it. Pure event-bus listener; Accounting owns the GL,
+so no cross-module imports.
+
+- **Cost centers on journals.** Journal Entry Account gains a `cost_center` field,
+  and the journal GL poster stamps it onto each posted GL Entry — so a manual
+  journal can now carry a cost center, which is what gives a cost center a balance
+  to reallocate.
+- **Allocate.** A submittable `Cost Center Allocation` DocType (main cost center,
+  period, `Cost Center Allocation Percentage` rows). A `before_submit` gate requires
+  the percentages to sum to 100 and forbids a center allocating to itself. On
+  submit, for every account the main center carries a balance on within the period,
+  it posts a reclass voucher — crediting the main center and debiting the targets
+  pro-rata on the same account — so the account total is unchanged but its
+  cost-center split is redistributed; cancel removes the reclass.
+- **Report.** A `cost-center-balance` report sums debit, credit, and net balance
+  per cost center across the GL.
+
+Verified: a journal books 1000 to a main cost center; an allocation splitting
+60/40 to two targets is rejected when the percentages sum to 90, accepted at
+60/40, and afterward the cost-center-balance report shows the main center at 0 and
+the two targets at 600 and 400.
+
+Allocation reclasses the period's net balance per account; it is a point-in-time
+tool (re-running over an overlapping period would double-count) and does not
+distribute recursively through nested cost centers.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

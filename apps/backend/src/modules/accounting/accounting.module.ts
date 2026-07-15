@@ -22,6 +22,7 @@ import { PeriodLockListener } from "./period-lock.listener";
 import { WriteOffListener } from "./write-off.listener";
 import { TaxTemplateListener } from "./tax-template.listener";
 import { ContraEntryListener } from "./contra-entry.listener";
+import { CostCenterAllocationListener } from "./cost-center-allocation.listener";
 
 @Module({
   imports: [CoreModule],
@@ -45,6 +46,7 @@ import { ContraEntryListener } from "./contra-entry.listener";
     WriteOffListener,
     TaxTemplateListener,
     ContraEntryListener,
+    CostCenterAllocationListener,
   ],
 })
 export class AccountingModule extends BusinessModule {

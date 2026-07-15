@@ -1525,6 +1525,23 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "cost-center-balance": {
+    permDoctype: "GL Entry",
+    columns: [
+      { key: "cost_center", label: "Cost Center" },
+      { key: "debit", label: "Debit" },
+      { key: "credit", label: "Credit" },
+      { key: "balance", label: "Balance" },
+    ],
+    sql: `SELECT "cost_center",
+                 coalesce(sum("debit"), 0) AS "debit",
+                 coalesce(sum("credit"), 0) AS "credit",
+                 coalesce(sum("debit"), 0) - coalesce(sum("credit"), 0) AS "balance"
+          FROM "tabGL Entry"
+          WHERE coalesce("cost_center", '') <> ''
+          GROUP BY "cost_center"
+          ORDER BY "cost_center"`,
+  },
   "shipment-status": {
     permDoctype: "Shipment",
     columns: [
