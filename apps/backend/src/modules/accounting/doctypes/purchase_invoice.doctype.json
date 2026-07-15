@@ -11,6 +11,7 @@
     { "fieldname": "is_return", "label": "Is Return (Debit Note)", "fieldtype": "Check", "in_standard_filter": true },
     { "fieldname": "return_against", "label": "Return Against", "fieldtype": "Link", "options": "Purchase Invoice" },
     { "fieldname": "purchase_order", "label": "Purchase Order", "fieldtype": "Link", "options": "Purchase Order", "in_standard_filter": true },
+    { "fieldname": "purchase_receipt", "label": "Purchase Receipt", "fieldtype": "Link", "options": "Purchase Receipt", "read_only": true, "in_standard_filter": true },
     { "fieldname": "credit_to", "label": "Credit To", "fieldtype": "Link", "options": "Account", "default": "Creditors" },
     { "fieldname": "expense_account", "label": "Expense Account", "fieldtype": "Link", "options": "Account", "default": "Cost of Goods Sold" },
     { "fieldname": "cost_center", "label": "Cost Center", "fieldtype": "Link", "options": "Cost Center", "in_standard_filter": true },
