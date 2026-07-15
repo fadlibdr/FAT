@@ -1452,6 +1452,22 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "work-order-by-sales-order": {
+    permDoctype: "Work Order",
+    columns: [
+      { key: "sales_order", label: "Sales Order" },
+      { key: "work_order", label: "Work Order" },
+      { key: "production_item", label: "Item" },
+      { key: "qty", label: "Qty" },
+      { key: "status", label: "Status" },
+    ],
+    // Work orders raised from a Sales Order (make-to-order), with their production status.
+    sql: `SELECT "sales_order", "name" AS "work_order", "production_item",
+                 coalesce("qty", 0)::float8 AS "qty", coalesce("status", 'Draft') AS "status"
+          FROM "tabWork Order"
+          WHERE "sales_order" IS NOT NULL
+          ORDER BY "sales_order", "name"`,
+  },
   "work-order-status": {
     permDoctype: "Work Order",
     columns: [

@@ -3,10 +3,13 @@ import { CoreModule } from "../../core/core.module";
 import { DoctypeLoaderService } from "../../core/doctype/doctype-loader.service";
 import { BusinessModule } from "../module-base";
 import { ManufacturingListener } from "./manufacturing.listener";
+import { ManufacturingService } from "./manufacturing.service";
+import { ManufacturingController } from "./manufacturing.controller";
 
 @Module({
   imports: [CoreModule],
-  providers: [ManufacturingListener],
+  controllers: [ManufacturingController],
+  providers: [ManufacturingListener, ManufacturingService],
 })
 export class ManufacturingModule extends BusinessModule {
   protected readonly baseDir = __dirname;

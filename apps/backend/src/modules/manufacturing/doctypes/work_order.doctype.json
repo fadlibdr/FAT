@@ -10,6 +10,7 @@
     { "fieldname": "qty", "label": "Qty to Manufacture", "fieldtype": "Float", "default": "1", "reqd": true, "in_list_view": true },
     { "fieldname": "source_warehouse", "label": "Source Warehouse", "fieldtype": "Link", "options": "Warehouse" },
     { "fieldname": "fg_warehouse", "label": "Target Warehouse", "fieldtype": "Link", "options": "Warehouse" },
+    { "fieldname": "sales_order", "label": "Sales Order", "fieldtype": "Link", "options": "Sales Order", "read_only": true, "in_standard_filter": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nIn Process\nCompleted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "stock_entry", "label": "Manufacture Entry", "fieldtype": "Data", "read_only": true },
