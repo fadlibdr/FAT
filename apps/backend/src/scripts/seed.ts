@@ -251,6 +251,13 @@ async function main() {
     deductions: [{ salary_component: "Tax", amount: 900 }],
   });
 
+  // Accounting: a reusable sales tax template (10% VAT).
+  await create("Sales Taxes Template", {
+    title: "Standard VAT 10%",
+    is_default: 1,
+    taxes: [{ account_head: "VAT", rate: 10, description: "VAT @ 10%" }],
+  });
+
   // Selling: a volume discount rule for Acme on WIDGET-1 (10+ qty -> 10% off).
   await create("Pricing Rule", {
     title: "Acme Widget Volume 10%",
