@@ -245,6 +245,23 @@ export class StockLedgerListener {
     this.logger.log(`Posted stock ledger for Stock Entry ${doc.name}`);
   }
 
+  /**
+   * If `item` is the parent of a Product Bundle (a sales kit), return its
+   * component items and per-bundle quantities; otherwise null. A bundle parent is
+   * non-stock — deliveries issue its components, not the parent itself.
+   */
+  async bundleComponents(item: string): Promise<Array<{ item: string; qty: number }> | null> {
+    if (!this.registry.has("Product Bundle") || !this.registry.has("Product Bundle Item")) return null;
+    const rows = await this.dataSource.query(
+      `SELECT pbi.${quoteIdent("item_code")} AS item, pbi.${quoteIdent("qty")} AS qty
+       FROM ${quoteIdent(tableNameFor("Product Bundle Item"))} pbi
+       JOIN ${quoteIdent(tableNameFor("Product Bundle"))} pb ON pb.${quoteIdent("name")} = pbi.${quoteIdent("parent")}
+       WHERE pb.${quoteIdent("new_item_code")} = $1`,
+      [item],
+    );
+    return rows.length ? rows.map((r: { item: string; qty: unknown }) => ({ item: String(r.item), qty: Number(r.qty ?? 0) })) : null;
+  }
+
   @OnEvent("doc.on_submit:Delivery Note")
   async onDeliveryNote(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
@@ -255,12 +272,32 @@ export class StockLedgerListener {
     for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
       const qty = Number(row.qty ?? 0);
       if (!qty || !row.warehouse) continue;
+      const warehouse = String(row.warehouse);
+      // A Product Bundle line issues its components (qty × line qty), not the
+      // non-stock parent item.
+      const components = await this.bundleComponents(String(row.item_code));
+      if (components) {
+        for (const c of components) {
+          try {
+            await this.post(
+              ctx,
+              { item: c.item, warehouse, delta: isReturn ? c.qty * qty : -(c.qty * qty) },
+              "Delivery Note",
+              String(doc.name),
+              doc.posting_date,
+            );
+          } catch (err) {
+            this.logger.error(`SLE ${doc.name} (bundle ${row.item_code}): ${(err as Error).message}`);
+          }
+        }
+        continue;
+      }
       const serials = String(row.serial_no ?? "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
       const batch = (row.batch_no as string) || null;
       try {
         await this.post(
           ctx,
-          { item: String(row.item_code), warehouse: String(row.warehouse), delta: isReturn ? qty : -qty, batch, serials },
+          { item: String(row.item_code), warehouse, delta: isReturn ? qty : -qty, batch, serials },
           "Delivery Note",
           String(doc.name),
           doc.posting_date,

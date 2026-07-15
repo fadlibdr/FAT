@@ -90,6 +90,23 @@ export class ReservationListener {
     await this.setStatus(String(payload.doc.name), "Cancelled");
   }
 
+  /**
+   * Product Bundle components for a parent item (per-bundle quantities), or null
+   * if the item is not a bundle. A bundle line is gated on its components, not the
+   * non-stock parent.
+   */
+  private async bundleComponents(item: string): Promise<Array<{ item: string; qty: number }> | null> {
+    if (!this.registry.has("Product Bundle") || !this.registry.has("Product Bundle Item")) return null;
+    const rows = await this.dataSource.query(
+      `SELECT pbi.${quoteIdent("item_code")} AS item, pbi.${quoteIdent("qty")} AS qty
+       FROM ${quoteIdent(tableNameFor("Product Bundle Item"))} pbi
+       JOIN ${quoteIdent(tableNameFor("Product Bundle"))} pb ON pb.${quoteIdent("name")} = pbi.${quoteIdent("parent")}
+       WHERE pb.${quoteIdent("new_item_code")} = $1`,
+      [item],
+    );
+    return rows.length ? rows.map((r: { item: string; qty: unknown }) => ({ item: String(r.item), qty: Number(r.qty ?? 0) })) : null;
+  }
+
   @OnEvent("doc.before_submit:Delivery Note", { suppressErrors: false })
   async gateDelivery(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
@@ -99,6 +116,20 @@ export class ReservationListener {
       const wh = String(row.warehouse ?? "");
       const qty = Number(row.qty ?? 0);
       if (!item || !wh || !qty) continue;
+      // A Product Bundle line is checked component-by-component (qty × line qty).
+      const components = await this.bundleComponents(item);
+      if (components) {
+        for (const c of components) {
+          const need = c.qty * qty;
+          const onHand = await this.onHand(c.item, wh);
+          if (need > onHand + 1e-9) {
+            throw new BadRequestException(
+              `Delivery Note ${doc.name}: cannot deliver ${qty} of bundle ${item} from ${wh} — component ${c.item} needs ${need}, only ${onHand} on hand`,
+            );
+          }
+        }
+        continue;
+      }
       const batch = String(row.batch_no ?? "");
       const onHand = await this.onHand(item, wh, batch);
       if (qty > onHand + 1e-9) {

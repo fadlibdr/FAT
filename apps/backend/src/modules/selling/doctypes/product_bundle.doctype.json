@@ -1,0 +1,15 @@
+{
+  "name": "Product Bundle",
+  "module": "Selling",
+  "naming_rule": "field:new_item_code",
+  "title_field": "new_item_code",
+  "fields": [
+    { "fieldname": "new_item_code", "label": "Bundle Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Small Text" },
+    { "fieldname": "items", "label": "Components", "fieldtype": "Table", "options": "Product Bundle Item" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "report": 1 }
+  ]
+}
