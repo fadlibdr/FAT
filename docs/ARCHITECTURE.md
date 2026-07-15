@@ -1129,6 +1129,21 @@ A `Sales Taxes Template` DocType + a `TaxTemplateListener` make invoice/order ta
 Verified: a Sales Invoice (net 400) naming the template auto-fills a VAT row and recomputes to
 tax 40 / grand total 440; a Sales Order does the same.
 
+## Phase 60 — Purchase tax templates
+
+The buy-side mirror of Phase 59. A `Purchase Taxes Template` DocType and the same
+`TaxTemplateListener` (now generalized over template + child doctype) populate purchase taxes:
+
+- **Template.** A Purchase Taxes Template holds tax rows in the `Purchase Taxes and Charges` child
+  the purchase documents use.
+- **Application.** The listener's `before_save` on Purchase Invoice and Purchase Order copies the
+  named template's rows into `taxes` when the document carries none of its own; recompute-totals
+  then fills each `tax_amount` and the grand total.
+- Seeds a "Standard Input VAT 10%" template.
+
+Verified: a Purchase Invoice and a Purchase Order (net 400) naming the template each recompute to
+tax 40 / grand total 440; an explicit tax row (25) on a document overrides the template.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
