@@ -1999,6 +1999,32 @@ Allocation reclasses the period's net balance per account; it is a point-in-time
 tool (re-running over an overlapping period would double-count) and does not
 distribute recursively through nested cost centers.
 
+## Phase 100 — Employee full-and-final settlement
+
+Settles a leaving employee: encashes their unused leave, nets it with other
+earnings and deductions, books the payout, and marks them Left. Pure event-bus
+listener, no cross-module service imports.
+
+- **Compute.** A submittable `Full and Final Statement` DocType (employee,
+  relieving date, per-day rate, other earnings, deductions). On `before_save` it
+  reads the employee's net leave balance (submitted allocations − submitted
+  applications), encashes it at the per-day rate, and computes
+  `net_payable = leave_encashment + other_earnings − deductions`.
+- **Book.** A `before_submit` gate rejects a negative net payable; on submit it
+  books **Dr Salary Expense / Cr Salaries Payable** for the net and flips the
+  employee's status to **Left**; cancel reverses the GL.
+- **Report.** A `final-settlement-register` report lists each statement's employee,
+  relieving date, leave encashment, net payable, and status.
+
+Verified: an employee allocated 10 leaves and having used 2 shows an 8-day balance;
+at a 100/day rate the statement encashes 800 and — with 500 other earnings less 200
+deductions — nets 1100; submitting posts the GL, marks the employee Left, and the
+final-settlement-register shows the statement.
+
+Leave encashment values the whole leave balance at a single supplied per-day rate
+(no leave-type-specific encashment policy or salary-structure lookup); the
+settlement does not itself clear the employee's outstanding advances or loans.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

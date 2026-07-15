@@ -1525,6 +1525,22 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "final-settlement-register": {
+    permDoctype: "Full and Final Statement",
+    columns: [
+      { key: "settlement", label: "Statement" },
+      { key: "employee", label: "Employee" },
+      { key: "relieving_date", label: "Relieving Date" },
+      { key: "leave_encashment", label: "Leave Encashment" },
+      { key: "net_payable", label: "Net Payable" },
+      { key: "status", label: "Status" },
+    ],
+    sql: `SELECT "name" AS "settlement", "employee", "relieving_date",
+                 "leave_encashment", "net_payable",
+                 CASE "docstatus" WHEN 1 THEN 'Submitted' WHEN 2 THEN 'Cancelled' ELSE 'Draft' END AS "status"
+          FROM "tabFull and Final Statement"
+          ORDER BY "relieving_date" DESC, "name"`,
+  },
   "cost-center-balance": {
     permDoctype: "GL Entry",
     columns: [
