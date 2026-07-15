@@ -13,9 +13,26 @@ export class BankReconciliationController {
 
   @Post()
   async run(@CurrentUser() user: UserContext, @Body() body: { bank_account?: string }) {
-    const allowed = user.isSuper || user.roles.includes("Accounts User");
-    if (!allowed) throw new ForbiddenException("Accounts access required");
+    this.assertAllowed(user);
     const matches = await this.reconciliation.autoReconcile(body?.bank_account);
     return { matched: matches.length, matches };
+  }
+
+  @Post("match")
+  async match(@CurrentUser() user: UserContext, @Body() body: { transaction: string; payment_entry: string }) {
+    this.assertAllowed(user);
+    return this.reconciliation.matchTransaction(body?.transaction, body?.payment_entry);
+  }
+
+  @Post("unmatch")
+  async unmatch(@CurrentUser() user: UserContext, @Body() body: { transaction: string }) {
+    this.assertAllowed(user);
+    return this.reconciliation.unmatchTransaction(body?.transaction);
+  }
+
+  private assertAllowed(user: UserContext): void {
+    if (!user.isSuper && !user.roles.includes("Accounts User")) {
+      throw new ForbiddenException("Accounts access required");
+    }
   }
 }
