@@ -1464,6 +1464,28 @@ Note mirroring its line at qty −6; submitting it posts Dr Creditors 600 / Cr C
 600 (the exact reverse) and a −600 outstanding with status Return; returning a return
 is rejected; the register shows the debit note against its source bill.
 
+## Phase 77 — Sales Stock Return: Delivery Note → Return Delivery Note
+
+Complements the financial credit note (Phase 75) with the physical goods return. The
+stock-ledger listener already receives goods back on a return delivery
+(`delta = is_return ? +qty : −qty`); this phase adds the converter that raises it
+from a delivery, through the generic `DocumentService` — selling imports no other
+module's services:
+
+- **Return.** `POST /api/selling/delivery-note/:name/make-return` creates a draft
+  return Delivery Note against a *submitted, non-return* delivery: it mirrors the
+  shipped lines at positive quantity (same warehouses), sets `is_return` and
+  `return_against`, and carries the `sales_order` link. On submit the stock-ledger
+  listener receives the goods back into stock at the current valuation. It refuses a
+  non-submitted delivery or one that is itself a return.
+- **Report.** A `delivery-return-register` report lists submitted return deliveries
+  with their source delivery and returned quantity.
+
+Verified: 100 units on hand, a delivery issues 12 (→ 88), and its return receives 12
+back (→ 100) — the Bin round-trips exactly; the return links back to the original
+delivery; returning a return is rejected; the register shows the return with
+returned qty 12.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

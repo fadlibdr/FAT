@@ -121,6 +121,38 @@ export class FulfillmentService {
     return String(credit.name);
   }
 
+  /**
+   * Create a draft return Delivery Note against a submitted delivery: mirrors the
+   * shipped lines (same warehouses) and marks is_return with return_against set.
+   * On submit the stock-ledger listener receives the goods back into stock at the
+   * current valuation. Refuses a non-submitted delivery or one already a return.
+   */
+  async makeDeliveryReturn(dn: string, ctx?: UserContext): Promise<string> {
+    const dnDt = this.registry.get("Delivery Note");
+    if (!dnDt) throw new BadRequestException("Delivery Note not registered");
+    const context = ctx ?? systemContext();
+    const note = await this.documents.get(dnDt, dn);
+    if ((note.docstatus ?? 0) !== 1) throw new BadRequestException("Delivery Note must be submitted");
+    if (Boolean(note.is_return)) throw new BadRequestException(`Delivery Note ${dn} is already a return`);
+
+    const items = ((note.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Math.abs(Number(r.qty ?? 0)),
+      rate: Number(r.rate ?? 0),
+      warehouse: r.warehouse,
+    }));
+    const ret = await this.documents.create(dnDt, context, {
+      customer: note.customer,
+      posting_date: new Date().toISOString().slice(0, 10),
+      is_return: 1,
+      return_against: dn,
+      sales_order: note.sales_order ?? null,
+      items,
+    });
+    this.logger.log(`Delivery Note ${dn} -> return Delivery Note ${ret.name}`);
+    return String(ret.name);
+  }
+
   /** Create a draft Sales Order from a submitted Quotation, linking both. */
   async makeSalesOrder(quotation: string, ctx?: UserContext): Promise<string> {
     const qtnDt = this.registry.get("Quotation");

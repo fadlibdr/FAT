@@ -45,6 +45,12 @@ export class SellingController {
     return { creditNote };
   }
 
+  @Post("delivery-note/:name/make-return")
+  async makeDeliveryReturn(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const returnDelivery = await this.fulfillment.makeDeliveryReturn(name, user);
+    return { returnDelivery };
+  }
+
   @Post("item/:template/make-variants")
   async makeVariants(@CurrentUser() user: UserContext, @Param("template") template: string) {
     return this.variants.makeVariants(template, user);
