@@ -606,4 +606,13 @@ Accounting, and HR as metadata-defined modules.
 - **SO status report** — a `sales-order-status` report shows per order the value, % delivered,
   % billed, and status.
 
+## Phase 56
+
+- **Recurring journals** — a `Recurring Journal` template holds a balanced set of account rows and
+  a schedule; `POST /api/accounting/recurring-journal/run` posts a Journal Entry for every period
+  due up to the cutoff (catching up missed periods) and advances the template's next date, so a
+  repeat run posts nothing more.
+- **Schedule report** — a `recurring-journal-status` report lists each template's frequency, next
+  date, enabled flag, and how many entries it has posted.
+
 See `docs/ARCHITECTURE.md` for the full design.

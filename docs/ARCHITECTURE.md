@@ -1057,6 +1057,26 @@ Verified: on a Sales Order for 10, a delivery of 6 posts, a further delivery of 
 (The demo "buy 5 WIDGET-1 get 1 WIDGET-F free" pricing rule adds a free line to the order, which
 the report's % delivered correctly reflects.)
 
+## Phase 56 — Recurring journals
+
+A `Recurring Journal` template (+ a `Recurring Journal Account` child) and a
+`RecurringJournalService` (+ endpoint) automate periodic accruals/prepayments (accounting module,
+posts through the generic `DocumentService`, no cross-module imports):
+
+- **Template.** A Recurring Journal carries a frequency (Weekly/Monthly), a next posting date, an
+  enabled flag, and a set of account rows (account / debit / credit).
+- **Run.** `POST /api/accounting/recurring-journal/run` (body `as_of`) posts, for each enabled
+  template due on or before the cutoff, one Journal Entry per due period up to the cutoff (a
+  catch-up loop) — the JournalListener validates the balance and posts the GL — then advances the
+  template's next date so a repeat run is a no-op. Each entry is stamped with a back-link to its
+  template.
+- **Report.** A `recurring-journal-status` report lists each template's frequency, next date,
+  enabled flag, and the count of Journal Entries it has posted.
+
+Verified: a monthly template (Dr COGS 1000 / Cr Cash 1000, next 2026-07-01) posts one balanced
+entry when run as-of 2026-07-15 (next → 2026-08-01); a repeat run posts nothing; a run as-of
+2026-09-15 catches up two entries (Aug + Sep), advancing next to 2026-10-01 (3 entries total).
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
