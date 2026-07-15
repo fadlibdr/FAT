@@ -1695,6 +1695,29 @@ of 2026-12-31 returns it in the expired list and its status becomes Expired; the
 contract-status report shows it with value 5000 and days-remaining computed from the
 as-of date.
 
+## Phase 88 — Sales Order → Work Orders (make-to-order)
+
+Links selling to manufacturing by data: raise Work Orders to produce the
+manufactured items on a customer order. A new `ManufacturingService` builds them
+through the generic `DocumentService` — manufacturing imports no other module's
+services:
+
+- **Make to order.** `POST /api/manufacturing/sales-order/:name/make-work-orders`
+  scans a *submitted* Sales Order and, for each ordered line whose item has a
+  default active BOM, creates a draft Work Order (production item, that BOM, the
+  ordered quantity) linked back via a new `sales_order` field. Lines with no BOM are
+  skipped (bought or shipped from stock) and returned in a `skipped` list; the call
+  is rejected only if nothing on the order is manufacturable. When each Work Order is
+  later submitted, the existing material-availability gate (Phase 83) and manufacture
+  posting apply as usual.
+- **Report.** A `work-order-by-sales-order` report lists the Work Orders raised from
+  each Sales Order with their production status.
+
+Verified: a Sales Order with a manufactured line (5 units, item with a default BOM)
+and a non-manufactured line raises a single draft Work Order for the manufactured
+item — linked to the order at qty 5 with its BOM — and skips the no-BOM line; the
+work-order-by-sales-order report shows the Work Order under its Sales Order.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
