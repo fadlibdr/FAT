@@ -1195,6 +1195,22 @@ const REPORTS: Record<string, QueryReport> = {
     ],
     build: (f) => registerSql("Sales Invoice", "customer", f),
   },
+  "lead-conversion": {
+    permDoctype: "Lead",
+    columns: [
+      { key: "lead", label: "Lead" },
+      { key: "lead_name", label: "Name" },
+      { key: "status", label: "Status" },
+      { key: "campaign", label: "Campaign" },
+      { key: "customer", label: "Customer" },
+      { key: "opportunity", label: "Opportunity" },
+    ],
+    // Each lead with its funnel progress: converted customer and opportunity links.
+    sql: `SELECT "name" AS "lead", "lead_name", coalesce("status", 'Open') AS "status",
+                 "campaign", "customer", "opportunity"
+          FROM "tabLead"
+          ORDER BY "name"`,
+  },
   "quotation-status": {
     permDoctype: "Quotation",
     columns: [
