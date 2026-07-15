@@ -1288,6 +1288,26 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "delivery-return-register": {
+    permDoctype: "Delivery Note",
+    columns: [
+      { key: "return_delivery", label: "Return Delivery" },
+      { key: "customer", label: "Customer" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "return_against", label: "Return Against" },
+      { key: "returned_qty", label: "Returned Qty" },
+      { key: "total", label: "Return Value" },
+    ],
+    // Submitted return delivery notes (goods received back) with their source delivery.
+    sql: `SELECT d."name" AS "return_delivery", d."customer", d."posting_date", d."return_against",
+                 coalesce(sum(i."qty"), 0)::float8 AS "returned_qty",
+                 coalesce(d."total", 0)::float8 AS "total"
+          FROM "tabDelivery Note" d
+          LEFT JOIN "tabDelivery Note Item" i ON i."parent" = d."name"
+          WHERE d."docstatus" = 1 AND coalesce(d."is_return", 0) = 1
+          GROUP BY d."name", d."customer", d."posting_date", d."return_against", d."total"
+          ORDER BY d."posting_date" DESC, d."name"`,
+  },
   "credit-note-register": {
     permDoctype: "Sales Invoice",
     columns: [
