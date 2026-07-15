@@ -1654,6 +1654,27 @@ redeem 200 is rejected ("balance is 90") and redeeming 0 is rejected ("must be
 positive"); the balance endpoint reads 90 and the loyalty-balance report shows earned
 150, redeemed 60, balance 90.
 
+## Phase 86 — Outbound quality inspection gate
+
+Extends quality control to shipping. The `QualityListener` already blocks a Purchase
+Receipt when a received item flagged for incoming inspection lacks an accepted
+Quality Inspection; this phase mirrors that on the way out. Pure event-bus, no
+cross-module service imports:
+
+- **Gate.** A shared gate now backs both `before_submit:Purchase Receipt` (keyed on
+  the Item's `inspection_required_before_purchase` flag) and a new
+  `before_submit:Delivery Note` (keyed on a new `inspection_required_before_delivery`
+  flag). Any line item whose Item requires inspection must have a submitted, Accepted
+  Quality Inspection referencing this document, or the submit is blocked. Return
+  deliveries are exempt.
+- **Report.** A `quality-inspection-status` report lists submitted inspections with
+  their referenced document, item, and accept/reject status.
+
+Verified: an item flagged for before-delivery inspection blocks its Delivery Note
+submission ("requires an accepted Quality Inspection"); after an Accepted Quality
+Inspection referencing that delivery is submitted, the delivery submits; the
+inspection-status report shows the outgoing inspection as Accepted.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

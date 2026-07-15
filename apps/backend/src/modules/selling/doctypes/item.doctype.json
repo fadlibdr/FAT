@@ -16,6 +16,7 @@
     { "fieldname": "reorder_level", "label": "Reorder Level", "fieldtype": "Float" },
     { "fieldname": "reorder_qty", "label": "Reorder Qty", "fieldtype": "Float" },
     { "fieldname": "inspection_required_before_purchase", "label": "Inspection Required before Purchase", "fieldtype": "Check" },
+    { "fieldname": "inspection_required_before_delivery", "label": "Inspection Required before Delivery", "fieldtype": "Check" },
     { "fieldname": "has_variants", "label": "Has Variants (Template)", "fieldtype": "Check", "in_standard_filter": true },
     { "fieldname": "variant_of", "label": "Variant Of", "fieldtype": "Link", "options": "Item", "in_standard_filter": true },
     { "fieldname": "attributes", "label": "Attributes", "fieldtype": "Table", "options": "Item Variant Attribute" }

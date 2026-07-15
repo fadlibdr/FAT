@@ -14,6 +14,8 @@ import { tableNameFor, quoteIdent } from "../../core/doctype/schema-sync.service
  *  2. before_submit on a Purchase Receipt gates the transition: any received
  *     item whose Item requires incoming inspection must have a submitted,
  *     Accepted Quality Inspection referencing this receipt, or submit is blocked.
+ *  3. before_submit on a Delivery Note gates the same way for outgoing goods,
+ *     keyed on the Item's before-delivery inspection flag.
  */
 @Injectable()
 export class QualityListener {
@@ -36,26 +38,39 @@ export class QualityListener {
   // submit, rather than being swallowed and logged by the event emitter.
   @OnEvent("doc.before_submit:Purchase Receipt", { suppressErrors: false })
   async gatePurchaseReceipt(payload: DocEventPayload): Promise<void> {
+    await this.gate(payload.doc, "Purchase Receipt", "inspection_required_before_purchase");
+  }
+
+  @OnEvent("doc.before_submit:Delivery Note", { suppressErrors: false })
+  async gateDeliveryNote(payload: DocEventPayload): Promise<void> {
+    if (Boolean(payload.doc.is_return)) return; // returns bring goods back, no outgoing inspection
+    await this.gate(payload.doc, "Delivery Note", "inspection_required_before_delivery");
+  }
+
+  /**
+   * Block a submit when any line item flagged for inspection (per `flagColumn`)
+   * lacks a submitted, Accepted Quality Inspection referencing this document.
+   */
+  private async gate(doc: Record<string, unknown>, label: string, flagColumn: string): Promise<void> {
     if (!this.registry.has("Quality Inspection") || !this.registry.has("Item")) return;
-    const doc = payload.doc;
     const items = (doc.items as Array<Record<string, unknown>>) ?? [];
     for (const row of items) {
       const item = String(row.item_code ?? "");
-      if (!item || !(await this.inspectionRequired(item))) continue;
+      if (!item || !(await this.inspectionRequired(item, flagColumn))) continue;
       const accepted = await this.hasAcceptedInspection(String(doc.name), item);
       if (!accepted) {
         throw new BadRequestException(
-          `Purchase Receipt ${doc.name}: item ${item} requires an accepted Quality Inspection before it can be submitted`,
+          `${label} ${doc.name}: item ${item} requires an accepted Quality Inspection before it can be submitted`,
         );
       }
     }
-    this.logger.log(`Purchase Receipt ${doc.name} passed quality gate`);
+    this.logger.log(`${label} ${doc.name} passed quality gate`);
   }
 
-  private async inspectionRequired(item: string): Promise<boolean> {
+  private async inspectionRequired(item: string, flagColumn: string): Promise<boolean> {
     const row = (
       await this.dataSource.query(
-        `SELECT ${quoteIdent("inspection_required_before_purchase")} AS req
+        `SELECT ${quoteIdent(flagColumn)} AS req
          FROM ${quoteIdent(tableNameFor("Item"))} WHERE ${quoteIdent("name")} = $1`,
         [item],
       )
