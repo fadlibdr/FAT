@@ -650,4 +650,10 @@ Accounting, and HR as metadata-defined modules.
   `before_submit` gate blocks same-account or non-positive transfers, and cancel reverses.
 - **Transfer report** — a `contra-entry-register` report lists submitted transfers.
 
+## Phase 62
+
+- **Sales analytics** — three reports over submitted invoices: `top-selling-items` (qty + revenue
+  per item), `customer-revenue` (invoices / revenue / outstanding per customer), and `gross-profit`
+  (revenue vs moving-average cost per item, with margin %).
+
 See `docs/ARCHITECTURE.md` for the full design.
