@@ -1486,6 +1486,29 @@ back (→ 100) — the Bin round-trips exactly; the return links back to the ori
 delivery; returning a return is rejected; the register shows the return with
 returned qty 12.
 
+## Phase 78 — Purchase Stock Return: Purchase Receipt → Return Purchase Receipt
+
+The buying-side mirror of Phase 77, and it required an engine fix: the stock-ledger
+listener's Purchase Receipt handler always received stock, ignoring `is_return`
+(unlike the Delivery Note handler). Now a return receipt issues the goods back out:
+
+- **Engine.** The Purchase Receipt doctype gains `is_return` / `return_against`
+  fields, and `onPurchaseReceipt` posts `delta = is_return ? −qty : qty` at the
+  current valuation — a return ships goods back to the supplier and removes them
+  from stock. Because Purchase Receipt now carries `is_return`, the PO fulfilment
+  recompute also correctly excludes returns from received quantity.
+- **Return.** `POST /api/buying/purchase-receipt/:name/make-return` creates a draft
+  return receipt against a *submitted, non-return* receipt: it mirrors the received
+  lines at positive quantity (same warehouses), sets `is_return` and
+  `return_against`, and carries the `purchase_order` link. Refuses a non-submitted
+  receipt or one that is itself a return.
+- **Report.** A `receipt-return-register` report lists submitted return receipts with
+  their source receipt and returned quantity.
+
+Verified: a receipt takes 40 units into stock (→ 40), and its return issues 40 back
+out (→ 0); the return links to the original receipt; returning a return is rejected;
+the register shows the return with returned qty 40.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

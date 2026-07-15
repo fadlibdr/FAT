@@ -274,6 +274,9 @@ export class StockLedgerListener {
   async onPurchaseReceipt(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
     const ctx = systemContext(payload.user);
+    // A purchase return (is_return) ships goods back to the supplier, so it issues
+    // stock at the current valuation rather than receiving it.
+    const isReturn = Boolean(doc.is_return);
     for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
       const qty = Number(row.qty ?? 0);
       if (!qty || !row.warehouse) continue;
@@ -283,8 +286,10 @@ export class StockLedgerListener {
           {
             item: String(row.item_code),
             warehouse: String(row.warehouse),
-            delta: qty,
-            incomingRate: Number(row.rate ?? 0) || (await this.itemRate(String(row.item_code))),
+            delta: isReturn ? -qty : qty,
+            incomingRate: isReturn
+              ? undefined
+              : Number(row.rate ?? 0) || (await this.itemRate(String(row.item_code))),
           },
           "Purchase Receipt",
           String(doc.name),
@@ -294,7 +299,7 @@ export class StockLedgerListener {
         this.logger.error(`SLE ${doc.name}: ${(err as Error).message}`);
       }
     }
-    this.logger.log(`Posted stock ledger for Purchase Receipt ${doc.name}`);
+    this.logger.log(`Posted stock ledger for Purchase Receipt ${doc.name}${isReturn ? " (return)" : ""}`);
   }
 
   /** Current Bin balance for an item+warehouse(+batch) — used by reconciliation. */

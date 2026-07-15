@@ -1268,6 +1268,26 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."material_request_type", m."transaction_date", m."status", m."purchase_order"
           ORDER BY m."transaction_date" DESC, m."name"`,
   },
+  "receipt-return-register": {
+    permDoctype: "Purchase Receipt",
+    columns: [
+      { key: "return_receipt", label: "Return Receipt" },
+      { key: "supplier", label: "Supplier" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "return_against", label: "Return Against" },
+      { key: "returned_qty", label: "Returned Qty" },
+      { key: "total", label: "Return Value" },
+    ],
+    // Submitted return purchase receipts (goods sent back to the supplier).
+    sql: `SELECT p."name" AS "return_receipt", p."supplier", p."posting_date", p."return_against",
+                 coalesce(sum(i."qty"), 0)::float8 AS "returned_qty",
+                 coalesce(p."total", 0)::float8 AS "total"
+          FROM "tabPurchase Receipt" p
+          LEFT JOIN "tabPurchase Receipt Item" i ON i."parent" = p."name"
+          WHERE p."docstatus" = 1 AND coalesce(p."is_return", 0) = 1
+          GROUP BY p."name", p."supplier", p."posting_date", p."return_against", p."total"
+          ORDER BY p."posting_date" DESC, p."name"`,
+  },
   "debit-note-register": {
     permDoctype: "Purchase Invoice",
     columns: [
