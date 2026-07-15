@@ -615,4 +615,11 @@ Accounting, and HR as metadata-defined modules.
 - **Schedule report** — a `recurring-journal-status` report lists each template's frequency, next
   date, enabled flag, and how many entries it has posted.
 
+## Phase 57
+
+- **Cash reporting** — a `cash-flow-statement` (direct method: cash/bank movements classified
+  Operating / Investing / Financing by voucher type), a `bank-cash-summary` (per account inflow /
+  outflow / balance), and a `cash-flow-forecast` (open receivables vs payables projected by due
+  window).
+
 See `docs/ARCHITECTURE.md` for the full design.

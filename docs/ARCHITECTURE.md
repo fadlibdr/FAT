@@ -1077,6 +1077,27 @@ Verified: a monthly template (Dr COGS 1000 / Cr Cash 1000, next 2026-07-01) post
 entry when run as-of 2026-07-15 (next → 2026-08-01); a repeat run posts nothing; a run as-of
 2026-09-15 catches up two entries (Aug + Sep), advancing next to 2026-10-01 (3 entries total).
 
+## Phase 57 — Cash reporting
+
+Three query-reports complete the cash picture (no schema changes — read-only over GL and invoice
+outstanding):
+
+- **cash-flow-statement.** Direct method: movements on the Cash / Bank accounts, classified into
+  Operating / Investing / Financing by the voucher type that moved the cash (assets/depreciation →
+  Investing; loans/gratuity/commission/period-close → Financing; everything else → Operating), with
+  optional from/to date filters.
+- **bank-cash-summary.** Per cash/bank account, total inflow (Σ debit), outflow (Σ credit), and
+  current balance.
+- **cash-flow-forecast.** Forward view: open Sales-Invoice outstanding as expected inflows and open
+  Purchase-Invoice outstanding as expected outflows, bucketed by how far off each due date is
+  (Overdue / 0-30 / 31-60 / 60+).
+
+Verified: after a loan disbursement (Cr Cash 5000) and recurring journals (Cr Cash 3000), the
+statement shows Financing −5000 and Operating −3000; the summary shows the Cash account at −8000;
+the forecast nets open receivables 1500 against payables 1000 to +500.
+
+Cash accounts are identified by name (`Cash`, `Bank`) since the demo chart types them both as Asset.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
