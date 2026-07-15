@@ -1525,6 +1525,21 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "opportunity-loss-analysis": {
+    permDoctype: "Opportunity",
+    columns: [
+      { key: "lost_reason", label: "Lost Reason" },
+      { key: "opportunities", label: "Opportunities" },
+      { key: "lost_amount", label: "Lost Amount" },
+    ],
+    sql: `SELECT coalesce(nullif(trim("lost_reason"), ''), '(unspecified)') AS "lost_reason",
+                 count(*) AS "opportunities",
+                 coalesce(sum("opportunity_amount"), 0) AS "lost_amount"
+          FROM "tabOpportunity"
+          WHERE "status" = 'Lost'
+          GROUP BY coalesce(nullif(trim("lost_reason"), ''), '(unspecified)')
+          ORDER BY "lost_amount" DESC`,
+  },
   "final-settlement-register": {
     permDoctype: "Full and Final Statement",
     columns: [

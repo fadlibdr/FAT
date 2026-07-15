@@ -2025,6 +2025,30 @@ Leave encashment values the whole leave balance at a single supplied per-day rat
 (no leave-type-specific encashment policy or salary-structure lookup); the
 settlement does not itself clear the employee's outstanding advances or loans.
 
+## Phase 101 — Opportunity won/lost close
+
+Gives the CRM pipeline a terminal state: an Opportunity can be closed Won or Lost,
+and a lost one records why. Reuses the generic DocumentService — CRM imports no
+other module's services.
+
+- **Close.** Opportunity gains a `lost_reason` field.
+  `POST /api/crm/opportunity/:name/close` with `{outcome: "Won" | "Lost", reason}`
+  sets a Won opportunity to status `Converted` / stage `Closed Won`, and a Lost one
+  to `Lost` / `Closed Lost` with its reason recorded.
+- **Guard.** Closing Lost requires a non-empty reason, and an Opportunity already
+  Lost or Converted cannot be re-closed.
+- **Report.** An `opportunity-loss-analysis` report groups lost opportunities by
+  reason with a count and the total lost amount (reasonless losses roll up under
+  "(unspecified)").
+
+Verified: one opportunity closed Won lands at Converted / Closed Won; two closed
+Lost with reasons land at Lost / Closed Lost; re-closing either a Lost or a
+Converted opportunity is rejected; the opportunity-loss-analysis report shows the
+two reasons with their counts and amounts (5000 and 3000).
+
+The close is a status transition only — it does not cancel a linked Quotation or
+roll the outcome up into a sales-stage forecast.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

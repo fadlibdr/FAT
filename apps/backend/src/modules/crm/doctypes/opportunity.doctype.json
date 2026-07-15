@@ -13,7 +13,8 @@
     { "fieldname": "expected_closing", "label": "Expected Closing", "fieldtype": "Date" },
     { "fieldname": "lead", "label": "Source Lead", "fieldtype": "Link", "options": "Lead" },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Opportunity Item" },
-    { "fieldname": "quotation", "label": "Quotation", "fieldtype": "Link", "options": "Quotation", "read_only": true, "in_list_view": true }
+    { "fieldname": "quotation", "label": "Quotation", "fieldtype": "Link", "options": "Quotation", "read_only": true, "in_list_view": true },
+    { "fieldname": "lost_reason", "label": "Lost Reason", "fieldtype": "Small Text", "in_standard_filter": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
