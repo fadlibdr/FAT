@@ -1023,6 +1023,74 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "top-selling-items": {
+    permDoctype: "Sales Invoice",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "qty", label: "Qty Sold" },
+      { key: "revenue", label: "Revenue" },
+    ],
+    // Quantity and revenue per item across submitted (non-return) Sales Invoices.
+    sql: `SELECT si_item."item_code",
+                 sum(si_item."qty")::float8 AS "qty",
+                 sum(coalesce(si_item."amount", 0))::float8 AS "revenue"
+          FROM "tabSales Invoice Item" si_item
+          JOIN "tabSales Invoice" si ON si."name" = si_item."parent"
+          WHERE si."docstatus" = 1 AND coalesce(si."is_return", 0) = 0
+          GROUP BY si_item."item_code"
+          ORDER BY "revenue" DESC`,
+  },
+  "customer-revenue": {
+    permDoctype: "Sales Invoice",
+    columns: [
+      { key: "customer", label: "Customer" },
+      { key: "invoices", label: "Invoices" },
+      { key: "revenue", label: "Revenue" },
+      { key: "outstanding", label: "Outstanding" },
+    ],
+    // Per customer: invoice count, total billed, and total outstanding.
+    sql: `SELECT "customer",
+                 count(*)::int AS "invoices",
+                 sum(coalesce("grand_total", "total", 0))::float8 AS "revenue",
+                 sum(coalesce("outstanding_amount", 0))::float8 AS "outstanding"
+          FROM "tabSales Invoice"
+          WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 0
+          GROUP BY "customer"
+          ORDER BY "revenue" DESC`,
+  },
+  "gross-profit": {
+    permDoctype: "Sales Invoice",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "revenue", label: "Revenue" },
+      { key: "cost", label: "Cost" },
+      { key: "gross_profit", label: "Gross Profit" },
+      { key: "margin_pct", label: "Margin %" },
+    ],
+    // Revenue vs cost per item, costing sold quantity at the item's average Bin
+    // (moving-average) valuation; margin % = gross profit / revenue.
+    sql: `WITH cost AS (
+            SELECT "item_code", avg("valuation_rate") AS rate
+            FROM "tabBin" GROUP BY "item_code"
+          ), sold AS (
+            SELECT si_item."item_code",
+                   sum(si_item."qty") AS qty,
+                   sum(coalesce(si_item."amount", 0)) AS revenue
+            FROM "tabSales Invoice Item" si_item
+            JOIN "tabSales Invoice" si ON si."name" = si_item."parent"
+            WHERE si."docstatus" = 1 AND coalesce(si."is_return", 0) = 0
+            GROUP BY si_item."item_code"
+          )
+          SELECT s."item_code",
+                 s.revenue::float8 AS "revenue",
+                 (s.qty * coalesce(c.rate, 0))::float8 AS "cost",
+                 (s.revenue - s.qty * coalesce(c.rate, 0))::float8 AS "gross_profit",
+                 (CASE WHEN s.revenue <> 0
+                       THEN round(((s.revenue - s.qty * coalesce(c.rate, 0)) / s.revenue * 100)::numeric, 1)
+                       ELSE 0 END)::float8 AS "margin_pct"
+          FROM sold s LEFT JOIN cost c ON c."item_code" = s."item_code"
+          ORDER BY "gross_profit" DESC`,
+  },
   "sales-register": {
     permDoctype: "Sales Invoice",
     columns: [
