@@ -1525,6 +1525,24 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "shipment-status": {
+    permDoctype: "Shipment",
+    columns: [
+      { key: "shipment", label: "Shipment" },
+      { key: "carrier", label: "Carrier" },
+      { key: "awb_number", label: "AWB / Tracking" },
+      { key: "notes", label: "Delivery Notes" },
+      { key: "total_weight", label: "Total Weight" },
+      { key: "status", label: "Status" },
+    ],
+    sql: `SELECT sh."name" AS "shipment", sh."carrier", sh."awb_number",
+                 count(sdn."name") AS "notes", sh."total_weight",
+                 CASE sh."docstatus" WHEN 1 THEN 'Submitted' WHEN 2 THEN 'Cancelled' ELSE 'Draft' END AS "status"
+          FROM "tabShipment" sh
+          LEFT JOIN "tabShipment Delivery Note" sdn ON sdn."parent" = sh."name"
+          GROUP BY sh."name", sh."carrier", sh."awb_number", sh."total_weight", sh."docstatus"
+          ORDER BY sh."name"`,
+  },
   "packing-slip-status": {
     permDoctype: "Delivery Note",
     columns: [

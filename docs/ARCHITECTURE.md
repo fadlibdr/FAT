@@ -1944,6 +1944,31 @@ packing-slip-status report shows delivered 10, packed 10, remaining 0.
 Packing Slips are a shipping record only — they do not themselves move stock (the
 Delivery Note already did) and carry no per-case weights beyond a slip total.
 
+## Phase 98 — Shipments
+
+Groups one or more submitted Delivery Notes into a single carrier consignment.
+Pure use of the generic DocumentService over sibling tables; no cross-module
+imports.
+
+- **Consolidate.** A submittable `Shipment` DocType (carrier, AWB/tracking number,
+  pickup date, computed total weight, `Shipment Delivery Note` child rows).
+  `POST /api/stock/make-shipment` builds a draft shipment from a set of submitted
+  notes, copying each note's customer and summing its Packing-Slip net weights into
+  the shipment total.
+- **Gate.** A `before_submit:Shipment` gate requires at least one note, each
+  submitted, and none already riding on another submitted shipment.
+- **Report.** A `shipment-status` report lists each shipment with its carrier,
+  tracking number, delivery-note count, total weight, and status.
+
+Verified: two Delivery Notes packed at 3 and 4 weight units consolidate into one
+shipment whose total weight is 7 over 2 notes; the shipment submits; a second
+shipment reusing one of the notes is rejected ("already on shipment SHIP-00001");
+the shipment-status report shows the carrier, tracking, 2 notes, weight 7, and
+Submitted.
+
+Shipment weight is only as good as the Packing-Slip weights entered; there is no
+carrier-rate or label integration.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
