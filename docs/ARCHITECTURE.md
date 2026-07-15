@@ -1635,6 +1635,25 @@ Verified: a schedule of 3 monthly visits reports 3 pending; drawing and submitti
 visit closes the earliest slot (completed 1 / pending 2) and the next draw pre-fills
 the following month's date, closing to completed 2 / pending 1.
 
+## Phase 85 — Loyalty point redemption
+
+Adds the spend side to loyalty. The `LoyaltyListener` already accrues points on a
+submitted Sales Invoice; a customer's balance is the sum of their point entries. This
+phase lets them spend it. A new `LoyaltyService` books redemptions through the generic
+`DocumentService` — loyalty imports no other module's services:
+
+- **Redeem.** `POST /api/loyalty/redeem` (body `{ customer, points }`) books a negative
+  Loyalty Point Entry (`entry_type` Redemption) so the balance drops by the points
+  spent, and returns the new balance. It refuses a non-positive amount or one greater
+  than the current balance.
+- **Report.** A `loyalty-balance` report lists each customer's points earned (positive
+  entries), redeemed (negatives), and net balance.
+
+Verified: a customer with 150 accrued points redeems 60 (balance → 90); attempting to
+redeem 200 is rejected ("balance is 90") and redeeming 0 is rejected ("must be
+positive"); the balance endpoint reads 90 and the loyalty-balance report shows earned
+150, redeemed 60, balance 90.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

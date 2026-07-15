@@ -3,12 +3,13 @@ import { CoreModule } from "../../core/core.module";
 import { DoctypeLoaderService } from "../../core/doctype/doctype-loader.service";
 import { BusinessModule } from "../module-base";
 import { LoyaltyListener } from "./loyalty.listener";
-import { LoyaltyController } from "./loyalty.controller";
+import { LoyaltyController, LoyaltyRedeemController } from "./loyalty.controller";
+import { LoyaltyService } from "./loyalty.service";
 
 @Module({
   imports: [CoreModule],
-  controllers: [LoyaltyController],
-  providers: [LoyaltyListener],
+  controllers: [LoyaltyController, LoyaltyRedeemController],
+  providers: [LoyaltyListener, LoyaltyService],
 })
 export class LoyaltyModule extends BusinessModule {
   protected readonly baseDir = __dirname;
