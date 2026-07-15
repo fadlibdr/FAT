@@ -1385,6 +1385,29 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "maintenance-schedule-status": {
+    permDoctype: "Maintenance Schedule",
+    columns: [
+      { key: "maintenance_schedule", label: "Schedule" },
+      { key: "customer", label: "Customer" },
+      { key: "item_code", label: "Item" },
+      { key: "total_visits", label: "Total Visits" },
+      { key: "completed_visits", label: "Completed" },
+      { key: "pending_visits", label: "Pending" },
+      { key: "status", label: "Status" },
+    ],
+    // Submitted maintenance schedules with their planned vs completed visit counts.
+    sql: `SELECT m."name" AS "maintenance_schedule", m."customer", m."item_code",
+                 count(d."name")::int AS "total_visits",
+                 count(*) FILTER (WHERE d."status" = 'Completed')::int AS "completed_visits",
+                 count(*) FILTER (WHERE d."status" = 'Pending')::int AS "pending_visits",
+                 coalesce(m."status", 'Draft') AS "status"
+          FROM "tabMaintenance Schedule" m
+          LEFT JOIN "tabMaintenance Schedule Detail" d ON d."parent" = m."name"
+          WHERE m."docstatus" = 1
+          GROUP BY m."name", m."customer", m."item_code", m."status"
+          ORDER BY m."name"`,
+  },
   "work-order-status": {
     permDoctype: "Work Order",
     columns: [
