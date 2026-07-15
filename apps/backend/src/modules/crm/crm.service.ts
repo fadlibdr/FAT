@@ -54,6 +54,41 @@ export class CrmService {
     return String(opportunity.name);
   }
 
+  /**
+   * Turn an Opportunity into a draft Quotation: copy the customer and any
+   * Opportunity Items onto a new Quotation linked back to the opportunity, then
+   * stamp the opportunity with the quotation and advance its status to Quotation.
+   */
+  async makeQuotation(opportunity: string, ctx?: UserContext): Promise<string> {
+    const oppDt = this.registry.get("Opportunity");
+    const qtnDt = this.registry.get("Quotation");
+    if (!oppDt || !qtnDt) throw new BadRequestException("Opportunity or Quotation not registered");
+    const context = ctx ?? systemContext();
+    const opp = await this.documents.get(oppDt, opportunity);
+    if (opp.quotation) throw new BadRequestException(`Opportunity ${opportunity} already has Quotation ${opp.quotation}`);
+
+    const items = ((opp.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: Number(r.qty ?? 0),
+      rate: Number(r.rate ?? 0),
+    }));
+    const today = new Date().toISOString().slice(0, 10);
+    const qtn = await this.documents.create(qtnDt, context, {
+      customer: opp.customer,
+      transaction_date: today,
+      opportunity,
+      items,
+    });
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Opportunity"))}
+       SET ${quoteIdent("quotation")} = $1, ${quoteIdent("status")} = 'Quotation'
+       WHERE ${quoteIdent("name")} = $2`,
+      [String(qtn.name), opportunity],
+    );
+    this.logger.log(`Opportunity ${opportunity} -> Quotation ${qtn.name}`);
+    return String(qtn.name);
+  }
+
   /** Reuse the lead's converted customer, else create one named after the lead. */
   private async ensureCustomer(lead: Record<string, unknown>, ctx: UserContext): Promise<string> {
     if (lead.customer) return String(lead.customer);

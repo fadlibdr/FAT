@@ -13,4 +13,10 @@ export class CrmController {
     const opportunity = await this.crm.makeOpportunity(name, user);
     return { opportunity };
   }
+
+  @Post("opportunity/:name/make-quotation")
+  async makeQuotation(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const quotation = await this.crm.makeQuotation(name, user);
+    return { quotation };
+  }
 }

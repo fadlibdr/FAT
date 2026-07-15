@@ -64,6 +64,14 @@
       "in_list_view": true
     },
     {
+      "fieldname": "opportunity",
+      "label": "Opportunity",
+      "fieldtype": "Link",
+      "options": "Opportunity",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
       "fieldname": "sales_order",
       "label": "Sales Order",
       "fieldtype": "Link",
