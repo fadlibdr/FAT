@@ -1098,6 +1098,21 @@ the forecast nets open receivables 1500 against payables 1000 to +500.
 
 Cash accounts are identified by name (`Cash`, `Bank`) since the demo chart types them both as Asset.
 
+## Phase 58 — Bad-debt write-off
+
+A `Write Off Entry` submittable DocType + a `WriteOffListener` handle uncollectable receivables
+(accounting module, GL via the generic `DocumentService`, no cross-module imports):
+
+- **Default & gate.** `before_save` defaults the write-off amount to the linked Sales Invoice's
+  outstanding; a `before_submit` gate (`suppressErrors:false`) rejects an amount that exceeds that
+  outstanding (verified: 1000 against a 0-outstanding invoice is blocked).
+- **Posting.** On submit the listener books Dr Bad Debt Expense / Cr Debtors and, when a Sales
+  Invoice is linked, reduces its outstanding and flips it to **Written Off** once cleared. Cancel
+  deletes the voucher GL and restores the invoice's outstanding and status (verified: a 400 invoice
+  writes off to 0 / Written Off with a balanced entry, and cancel restores it to 400 / Unpaid).
+- **Report.** A `write-off-register` report lists submitted write-offs by customer, invoice,
+  amount, account, and reason.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

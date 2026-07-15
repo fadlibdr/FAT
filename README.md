@@ -622,4 +622,13 @@ Accounting, and HR as metadata-defined modules.
   outflow / balance), and a `cash-flow-forecast` (open receivables vs payables projected by due
   window).
 
+## Phase 58
+
+- **Bad-debt write-off** — a submittable `Write Off Entry` writes off an uncollectable receivable:
+  it books Dr Bad Debt Expense / Cr Debtors and, when it targets a Sales Invoice, reduces that
+  invoice's outstanding and marks it Written Off; a `before_submit` gate blocks writing off more
+  than the invoice's outstanding, and cancel reverses.
+- **Write-off report** — a `write-off-register` report lists submitted write-offs by customer,
+  invoice, amount, and reason.
+
 See `docs/ARCHITECTURE.md` for the full design.
