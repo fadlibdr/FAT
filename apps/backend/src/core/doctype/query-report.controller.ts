@@ -1348,6 +1348,27 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "timesheet-billing-status": {
+    permDoctype: "Timesheet",
+    columns: [
+      { key: "timesheet", label: "Timesheet" },
+      { key: "employee", label: "Employee" },
+      { key: "project", label: "Project" },
+      { key: "hours", label: "Hours" },
+      { key: "billable_amount", label: "Billable Amount" },
+      { key: "sales_invoice", label: "Sales Invoice" },
+      { key: "billed", label: "Billed" },
+    ],
+    // Submitted billable timesheets and whether each has been invoiced.
+    sql: `SELECT "name" AS "timesheet", "employee", "project",
+                 coalesce("hours", 0)::float8 AS "hours",
+                 coalesce("billable_amount", 0)::float8 AS "billable_amount",
+                 "sales_invoice",
+                 CASE WHEN "sales_invoice" IS NOT NULL THEN 'Yes' ELSE 'No' END AS "billed"
+          FROM "tabTimesheet"
+          WHERE "docstatus" = 1 AND coalesce("is_billable", 0) = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "journal-entry-register": {
     permDoctype: "Journal Entry",
     columns: [

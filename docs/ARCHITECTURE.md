@@ -1528,6 +1528,28 @@ rows swapped (`reversal_of` set); submitting it nets both accounts to zero (Cash
 500/500, Sales 500/500); reversing the reversal and reversing the original a second
 time are both rejected; the register shows the reversal linked to its source.
 
+## Phase 80 — Timesheet → Sales Invoice
+
+Bills project work. The `ProjectsListener` already rolls submitted timesheets into a
+project's total hours and billable amount; this phase turns a timesheet into revenue.
+A new `ProjectsBillingService` builds the invoice through the generic
+`DocumentService` — projects imports no other module's services:
+
+- **Billing.** `POST /api/projects/timesheet/:name/make-sales-invoice` creates a
+  draft Sales Invoice from a *submitted, billable, un-invoiced* Timesheet: the
+  customer comes from the timesheet's project, and a single line bills hours ×
+  billing rate against a shared `Timesheet Billing` service item (created on first
+  use). The Sales Invoice links to the project; the timesheet is stamped with the
+  invoice and the project's billed amount is rolled up. It refuses a non-submitted,
+  non-billable, or already-billed timesheet, or a project with no customer.
+- **Report.** A `timesheet-billing-status` report lists submitted billable
+  timesheets with their hours, billable amount, and whether each has been invoiced.
+
+Verified: an 8-hour timesheet at rate 150 (billable 1200) bills to a Sales Invoice
+for its project's customer with a `Timesheet Billing` line of 8 × 150; the timesheet
+is stamped and the project's billed amount rises to 1200; a second billing is
+rejected; the status report shows the timesheet billed.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

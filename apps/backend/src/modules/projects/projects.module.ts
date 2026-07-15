@@ -4,10 +4,13 @@ import { DoctypeLoaderService } from "../../core/doctype/doctype-loader.service"
 import { BusinessModule } from "../module-base";
 import { ProjectsListener } from "./projects.listener";
 import { TaskListener } from "./task.listener";
+import { ProjectsBillingService } from "./projects-billing.service";
+import { ProjectsController } from "./projects.controller";
 
 @Module({
   imports: [CoreModule],
-  providers: [ProjectsListener, TaskListener],
+  controllers: [ProjectsController],
+  providers: [ProjectsListener, TaskListener, ProjectsBillingService],
 })
 export class ProjectsModule extends BusinessModule {
   protected readonly baseDir = __dirname;
