@@ -323,6 +323,67 @@ export class StockLedgerListener {
     }
   }
 
+  /**
+   * If the batch has an expiry_date on or before `asOf`, return that expiry
+   * (YYYY-MM-DD); otherwise "". Empty batch or no expiry never expires.
+   */
+  private async batchExpiredOnOrBefore(batch: string, asOf: string): Promise<string> {
+    if (!batch || !this.registry.has("Batch")) return "";
+    const rec = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("expiry_date")} AS expiry FROM ${quoteIdent(tableNameFor("Batch"))}
+         WHERE ${quoteIdent("name")} = $1`,
+        [batch],
+      )
+    )[0];
+    const expiry = this.isoDay(rec?.expiry);
+    return expiry && expiry <= asOf ? expiry : "";
+  }
+
+  /**
+   * Before a (non-return) Purchase Receipt is submitted, block receiving any line
+   * whose batch has already expired on or before the posting date — expired stock
+   * must not enter inventory.
+   */
+  @OnEvent("doc.before_submit:Purchase Receipt", { suppressErrors: false })
+  async gateReceiptBatchExpiry(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    if (Boolean(doc.is_return) || !this.registry.has("Batch")) return;
+    const asOf = doc.posting_date ? this.isoDay(doc.posting_date) : new Date().toISOString().slice(0, 10);
+    for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
+      const batch = String(row.batch_no ?? "");
+      const expiry = await this.batchExpiredOnOrBefore(batch, asOf);
+      if (expiry) {
+        throw new BadRequestException(
+          `Purchase Receipt ${doc.name}: cannot receive batch ${batch} — expired ${expiry} (on or before ${asOf})`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Before a Stock Entry is submitted, block any incoming line (one that lands in
+   * a target warehouse) whose batch has already expired on or before the posting
+   * date — the receipt half of a material receipt/transfer must not book expired
+   * stock into inventory.
+   */
+  @OnEvent("doc.before_submit:Stock Entry", { suppressErrors: false })
+  async gateStockEntryBatchExpiry(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    if (!this.registry.has("Batch")) return;
+    const asOf = doc.posting_date ? this.isoDay(doc.posting_date) : new Date().toISOString().slice(0, 10);
+    for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
+      if (!row.t_warehouse) continue; // only the incoming (received) leg
+      const batch = String(row.batch_no ?? "");
+      const expiry = await this.batchExpiredOnOrBefore(batch, asOf);
+      if (expiry) {
+        throw new BadRequestException(
+          `Stock Entry ${doc.name}: cannot receive batch ${batch} — expired ${expiry} (on or before ${asOf})`,
+        );
+      }
+    }
+  }
+
   @OnEvent("doc.before_submit:Delivery Note", { suppressErrors: false })
   async gateDeliverySerials(payload: DocEventPayload): Promise<void> {
     const doc = payload.doc;
@@ -374,6 +435,7 @@ export class StockLedgerListener {
             incomingRate: isReturn
               ? undefined
               : Number(row.rate ?? 0) || (await this.itemRate(String(row.item_code))),
+            batch: (row.batch_no as string) || null,
           },
           "Purchase Receipt",
           String(doc.name),

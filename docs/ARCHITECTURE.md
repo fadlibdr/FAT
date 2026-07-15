@@ -1841,6 +1841,32 @@ at 2, and the expired batch untouched at 5.
 Only Delivery Notes auto-allocate today (not Sales Invoice `update_stock` or Stock
 Entry); allocation is greedy earliest-expiry with no reservation awareness.
 
+## Phase 94 — Batch tracking on receipts + incoming expiry gate
+
+Closes the inbound side of batch tracking: purchases could not name a batch and
+nothing stopped expired stock from being booked into inventory. Pure event-bus,
+no cross-module imports.
+
+- **Track.** Purchase Receipt Item gains a `batch_no` field. On submit, the line's
+  batch flows into the stock move so a batched purchase lands in the correct
+  per-batch Bin (`item::warehouse::batch`), and a purchase return debits that
+  batch back. Stock Entry Detail already carried `batch_no`.
+- **Gate.** A `before_submit:Purchase Receipt` gate (returns exempt) and a
+  `before_submit:Stock Entry` gate (incoming/`t_warehouse` legs only) reject any
+  line whose batch has an `expiry_date` on or before the posting date, so expired
+  stock cannot enter inventory. Both share the batch-expiry check and the same
+  `YYYY-MM-DD` date normalization the delivery gate uses.
+- **Report.** An `expiring-batches` report lists on-hand batches (`actual_qty > 0`)
+  whose expiry falls within a `within_days` window (default 30) of the as-of date,
+  soonest-first with days-to-expiry — a shelf-life alert distinct from the full
+  batch-wise balance.
+
+Verified: receiving a fresh and a near-expiry batch via Purchase Receipt succeeds
+and both land in their per-batch bins; receiving an already-expired batch is
+rejected on both Purchase Receipt and Stock Entry ("cannot receive batch … expired
+2026-06-30 (on or before 2026-07-15)"); the expiring-batches report (30-day window)
+lists only the near-expiry batch (17 days) and omits the far and expired ones.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
