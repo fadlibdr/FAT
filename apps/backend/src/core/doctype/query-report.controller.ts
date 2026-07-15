@@ -44,6 +44,92 @@ const REPORTS: Record<string, QueryReport> = {
                  (coalesce(sum("debit"),0) - coalesce(sum("credit"),0))::float8 AS "balance"
           FROM "tabGL Entry" GROUP BY "account" ORDER BY "account"`,
   },
+  "stock-ageing": {
+    permDoctype: "Bin",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "qty", label: "Qty" },
+      { key: "stock_value", label: "Value" },
+      { key: "last_movement", label: "Last Movement" },
+      { key: "age_days", label: "Age (days)" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    // In-stock item/warehouse balances with the date of their last stock movement
+    // and how many days ago that was — surfacing stagnant stock.
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT b."item_code", b."warehouse",
+                      sum(b."actual_qty")::float8 AS "qty",
+                      sum(b."stock_value")::float8 AS "stock_value",
+                      max(sle."last")::text AS "last_movement",
+                      ($1::date - max(sle."last"))::int AS "age_days"
+               FROM "tabBin" b
+               LEFT JOIN (
+                 SELECT "item_code", "warehouse", max("posting_date") AS "last"
+                 FROM "tabStock Ledger Entry" GROUP BY "item_code", "warehouse"
+               ) sle ON sle."item_code" = b."item_code" AND sle."warehouse" = b."warehouse"
+               GROUP BY b."item_code", b."warehouse"
+               HAVING sum(b."actual_qty") <> 0
+               ORDER BY "age_days" DESC NULLS LAST`,
+        params: [asOf],
+      };
+    },
+  },
+  "slow-moving-items": {
+    permDoctype: "Bin",
+    columns: [
+      { key: "item_code", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "qty", label: "Qty On Hand" },
+      { key: "stock_value", label: "Value" },
+      { key: "last_sale", label: "Last Sale" },
+      { key: "days_since_sale", label: "Days Since Sale" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    // In-stock items ranked by how long since their last outbound (sale) movement;
+    // items never sold sort to the top (null days).
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT b."item_code", b."warehouse",
+                      sum(b."actual_qty")::float8 AS "qty",
+                      sum(b."stock_value")::float8 AS "stock_value",
+                      max(out."last")::text AS "last_sale",
+                      ($1::date - max(out."last"))::int AS "days_since_sale"
+               FROM "tabBin" b
+               LEFT JOIN (
+                 SELECT "item_code", "warehouse", max("posting_date") AS "last"
+                 FROM "tabStock Ledger Entry" WHERE "actual_qty" < 0
+                 GROUP BY "item_code", "warehouse"
+               ) out ON out."item_code" = b."item_code" AND out."warehouse" = b."warehouse"
+               GROUP BY b."item_code", b."warehouse"
+               HAVING sum(b."actual_qty") > 0
+               ORDER BY "days_since_sale" DESC NULLS FIRST`,
+        params: [asOf],
+      };
+    },
+  },
+  "stock-value-by-group": {
+    permDoctype: "Bin",
+    columns: [
+      { key: "item_group", label: "Item Group" },
+      { key: "items", label: "Items" },
+      { key: "qty", label: "Qty" },
+      { key: "stock_value", label: "Stock Value" },
+    ],
+    // Total on-hand quantity and valuation per item group.
+    sql: `SELECT coalesce(i."item_group", 'Unclassified') AS "item_group",
+                 count(DISTINCT b."item_code")::int AS "items",
+                 sum(b."actual_qty")::float8 AS "qty",
+                 sum(b."stock_value")::float8 AS "stock_value"
+          FROM "tabBin" b
+          LEFT JOIN "tabItem" i ON i."name" = b."item_code"
+          GROUP BY coalesce(i."item_group", 'Unclassified')
+          HAVING sum(b."actual_qty") <> 0
+          ORDER BY "stock_value" DESC`,
+  },
   "stock-balance": {
     permDoctype: "Bin",
     columns: [
