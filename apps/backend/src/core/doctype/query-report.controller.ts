@@ -1447,6 +1447,23 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."status"
           ORDER BY p."name"`,
   },
+  "loyalty-balance": {
+    permDoctype: "Loyalty Point Entry",
+    columns: [
+      { key: "customer", label: "Customer" },
+      { key: "earned", label: "Earned" },
+      { key: "redeemed", label: "Redeemed" },
+      { key: "balance", label: "Balance" },
+    ],
+    // Per customer: points earned (positive entries), redeemed (negatives), and net balance.
+    sql: `SELECT "customer",
+                 coalesce(sum("points") FILTER (WHERE "points" > 0), 0)::float8 AS "earned",
+                 coalesce(-sum("points") FILTER (WHERE "points" < 0), 0)::float8 AS "redeemed",
+                 coalesce(sum("points"), 0)::float8 AS "balance"
+          FROM "tabLoyalty Point Entry"
+          GROUP BY "customer"
+          ORDER BY "balance" DESC, "customer"`,
+  },
   "leave-balance": {
     permDoctype: "Leave Application",
     columns: [
