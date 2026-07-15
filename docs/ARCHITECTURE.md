@@ -1159,6 +1159,19 @@ accounts (accounting module, GL via the generic `DocumentService`, no cross-modu
 Verified: a Cash → Bank transfer of 1000 books Dr Bank 1000 / Cr Cash 1000 (balanced) and the
 bank/cash summary shows Bank +1000; a same-account transfer is blocked; cancel restores the balances.
 
+## Phase 62 — Sales analytics
+
+Three read-only query-reports over submitted (non-return) Sales Invoices (no schema changes):
+
+- **top-selling-items** — quantity sold and revenue per item, ranked by revenue.
+- **customer-revenue** — per customer, invoice count, total billed, and total outstanding.
+- **gross-profit** — per item, revenue vs cost (sold quantity costed at the item's average Bin
+  moving-average valuation), gross profit, and margin % (gross profit ÷ revenue).
+
+Verified: with WIDGET-1 sold at revenue 1900 against an average cost of 100/unit (cost 1400), the
+gross-profit report reads gross profit 500 / margin 26.3 %; customer-revenue shows Acme Inc with
+1900 billed and 1500 outstanding; the free promotional line (WIDGET-F) reports zero revenue.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
