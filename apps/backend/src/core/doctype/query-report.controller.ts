@@ -1408,6 +1408,23 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."customer", m."item_code", m."status"
           ORDER BY m."name"`,
   },
+  "quality-inspection-status": {
+    permDoctype: "Quality Inspection",
+    columns: [
+      { key: "quality_inspection", label: "Inspection" },
+      { key: "inspection_type", label: "Type" },
+      { key: "reference_type", label: "Reference Type" },
+      { key: "reference_name", label: "Reference" },
+      { key: "item_code", label: "Item" },
+      { key: "status", label: "Status" },
+    ],
+    // Submitted quality inspections with their referenced document and accept/reject status.
+    sql: `SELECT "name" AS "quality_inspection", "inspection_type", "reference_type",
+                 "reference_name", "item_code", coalesce("status", 'Accepted') AS "status"
+          FROM "tabQuality Inspection"
+          WHERE "docstatus" = 1
+          ORDER BY "name"`,
+  },
   "work-order-status": {
     permDoctype: "Work Order",
     columns: [
