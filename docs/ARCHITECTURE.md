@@ -1205,6 +1205,19 @@ Verified: converting before submit is rejected; a submitted quotation (grand tot
 SO-00004 with the item copied, both linked, and the quotation marked Ordered; a second conversion is
 rejected as already ordered.
 
+## Phase 65 — Purchasing analytics
+
+Three read-only query-reports over submitted (non-return) Purchase Invoices — the buy-side complement
+to the Phase 62 sales analytics (no schema changes):
+
+- **top-purchased-items** — quantity and spend per item, ranked by spend.
+- **supplier-spend** — per supplier, invoice count, total billed, and total outstanding.
+- **purchase-price-trend** — per item, the average / minimum / maximum purchase rate and total qty,
+  surfacing price dispersion across bills.
+
+Verified: WIDGET-1 purchased 10 @ 100 shows spend 1000 and a flat avg/min/max rate of 100; supplier
+Budget Parts Ltd rolls up to 1 invoice / 1000 spend / 1000 outstanding.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

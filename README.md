@@ -668,4 +668,10 @@ Accounting, and HR as metadata-defined modules.
   submitted Quotation into a draft Sales Order (copying its items, linking both, and marking the
   quotation Ordered); a `quotation-status` report tracks each quotation's status and linked order.
 
+## Phase 65
+
+- **Purchasing analytics** — three reports over submitted purchase invoices: `top-purchased-items`
+  (qty + spend per item), `supplier-spend` (invoices / spend / outstanding per supplier), and
+  `purchase-price-trend` (avg / min / max purchase rate per item).
+
 See `docs/ARCHITECTURE.md` for the full design.
