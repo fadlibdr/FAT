@@ -16,6 +16,7 @@ import { ExchangeRevaluationListener } from "./exchange-revaluation.listener";
 import { InventoryGlListener } from "./inventory-gl.listener";
 import { BudgetGateListener } from "./budget-gate.listener";
 import { PeriodLockListener } from "./period-lock.listener";
+import { WriteOffListener } from "./write-off.listener";
 
 @Module({
   imports: [CoreModule],
@@ -33,6 +34,7 @@ import { PeriodLockListener } from "./period-lock.listener";
     InventoryGlListener,
     BudgetGateListener,
     PeriodLockListener,
+    WriteOffListener,
   ],
 })
 export class AccountingModule extends BusinessModule {
