@@ -1268,6 +1268,26 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY m."name", m."material_request_type", m."transaction_date", m."status", m."purchase_order"
           ORDER BY m."transaction_date" DESC, m."name"`,
   },
+  "credit-note-register": {
+    permDoctype: "Sales Invoice",
+    columns: [
+      { key: "credit_note", label: "Credit Note" },
+      { key: "customer", label: "Customer" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "return_against", label: "Return Against" },
+      { key: "total", label: "Return Value" },
+      { key: "outstanding", label: "Outstanding" },
+      { key: "status", label: "Status" },
+    ],
+    // Submitted credit notes (return sales invoices) with the invoice they reverse.
+    sql: `SELECT "name" AS "credit_note", "customer", "posting_date", "return_against",
+                 coalesce("grand_total", "total", 0)::float8 AS "total",
+                 coalesce("outstanding_amount", 0)::float8 AS "outstanding",
+                 coalesce("status", 'Return') AS "status"
+          FROM "tabSales Invoice"
+          WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "payment-entry-register": {
     permDoctype: "Payment Entry",
     columns: [

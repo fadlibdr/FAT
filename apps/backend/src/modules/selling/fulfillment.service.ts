@@ -89,6 +89,38 @@ export class FulfillmentService {
     return String(si.name);
   }
 
+  /**
+   * Create a draft Credit Note (return Sales Invoice) against a submitted invoice:
+   * mirrors the original lines at negative quantity and marks is_return with
+   * return_against set. On submit the GL-posting listener reverses the original
+   * posting (Dr Sales / Cr Debtors) and books a negative outstanding. Refuses a
+   * non-submitted invoice or one that is itself a return.
+   */
+  async makeSalesReturn(si: string, ctx?: UserContext): Promise<string> {
+    const siDt = this.registry.get("Sales Invoice");
+    if (!siDt) throw new BadRequestException("Sales Invoice not registered");
+    const context = ctx ?? systemContext();
+    const inv = await this.documents.get(siDt, si);
+    if ((inv.docstatus ?? 0) !== 1) throw new BadRequestException("Sales Invoice must be submitted");
+    if (Boolean(inv.is_return)) throw new BadRequestException(`Sales Invoice ${si} is already a return`);
+
+    const items = ((inv.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
+      item_code: r.item_code,
+      qty: -Math.abs(Number(r.qty ?? 0)),
+      rate: Number(r.rate ?? 0),
+    }));
+    const credit = await this.documents.create(siDt, context, {
+      customer: inv.customer,
+      posting_date: new Date().toISOString().slice(0, 10),
+      is_return: 1,
+      return_against: si,
+      sales_order: inv.sales_order ?? null,
+      items,
+    });
+    this.logger.log(`Sales Invoice ${si} -> Credit Note ${credit.name}`);
+    return String(credit.name);
+  }
+
   /** Create a draft Sales Order from a submitted Quotation, linking both. */
   async makeSalesOrder(quotation: string, ctx?: UserContext): Promise<string> {
     const qtnDt = this.registry.get("Quotation");
