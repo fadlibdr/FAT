@@ -1113,6 +1113,22 @@ A `Write Off Entry` submittable DocType + a `WriteOffListener` handle uncollecta
 - **Report.** A `write-off-register` report lists submitted write-offs by customer, invoice,
   amount, account, and reason.
 
+## Phase 59 — Sales tax templates
+
+A `Sales Taxes Template` DocType + a `TaxTemplateListener` make invoice/order taxes reusable
+(accounting module, reads the template via SQL, no cross-module imports):
+
+- **Template.** A Sales Taxes Template holds a set of tax rows (account head, rate, description) in
+  the same `Sales Taxes and Charges` child table the invoices use.
+- **Application.** A `before_save` on Sales Invoice and Sales Order copies the template's rows into
+  the document's `taxes` — but only when it carries none of its own, so explicit taxes still win.
+  The existing recompute-totals job then computes each `tax_amount` (rate × net) and the grand
+  total.
+- Seeds a "Standard VAT 10%" template.
+
+Verified: a Sales Invoice (net 400) naming the template auto-fills a VAT row and recomputes to
+tax 40 / grand total 440; a Sales Order does the same.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

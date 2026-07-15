@@ -91,6 +91,12 @@
       "options": "Payment Terms Template"
     },
     {
+      "fieldname": "taxes_template",
+      "label": "Taxes Template",
+      "fieldtype": "Link",
+      "options": "Sales Taxes Template"
+    },
+    {
       "fieldname": "items",
       "label": "Items",
       "fieldtype": "Table",

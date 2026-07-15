@@ -631,4 +631,10 @@ Accounting, and HR as metadata-defined modules.
 - **Write-off report** — a `write-off-register` report lists submitted write-offs by customer,
   invoice, amount, and reason.
 
+## Phase 59
+
+- **Sales tax templates** — a reusable `Sales Taxes Template` holds a set of tax rows; naming it on
+  a Sales Invoice or Sales Order (when no taxes are entered) auto-populates that document's taxes,
+  and the recompute job fills in each tax amount and the grand total.
+
 See `docs/ARCHITECTURE.md` for the full design.
