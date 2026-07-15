@@ -124,6 +124,7 @@ async function main() {
 
   // Chart-of-accounts stubs used by GL posting on Sales Invoice submit.
   await create("Account", { account_name: "Debtors", account_type: "Asset", company: "FAT Demo Co" });
+  await create("Account", { account_name: "Bad Debt Expense", account_type: "Expense", company: "FAT Demo Co" });
   await create("Account", { account_name: "Sales", account_type: "Income", company: "FAT Demo Co" });
   await create("Account", { account_name: "Cash", account_type: "Asset", company: "FAT Demo Co" });
   await create("Account", { account_name: "Bank", account_type: "Asset", company: "FAT Demo Co" });
