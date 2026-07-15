@@ -13,7 +13,9 @@
     { "fieldname": "response_by", "label": "Response By", "fieldtype": "Datetime", "read_only": true },
     { "fieldname": "resolution_by", "label": "Resolution By", "fieldtype": "Datetime", "read_only": true },
     { "fieldname": "resolution_date", "label": "Resolved On", "fieldtype": "Datetime", "read_only": true },
-    { "fieldname": "agreement_status", "label": "Agreement Status", "fieldtype": "Select", "options": "Ongoing\nFulfilled\nFailed", "default": "Ongoing", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+    { "fieldname": "agreement_status", "label": "Agreement Status", "fieldtype": "Select", "options": "Ongoing\nFulfilled\nFailed", "default": "Ongoing", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "escalated", "label": "Escalated", "fieldtype": "Check", "read_only": true, "in_standard_filter": true },
+    { "fieldname": "escalation_date", "label": "Escalation Date", "fieldtype": "Datetime", "read_only": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },

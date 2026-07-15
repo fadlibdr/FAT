@@ -2049,6 +2049,32 @@ two reasons with their counts and amounts (5000 and 3000).
 The close is a status transition only — it does not cancel a linked Quotation or
 roll the outcome up into a sales-stage forecast.
 
+## Phase 102 — SLA breach escalation
+
+The SupportListener marks an SLA Fulfilled or Failed when an issue is resolved, but
+an issue left open past its resolution deadline stayed "Ongoing" and unseen. This
+run catches those proactively. Pure SQL over the Issue table; no cross-module
+service imports.
+
+- **Escalate.** Issue gains `escalated` and `escalation_date` fields.
+  `POST /api/support/escalate-overdue-issues` (System Manager, optional `as_of`)
+  finds every un-resolved, still-Ongoing, not-yet-escalated issue whose
+  `resolution_by` has passed, marks it `Failed`, bumps its priority one level
+  (Low → Medium → High → Urgent), and stamps it escalated so a re-run is a no-op.
+- **Guard.** The query coalesces a missing status to Open (API-created rows may
+  carry no status) and skips Resolved/Closed and already-escalated issues, so the
+  run is idempotent.
+- **Report.** An `sla-breach-status` report lists the Failed / escalated issues
+  with their priority, resolution deadline, and status.
+
+Verified: an issue opened in 2020 (resolution_by 2020-01-06) is escalated when the
+run is invoked as-of mid-2020 — priority Low → Medium, SLA Failed, escalated — while
+a future-deadline issue is untouched; a second run escalates nothing; the
+sla-breach-status report shows the escalated issue.
+
+Escalation only raises priority and flags the breach; it does not reassign the
+issue, notify an owner, or apply a business-hours calendar to the deadline.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
