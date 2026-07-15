@@ -43,6 +43,49 @@ export class PoFulfillmentService {
     this.logger.log(`Purchase Order ${po}: received ${perReceived}% billed ${perBilled}% -> ${status}`);
   }
 
+  /**
+   * Drop ship: a submitted drop-ship Purchase Order fulfils its linked Sales
+   * Order, since the supplier ships straight to the customer (no own delivery).
+   * Recompute the Sales Order's delivered percentage from the qty shipped by all
+   * its submitted drop-ship POs against the total ordered, and advance its status
+   * when fully delivered.
+   */
+  async markDropShipDelivery(salesOrder: string): Promise<void> {
+    if (!salesOrder || !this.registry.has("Sales Order")) return;
+    const ordered = Number(
+      (
+        await this.dataSource.query(
+          `SELECT coalesce(sum(${quoteIdent("qty")}), 0) AS q
+           FROM ${quoteIdent(tableNameFor("Sales Order Item"))} WHERE ${quoteIdent("parent")} = $1`,
+          [salesOrder],
+        )
+      )[0]?.q ?? 0,
+    );
+    if (ordered <= 0) return;
+    const shipped = Number(
+      (
+        await this.dataSource.query(
+          `SELECT coalesce(sum(poi.${quoteIdent("qty")}), 0) AS q
+           FROM ${quoteIdent(tableNameFor("Purchase Order Item"))} poi
+           JOIN ${quoteIdent(tableNameFor("Purchase Order"))} po ON po.${quoteIdent("name")} = poi.${quoteIdent("parent")}
+           WHERE poi.${quoteIdent("against_sales_order")} = $1
+             AND po.${quoteIdent("is_drop_ship")} = 1 AND po.${quoteIdent("docstatus")} = 1`,
+          [salesOrder],
+        )
+      )[0]?.q ?? 0,
+    );
+    const perDelivered = Math.min(100, Math.round((shipped / ordered) * 10000) / 100);
+    // Only advance the status marker; billing status is owned by the selling side.
+    const setStatus = perDelivered >= 100 ? ", " + quoteIdent("status") + " = 'To Bill'" : "";
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Sales Order"))}
+       SET ${quoteIdent("per_delivered")} = $1${setStatus}
+       WHERE ${quoteIdent("name")} = $2`,
+      [perDelivered, salesOrder],
+    );
+    this.logger.log(`Sales Order ${salesOrder}: drop-ship delivered ${perDelivered}%`);
+  }
+
   /** Create a draft Purchase Receipt or Purchase Invoice pre-filled from a Purchase Order. */
   async makeFromPurchaseOrder(
     po: string,
