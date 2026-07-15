@@ -116,6 +116,23 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "contra-entry-register": {
+    permDoctype: "Contra Entry",
+    columns: [
+      { key: "contra_entry", label: "Contra Entry" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "from_account", label: "From" },
+      { key: "to_account", label: "To" },
+      { key: "amount", label: "Amount" },
+      { key: "remark", label: "Remark" },
+    ],
+    // Submitted internal transfers between own accounts.
+    sql: `SELECT "name" AS "contra_entry", "posting_date", "from_account", "to_account",
+                 coalesce("amount", 0)::float8 AS "amount", "remark"
+          FROM "tabContra Entry"
+          WHERE "docstatus" = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "cash-flow-statement": {
     permDoctype: "GL Entry",
     columns: [

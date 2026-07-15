@@ -643,4 +643,11 @@ Accounting, and HR as metadata-defined modules.
   Purchase Invoice's or Purchase Order's taxes (when none are entered), with explicit taxes still
   taking precedence.
 
+## Phase 61
+
+- **Internal transfer** — a submittable `Contra Entry` moves funds between two of the company's own
+  accounts (e.g. a cash deposit into the bank), posting Dr the receiving / Cr the paying account; a
+  `before_submit` gate blocks same-account or non-positive transfers, and cancel reverses.
+- **Transfer report** — a `contra-entry-register` report lists submitted transfers.
+
 See `docs/ARCHITECTURE.md` for the full design.
