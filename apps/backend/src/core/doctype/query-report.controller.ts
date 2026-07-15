@@ -1385,6 +1385,45 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "work-order-status": {
+    permDoctype: "Work Order",
+    columns: [
+      { key: "work_order", label: "Work Order" },
+      { key: "production_item", label: "Item" },
+      { key: "qty", label: "Qty" },
+      { key: "status", label: "Status" },
+      { key: "produced_value", label: "Produced Value" },
+      { key: "stock_entry", label: "Stock Entry" },
+    ],
+    // Work orders with their production quantity, status, and manufacture stock entry.
+    sql: `SELECT "name" AS "work_order", "production_item",
+                 coalesce("qty", 0)::float8 AS "qty",
+                 coalesce("status", 'Draft') AS "status",
+                 coalesce("produced_value", 0)::float8 AS "produced_value",
+                 "stock_entry"
+          FROM "tabWork Order"
+          ORDER BY "name"`,
+  },
+  "production-plan-status": {
+    permDoctype: "Production Plan",
+    columns: [
+      { key: "production_plan", label: "Production Plan" },
+      { key: "status", label: "Status" },
+      { key: "item_count", label: "Planned Items" },
+      { key: "planned_qty", label: "Total Planned Qty" },
+      { key: "ordered_items", label: "Items Ordered" },
+    ],
+    // Production plans with their planned item count, total planned qty, and how many
+    // planned lines have a Work Order raised.
+    sql: `SELECT p."name" AS "production_plan", coalesce(p."status", 'Draft') AS "status",
+                 count(i."name")::int AS "item_count",
+                 coalesce(sum(i."planned_qty"), 0)::float8 AS "planned_qty",
+                 count(i."work_order")::int AS "ordered_items"
+          FROM "tabProduction Plan" p
+          LEFT JOIN "tabProduction Plan Item" i ON i."parent" = p."name"
+          GROUP BY p."name", p."status"
+          ORDER BY p."name"`,
+  },
   "leave-balance": {
     permDoctype: "Leave Application",
     columns: [

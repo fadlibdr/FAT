@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
@@ -89,6 +89,49 @@ export class ManufacturingListener {
        WHERE ${quoteIdent("name")} = $${cols.length + 1}`,
       [...Object.values(fields), name],
     );
+  }
+
+  /**
+   * Block a Work Order submission when the source warehouse cannot cover the BOM's
+   * raw materials scaled to the order quantity — the manufacture would otherwise
+   * drive stock negative. suppressErrors:false so the throw aborts the submit.
+   */
+  @OnEvent("doc.before_submit:Work Order", { suppressErrors: false })
+  async gateMaterials(payload: DocEventPayload): Promise<void> {
+    const wo = payload.doc;
+    const source = String(wo.source_warehouse ?? "");
+    if (!source || !this.registry.has("BOM") || !this.registry.has("Bin")) return;
+    const bomDt = this.registry.get("BOM");
+    if (!bomDt || !wo.bom) return;
+    const bom = await this.documents.get(bomDt, String(wo.bom));
+    const scale = Number(wo.qty ?? 0) / (Number(bom.quantity ?? 1) || 1);
+    for (const rm of (bom.items as Array<Record<string, unknown>>) ?? []) {
+      const required = Number(rm.qty ?? 0) * scale;
+      if (required <= 0) continue;
+      const available = await this.binQty(String(rm.item_code), source);
+      if (required > available + 1e-9) {
+        throw new BadRequestException(
+          `Work Order ${wo.name}: insufficient ${rm.item_code} in ${source} — need ${this.round(required)}, have ${this.round(available)}`,
+        );
+      }
+    }
+    this.logger.log(`Work Order ${wo.name} passed material availability gate`);
+  }
+
+  /** Available quantity of an item in a specific warehouse. */
+  private async binQty(item: string, warehouse: string): Promise<number> {
+    const row = (
+      await this.dataSource.query(
+        `SELECT coalesce(sum(${quoteIdent("actual_qty")}), 0) AS q FROM ${quoteIdent(tableNameFor("Bin"))}
+         WHERE ${quoteIdent("item_code")} = $1 AND ${quoteIdent("warehouse")} = $2`,
+        [item, warehouse],
+      )
+    )[0];
+    return Number(row?.q ?? 0);
+  }
+
+  private round(n: number): number {
+    return Math.round((n + Number.EPSILON) * 1000) / 1000;
   }
 
   @OnEvent("doc.on_submit:Work Order")

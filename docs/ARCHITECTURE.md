@@ -1591,6 +1591,30 @@ is rejected for insufficient balance (17 available); the leave-balance report sh
 allocated 20 / used 3 / balance 17; cancelling the leave removes its three attendance
 rows.
 
+## Phase 83 — Work Order material availability gate
+
+Stops a Work Order from being launched without the stock to build it. The
+`ManufacturingListener` already turns a submitted Work Order into a Manufacture
+Stock Entry (consuming BOM materials, producing the finished good); this phase adds
+a pre-flight check so that consumption can't drive stock negative. Pure event-bus,
+no cross-module service imports:
+
+- **Gate.** `before_submit:Work Order` (`suppressErrors:false`) explodes the BOM's raw
+  materials scaled to the order quantity (`bom_item.qty × order_qty / bom.quantity`)
+  and checks each against the available `Bin` quantity in the Work Order's source
+  warehouse. Any shortage aborts the submit, naming the item, the quantity needed,
+  and the quantity on hand. With no source warehouse the check is skipped.
+- **Reports.** A `work-order-status` report lists work orders with their quantity,
+  status, produced value, and manufacture stock entry; a `production-plan-status`
+  report lists production plans with their planned item count, total planned quantity,
+  and how many lines have a Work Order raised.
+
+Verified: with 10 raw units on hand and a BOM needing 2 per finished unit, a Work
+Order for 8 (needing 16) is rejected ("insufficient … need 16, have 10"), while a
+Work Order for 4 (needing 8) submits and manufactures — the finished good is produced
+(status Completed, produced value 80) and raw stock falls from 10 to 2; the
+work-order-status report shows the completed order.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
