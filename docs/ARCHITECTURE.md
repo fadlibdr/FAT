@@ -2075,6 +2075,30 @@ sla-breach-status report shows the escalated issue.
 Escalation only raises priority and flags the breach; it does not reassign the
 issue, notify an owner, or apply a business-hours calendar to the deadline.
 
+## Phase 103 — Sales targets & achievement
+
+Tracks a sales person's revenue goal for a period and accrues actual sales against
+it as invoices are raised. Pure event-bus listener, no cross-module service
+imports.
+
+- **Target.** A submittable `Sales Target` DocType (sales person, date window,
+  target amount, accrued achieved amount) with a `before_submit` gate: a positive
+  target, a sales person, and a from-date not after the to-date.
+- **Accrue.** On submit, each Sales Invoice for the target's sales person dated
+  inside the window adds its net (Σ qty × rate, computed from the line items so it
+  is deterministic at submit time rather than waiting on the async grand total) to
+  the target's achieved amount; cancel reverses it, and an invoice outside the
+  window or for another sales person is ignored.
+- **Report.** A `sales-target-achievement` report shows each target's amount,
+  achieved amount, achievement percentage, and a Met / In Progress status.
+
+Verified: a 10 000 July target accrues two in-window invoices (4 000 + 3 000) to
+7 000 while an August invoice is ignored; the report reads 70 % / In Progress; a
+zero-amount target is rejected at submit.
+
+Achievement accrues on invoice net only (no tax, and no split across multiple
+overlapping targets is prevented — an invoice in two windows accrues to both).
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
