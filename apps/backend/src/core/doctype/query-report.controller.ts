@@ -1246,6 +1246,27 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE coalesce(c."credit_limit", 0) > 0
           ORDER BY "exposure" DESC, c."name"`,
   },
+  "blanket-order-status": {
+    permDoctype: "Blanket Order",
+    columns: [
+      { key: "blanket_order", label: "Blanket Order" },
+      { key: "customer", label: "Customer" },
+      { key: "item_code", label: "Item" },
+      { key: "total_qty", label: "Total Qty" },
+      { key: "ordered_qty", label: "Ordered Qty" },
+      { key: "remaining_qty", label: "Remaining Qty" },
+      { key: "status", label: "Status" },
+    ],
+    // Submitted blanket orders with their draw-down progress (remaining = total − ordered).
+    sql: `SELECT "name" AS "blanket_order", "customer", "item_code",
+                 coalesce("total_qty", 0)::float8 AS "total_qty",
+                 coalesce("ordered_qty", 0)::float8 AS "ordered_qty",
+                 (coalesce("total_qty", 0) - coalesce("ordered_qty", 0))::float8 AS "remaining_qty",
+                 coalesce("status", 'Active') AS "status"
+          FROM "tabBlanket Order"
+          WHERE "docstatus" = 1
+          ORDER BY "name"`,
+  },
   "opportunity-funnel": {
     permDoctype: "Opportunity",
     columns: [

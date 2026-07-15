@@ -1281,6 +1281,31 @@ Verified: with a 5000 limit, a first 3000 order submits (exposure 3000); a secon
 3000 order is rejected (receivable 0 + unbilled 3000 + this 3000 = 6000 > 5000);
 the exposure report shows limit 5000, unbilled 3000, exposure 3000, available 2000.
 
+## Phase 69 — Blanket Order → Sales Order release
+
+Adds the draw-down step for framework agreements. The `SalesteamListener` already
+gates a Sales Order against its Blanket Order's remaining quantity and rolls
+`ordered_qty` on submit/cancel; this phase adds an explicit release endpoint and a
+status report. A new `SalesteamService` + `SalesteamController` create the order
+through the generic `DocumentService`, so salesteam imports no other module's
+services:
+
+- **Release.** `POST /api/salesteam/blanket-order/:name/make-sales-order` (body:
+  optional `qty`) creates a draft Sales Order for the blanket's customer and item,
+  at the blanket rate, linked back via `blanket_order`. Quantity defaults to all
+  remaining (`total_qty − ordered_qty`); a requested `qty` is honoured but capped —
+  it refuses a non-submitted or fully-ordered blanket, or a qty beyond what remains.
+- **Enforcement stays with the listener.** When the released order is submitted, the
+  existing `before_submit` gate re-checks the remaining qty and `on_submit` rolls
+  `ordered_qty` on the blanket, so release and enforcement never drift.
+- **Report.** A `blanket-order-status` report lists submitted blanket orders with
+  their total, ordered, and remaining quantities and status.
+
+Verified: a 100-unit blanket releases a 30-unit Sales Order (linked, at the blanket
+rate); submitting it rolls ordered_qty to 30; an 80-unit release is rejected
+(exceeds remaining 70); a no-qty release draws the remaining 70; the status report
+shows total 100, ordered 30, remaining 70.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
