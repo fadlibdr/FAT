@@ -491,6 +491,23 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "accounting-period-status": {
+    permDoctype: "Accounting Period",
+    columns: [
+      { key: "period_name", label: "Period" },
+      { key: "from_date", label: "From" },
+      { key: "to_date", label: "To" },
+      { key: "is_closed", label: "Closed" },
+      { key: "entries", label: "GL Entries" },
+    ],
+    // Each accounting period with its lock state and the count of GL entries posted in range.
+    sql: `SELECT p."period_name", p."from_date", p."to_date",
+                 coalesce(p."is_closed", 0)::int AS "is_closed",
+                 (SELECT count(*) FROM "tabGL Entry" g
+                  WHERE g."posting_date" >= p."from_date" AND g."posting_date" <= p."to_date")::int AS "entries"
+          FROM "tabAccounting Period" p
+          ORDER BY p."from_date"`,
+  },
   "budget-utilization": {
     permDoctype: "Budget",
     columns: [
