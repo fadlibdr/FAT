@@ -1195,6 +1195,25 @@ const REPORTS: Record<string, QueryReport> = {
     ],
     build: (f) => registerSql("Sales Invoice", "customer", f),
   },
+  "quotation-status": {
+    permDoctype: "Quotation",
+    columns: [
+      { key: "quotation", label: "Quotation" },
+      { key: "customer", label: "Customer" },
+      { key: "transaction_date", label: "Date" },
+      { key: "valid_till", label: "Valid Till" },
+      { key: "grand_total", label: "Grand Total" },
+      { key: "status", label: "Status" },
+      { key: "sales_order", label: "Sales Order" },
+    ],
+    // Submitted quotations with their order-conversion status and linked Sales Order.
+    sql: `SELECT "name" AS "quotation", "customer", "transaction_date", "valid_till",
+                 coalesce("grand_total", "total", 0)::float8 AS "grand_total",
+                 coalesce("status", 'Open') AS "status", "sales_order"
+          FROM "tabQuotation"
+          WHERE "docstatus" = 1
+          ORDER BY "transaction_date" DESC, "name"`,
+  },
   "sales-order-status": {
     permDoctype: "Sales Order",
     columns: [
