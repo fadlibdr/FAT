@@ -1211,6 +1211,28 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabLead"
           ORDER BY "name"`,
   },
+  "opportunity-funnel": {
+    permDoctype: "Opportunity",
+    columns: [
+      { key: "opportunity", label: "Opportunity" },
+      { key: "customer", label: "Customer" },
+      { key: "status", label: "Status" },
+      { key: "sales_stage", label: "Sales Stage" },
+      { key: "opportunity_amount", label: "Amount" },
+      { key: "weighted_amount", label: "Weighted" },
+      { key: "lead", label: "Source Lead" },
+      { key: "quotation", label: "Quotation" },
+    ],
+    // Each opportunity with its funnel position and linked source lead / quotation.
+    sql: `SELECT "name" AS "opportunity", "customer",
+                 coalesce("status", 'Open') AS "status",
+                 coalesce("sales_stage", 'Prospecting') AS "sales_stage",
+                 coalesce("opportunity_amount", 0)::float8 AS "opportunity_amount",
+                 coalesce("weighted_amount", 0)::float8 AS "weighted_amount",
+                 "lead", "quotation"
+          FROM "tabOpportunity"
+          ORDER BY "name"`,
+  },
   "quotation-status": {
     permDoctype: "Quotation",
     columns: [

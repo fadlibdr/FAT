@@ -1236,6 +1236,26 @@ funnel now runs Lead → Opportunity → Quotation → Sales Order, each step li
 Verified: a fresh lead with no customer converts to a new Customer and Opportunity (both linked back,
 lead marked Qualified); a second conversion is rejected as already having an opportunity.
 
+## Phase 67 — Opportunity → Quotation
+
+Adds the next explicit, on-demand step of the CRM funnel alongside the existing conversions, still
+routed through the generic `DocumentService` (no cross-module service imports):
+
+- **Conversion.** `POST /api/crm/opportunity/:name/make-quotation` copies the opportunity's customer and
+  any Opportunity Items onto a new draft Quotation linked back to the opportunity, then stamps the
+  opportunity with the quotation and advances its status to Quotation. It refuses an opportunity that
+  already has a quotation. The Quotation DocType gains a read-only `opportunity` Link back-reference.
+- **Report.** An `opportunity-funnel` report lists every opportunity with its status, sales stage,
+  amount, weighted amount, and its source-lead and quotation links.
+
+The funnel now runs Lead → Opportunity → Quotation → Sales Order end to end, every step created through
+an explicit endpoint and linked in both directions.
+
+Verified: an opportunity with two items converts to QTN-00002 (customer and both item lines copied,
+`opportunity` back-link set); the opportunity moves to status Quotation with the quotation linked; a
+second conversion is rejected; the funnel report shows the opportunity with weighted amount 4500
+(7500 × 60% probability) and its quotation link.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
