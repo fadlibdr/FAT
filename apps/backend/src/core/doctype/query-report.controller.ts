@@ -1385,6 +1385,31 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC, "name"`,
   },
+  "leave-balance": {
+    permDoctype: "Leave Application",
+    columns: [
+      { key: "employee", label: "Employee" },
+      { key: "leave_type", label: "Leave Type" },
+      { key: "allocated", label: "Allocated" },
+      { key: "used", label: "Used" },
+      { key: "balance", label: "Balance" },
+    ],
+    // Per employee + leave type: submitted allocations minus submitted applications' days.
+    sql: `WITH alloc AS (
+            SELECT "employee", "leave_type", coalesce(sum("new_leaves_allocated"), 0)::float8 AS a
+            FROM "tabLeave Allocation" WHERE "docstatus" = 1 GROUP BY "employee", "leave_type"
+          ), used AS (
+            SELECT "employee", "leave_type", coalesce(sum("total_leave_days"), 0)::float8 AS u
+            FROM "tabLeave Application" WHERE "docstatus" = 1 GROUP BY "employee", "leave_type"
+          )
+          SELECT al."employee", al."leave_type",
+                 al.a AS "allocated",
+                 coalesce(us.u, 0) AS "used",
+                 (al.a - coalesce(us.u, 0)) AS "balance"
+          FROM alloc al
+          LEFT JOIN used us ON us."employee" = al."employee" AND us."leave_type" = al."leave_type"
+          ORDER BY al."employee", al."leave_type"`,
+  },
   "unallocated-payments": {
     permDoctype: "Payment Entry",
     columns: [
