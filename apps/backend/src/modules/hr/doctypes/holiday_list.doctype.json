@@ -1,0 +1,18 @@
+{
+  "name": "Holiday List",
+  "module": "HR",
+  "naming_rule": "field:holiday_list_name",
+  "title_field": "holiday_list_name",
+  "fields": [
+    { "fieldname": "holiday_list_name", "label": "Holiday List Name", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "weekly_off", "label": "Weekly Off", "fieldtype": "Select", "options": "None\nSaturday\nSunday\nSaturday & Sunday", "default": "None", "in_list_view": true },
+    { "fieldname": "holidays", "label": "Holidays", "fieldtype": "Table", "options": "Holiday" },
+    { "fieldname": "total_holidays", "label": "Total Holidays", "fieldtype": "Int", "read_only": true, "default": "0", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

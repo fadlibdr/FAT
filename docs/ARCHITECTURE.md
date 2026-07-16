@@ -3001,6 +3001,28 @@ balances of 20 and 10; re-assigning for an overlapping period created nothing an
 skipped both lines with the overlap reason; the summary listed the policy's two
 lines.
 
+## Holiday List (Phase 143)
+
+A dated calendar of non-working days, with weekly-off auto-population and a
+working-day calculation for any range.
+
+- **List + weekly-off population.** A `Holiday List` (name, from/to dates, a
+  weekly-off setting, a `Holiday` grid, `total_holidays`). `total_holidays` is
+  recomputed on every save, and `POST /api/hr/holiday-list/:name/populate-weekly-offs`
+  inserts a holiday for each occurrence of the configured weekend day between the
+  list's dates (skipping dates already present).
+- **Working days.** `POST /api/hr/holiday-list/:name/working-days` returns the
+  calendar days in a range minus the list's holidays that fall in it. Both
+  endpoints reject an inverted date range; populate also rejects a list with no
+  weekly off configured.
+- **Report.** A `holiday-list-summary` report lists each holiday list with its
+  coverage window, weekly-off, and holiday count.
+
+Verified: a January-2026 list with one manual holiday populated its four Sundays
+(total 5); the working-day count for 1–7 Jan returned 7 days − 2 holidays (New
+Year + one Sunday) = 5; an inverted range and a populate with no weekly-off were
+both rejected; the summary showed the list as Sunday / 5 holidays.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
