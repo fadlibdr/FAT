@@ -2435,6 +2435,29 @@ Partially Ordered (ordered 4 / pending 6); stopping it blocked a further PO
 remaining 6 moved it to Ordered (10 / 0), after which a further PO was refused;
 the report tracked 10 → 4 → 10 ordered throughout.
 
+## Warranty Claim resolution (Phase 118)
+
+A Warranty Claim records a customer complaint (with an in/out-of-warranty status
+derived from the serial's expiry); Phase 118 resolves it through a Maintenance
+Visit.
+
+- **Visit from claim.** `POST /api/maintenance/warranty-claim/:name/make-visit`
+  (`MaintenanceService.makeVisitFromClaim`) drafts a Maintenance Visit pre-filled
+  with the claim's customer, item and serial and linked back via
+  `warranty_claim`. It refuses a claim that is not Open.
+- **Resolve / reopen.** Submitting a visit that links a claim marks the claim
+  `Resolved` and stamps its `resolution_date`; cancelling the visit reopens the
+  claim to `Open` and clears the date. (The claim's Select default isn't
+  persisted on create, so the transition is keyed on `coalesce(status,'Open')`.)
+- **Report.** A `warranty-claim-status` report lists claims with warranty status,
+  complaint vs resolution date, days open (to resolution, or to an `as_of`
+  filter while still open), and status.
+
+Verified: a make-visit from an open claim linked it back; submitting the visit
+moved the claim to Resolved with a resolution date and a second make-visit was
+refused ("is not Open"); cancelling the visit reopened the claim to Open and
+cleared the date; the report showed the claim Open at 15 days.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

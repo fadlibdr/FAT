@@ -13,4 +13,10 @@ export class MaintenanceController {
     const maintenanceVisit = await this.maintenance.makeVisit(name, user);
     return { maintenanceVisit };
   }
+
+  @Post("warranty-claim/:name/make-visit")
+  async makeVisitFromClaim(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const maintenanceVisit = await this.maintenance.makeVisitFromClaim(name, user);
+    return { maintenanceVisit };
+  }
 }
