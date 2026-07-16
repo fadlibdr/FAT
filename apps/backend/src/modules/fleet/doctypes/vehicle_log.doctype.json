@@ -12,6 +12,7 @@
     { "fieldname": "fuel_rate", "label": "Fuel Rate", "fieldtype": "Currency" },
     { "fieldname": "fuel_cost", "label": "Fuel Cost", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
     { "fieldname": "service_cost", "label": "Service Cost", "fieldtype": "Currency" },
+    { "fieldname": "is_service", "label": "Service Performed", "fieldtype": "Check", "default": "0", "in_list_view": true },
     { "fieldname": "description", "label": "Description", "fieldtype": "Data" }
   ],
   "permissions": [

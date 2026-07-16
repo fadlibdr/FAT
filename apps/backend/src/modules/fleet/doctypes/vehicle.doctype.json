@@ -9,6 +9,8 @@
     { "fieldname": "model", "label": "Model", "fieldtype": "Data", "in_list_view": true },
     { "fieldname": "fuel_type", "label": "Fuel Type", "fieldtype": "Select", "options": "Petrol\nDiesel\nElectric\nHybrid", "default": "Petrol", "in_standard_filter": true },
     { "fieldname": "last_odometer", "label": "Last Odometer", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "service_interval", "label": "Service Interval (km)", "fieldtype": "Float", "default": "0" },
+    { "fieldname": "next_service_odometer", "label": "Next Service Odometer", "fieldtype": "Float", "read_only": true, "in_list_view": true },
     { "fieldname": "total_fuel_cost", "label": "Total Fuel Cost", "fieldtype": "Currency", "read_only": true },
     { "fieldname": "total_service_cost", "label": "Total Service Cost", "fieldtype": "Currency", "read_only": true }
   ],

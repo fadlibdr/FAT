@@ -2248,6 +2248,26 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "vehicles-service-due": {
+    permDoctype: "Vehicle",
+    columns: [
+      { key: "vehicle", label: "Vehicle" },
+      { key: "make", label: "Make" },
+      { key: "model", label: "Model" },
+      { key: "last_odometer", label: "Odometer" },
+      { key: "next_service_odometer", label: "Service Due At" },
+      { key: "overdue_by", label: "Overdue By (km)" },
+    ],
+    // Vehicles whose odometer has reached or passed their next-service point.
+    sql: `SELECT "name" AS "vehicle", "make", "model",
+                 coalesce("last_odometer", 0)::float8 AS "last_odometer",
+                 coalesce("next_service_odometer", 0)::float8 AS "next_service_odometer",
+                 (coalesce("last_odometer", 0) - coalesce("next_service_odometer", 0))::float8 AS "overdue_by"
+          FROM "tabVehicle"
+          WHERE coalesce("next_service_odometer", 0) > 0
+            AND coalesce("last_odometer", 0) >= coalesce("next_service_odometer", 0)
+          ORDER BY "overdue_by" DESC`,
+  },
   "item-alternatives": {
     permDoctype: "Item Alternative",
     columns: [
