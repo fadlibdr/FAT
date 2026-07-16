@@ -1694,6 +1694,30 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."percent_complete", p."status"
           ORDER BY p."name"`,
   },
+  "project-margin": {
+    permDoctype: "Project",
+    columns: [
+      { key: "project", label: "Project" },
+      { key: "total_hours", label: "Hours" },
+      { key: "total_billable_amount", label: "Billable" },
+      { key: "total_costing_amount", label: "Cost" },
+      { key: "gross_margin", label: "Margin" },
+      { key: "margin_percent", label: "Margin %" },
+      { key: "status", label: "Status" },
+    ],
+    // Labour billable vs cost per project, with margin and margin percentage of revenue.
+    sql: `SELECT "name" AS "project",
+                 coalesce("total_hours", 0)::float8 AS "total_hours",
+                 coalesce("total_billable_amount", 0)::float8 AS "total_billable_amount",
+                 coalesce("total_costing_amount", 0)::float8 AS "total_costing_amount",
+                 coalesce("gross_margin", 0)::float8 AS "gross_margin",
+                 CASE WHEN coalesce("total_billable_amount", 0) > 0
+                      THEN round((coalesce("gross_margin", 0) / "total_billable_amount" * 100)::numeric, 2)
+                      ELSE 0 END::float8 AS "margin_percent",
+                 coalesce("status", 'Open') AS "status"
+          FROM "tabProject"
+          ORDER BY "name"`,
+  },
   "warranty-claim-status": {
     permDoctype: "Warranty Claim",
     columns: [
