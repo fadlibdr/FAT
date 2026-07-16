@@ -1921,6 +1921,29 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabEmployee Onboarding"
           ORDER BY "name" DESC`,
   },
+  "recruitment-pipeline": {
+    permDoctype: "Job Opening",
+    columns: [
+      { key: "job_opening", label: "Job Opening" },
+      { key: "job_title", label: "Title" },
+      { key: "vacancies", label: "Vacancies" },
+      { key: "applicants", label: "Applicants" },
+      { key: "shortlisted", label: "Shortlisted" },
+      { key: "hired", label: "Hired" },
+      { key: "status", label: "Status" },
+    ],
+    // Per opening: applicant counts by stage against the vacancy target.
+    sql: `SELECT o."name" AS "job_opening", o."job_title",
+                 coalesce(o."vacancies", 0) AS "vacancies",
+                 count(a."name")::int AS "applicants",
+                 count(a."name") FILTER (WHERE a."status" = 'Shortlisted')::int AS "shortlisted",
+                 count(a."name") FILTER (WHERE a."status" = 'Hired')::int AS "hired",
+                 coalesce(o."status", 'Open') AS "status"
+          FROM "tabJob Opening" o
+          LEFT JOIN "tabJob Applicant" a ON a."job_opening" = o."name"
+          GROUP BY o."name", o."job_title", o."vacancies", o."status"
+          ORDER BY o."name" DESC`,
+  },
   "sales-target-achievement": {
     permDoctype: "Sales Target",
     columns: [

@@ -1,0 +1,18 @@
+{
+  "name": "Job Opening",
+  "module": "HR",
+  "naming_rule": "series:JOB-.#####",
+  "title_field": "job_title",
+  "fields": [
+    { "fieldname": "job_title", "label": "Job Title", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "designation", "label": "Designation", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
+    { "fieldname": "vacancies", "label": "Vacancies", "fieldtype": "Int", "default": "1", "in_list_view": true },
+    { "fieldname": "filled", "label": "Filled", "fieldtype": "Int", "default": "0", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nClosed", "default": "Open", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}
