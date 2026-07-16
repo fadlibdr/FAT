@@ -64,7 +64,17 @@ export class EngagementListener {
 
   @OnEvent("doc.on_cancel:Contract")
   async onContractCancel(payload: DocEventPayload): Promise<void> {
-    await this.setStatus("Contract", String(payload.doc.name), "Cancelled");
+    const doc = payload.doc;
+    await this.setStatus("Contract", String(doc.name), "Cancelled");
+    // Cancelling a renewal frees its parent to be renewed again.
+    if (doc.renewed_from) {
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Contract"))} SET ${quoteIdent("renewed")} = 0
+         WHERE ${quoteIdent("name")} = $1`,
+        [String(doc.renewed_from)],
+      );
+      this.logger.log(`Contract ${doc.name} cancelled -> reopened ${doc.renewed_from} for renewal`);
+    }
   }
 
   @OnEvent("doc.before_submit:Appointment", { suppressErrors: false })

@@ -2839,6 +2839,29 @@ depreciating the full 10000 left the asset at its 2000 salvage value (Fully
 Depreciated), and a further entry was blocked ("already fully depreciated"); the
 register listed the posted charge.
 
+## Contract renewal (Phase 136)
+
+Contracts could be expired (a sweep flips Active contracts past their end date to
+Expired) but there was no way to roll one into the next period. Renewal now draws
+a follow-on contract and links the chain.
+
+- **Renewal.** `POST /api/engagement/contract/:name/renew` creates a new draft
+  Contract starting the day after the original ends, spanning the same duration
+  (or a supplied number of days), copying party/value/terms and linked via
+  `renewed_from`. The original is flagged `renewed` so it cannot be renewed
+  twice.
+- **Guards + revert.** Only a submitted, not-already-renewed contract can be
+  renewed. Cancelling a renewal clears its parent's `renewed` flag, freeing it to
+  be renewed again.
+- **Report.** A `contract-renewals` report lists renewal contracts with their
+  original, party, period, value, and status.
+
+Verified: renewing a draft was refused ("Only a submitted contract can be
+renewed"); renewing a submitted 2026 contract produced a draft starting
+2027-01-01 linked to the original, which was flagged renewed; a second renewal
+was blocked ("already been renewed"); cancelling the renewal reset the original's
+flag; the report listed the renewal against its original.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
