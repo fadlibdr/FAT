@@ -162,6 +162,13 @@ export class FulfillmentService {
     const qtn = await this.documents.get(qtnDt, quotation);
     if ((qtn.docstatus ?? 0) !== 1) throw new BadRequestException("Quotation must be submitted");
     if (qtn.sales_order) throw new BadRequestException(`Quotation ${quotation} already ordered (${qtn.sales_order})`);
+    const validTill = this.isoDay(qtn.valid_till);
+    const asOf = new Date().toISOString().slice(0, 10);
+    if (String(qtn.status) === "Expired" || (validTill && validTill < asOf)) {
+      throw new BadRequestException(
+        `Quotation ${quotation} has expired${validTill ? ` (valid till ${validTill})` : ""} and cannot be converted`,
+      );
+    }
 
     const items = ((qtn.items as Array<Record<string, unknown>>) ?? []).map((r) => ({
       item_code: r.item_code,
@@ -184,6 +191,47 @@ export class FulfillmentService {
     );
     this.logger.log(`Quotation ${quotation} -> Sales Order ${so.name}`);
     return String(so.name);
+  }
+
+  /** Normalize a date value (string or JS Date) to YYYY-MM-DD. */
+  private isoDay(value: unknown): string {
+    if (!value) return "";
+    if (value instanceof Date) {
+      const y = value.getUTCFullYear();
+      const m = String(value.getUTCMonth() + 1).padStart(2, "0");
+      const d = String(value.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+    return String(value).slice(0, 10);
+  }
+
+  /**
+   * Expire quotations whose validity has lapsed: any submitted, not-yet-ordered
+   * quotation with a `valid_till` before the as-of date is marked Expired, dropping
+   * it from the live pipeline and barring its conversion to a Sales Order.
+   */
+  async expireQuotations(asOf?: string): Promise<{ expired: string[] }> {
+    if (!this.registry.has("Quotation")) return { expired: [] };
+    const asOfDay = asOf ? String(asOf).slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const table = quoteIdent(tableNameFor("Quotation"));
+    const rows = await this.dataSource.query(
+      `SELECT ${quoteIdent("name")} AS name FROM ${table}
+       WHERE ${quoteIdent("docstatus")} = 1
+         AND coalesce(${quoteIdent("status")}, '') NOT IN ('Ordered', 'Expired')
+         AND ${quoteIdent("sales_order")} IS NULL
+         AND ${quoteIdent("valid_till")} IS NOT NULL
+         AND ${quoteIdent("valid_till")}::date < $1::date`,
+      [asOfDay],
+    );
+    const names = (rows as Array<{ name: string }>).map((r) => String(r.name));
+    if (names.length > 0) {
+      await this.dataSource.query(
+        `UPDATE ${table} SET ${quoteIdent("status")} = 'Expired' WHERE ${quoteIdent("name")} = ANY($1)`,
+        [names],
+      );
+    }
+    this.logger.log(`Quotation expiry: ${names.length} expired as of ${asOfDay}`);
+    return { expired: names };
   }
 
   async recomputeSalesOrder(so: string): Promise<void> {
