@@ -2748,6 +2748,29 @@ inspection with no readings, one with min 20 > max 10, and one with a
 non-numeric reading against a 10–20 spec were each blocked on submit; the
 readings report showed the numeric and qualitative rows with their bounds.
 
+## Supplier bill number & duplicate gate (Phase 132)
+
+An accounts-payable control against paying the same supplier bill twice: a
+Purchase Invoice records the supplier's own invoice number, and that number must
+be unique per supplier.
+
+- **Supplier bill fields.** Purchase Invoice gains `bill_no` (the supplier's
+  invoice number) and `bill_date` (its date).
+- **Duplicate gate.** `SupplierBillListener` blocks a submit (before_submit,
+  `suppressErrors:false`) when another submitted Purchase Invoice for the same
+  supplier already carries the same `bill_no`, compared trimmed and
+  case-insensitively. A debit note (`is_return`) is exempt, and an invoice with
+  no bill number is unaffected.
+- **Report.** A `supplier-bill-register` report lists submitted invoices with
+  supplier, bill number/date, posting date, and grand total (a blank bill
+  number flags an unrecorded reference).
+
+Verified: bill "INV-A001" booked once submitted; a second invoice for the same
+supplier with " inv-a001 " (different case/spacing) was blocked ("already booked
+on Purchase Invoice PINV-…"); the same number under a different supplier and a
+different number under the same supplier both submitted; the register listed all
+three with their bill references.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

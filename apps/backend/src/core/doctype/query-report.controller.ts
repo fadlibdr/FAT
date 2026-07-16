@@ -2245,6 +2245,23 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabLeave Allocation"
           ORDER BY "employee", "leave_type", "from_date"`,
   },
+  "supplier-bill-register": {
+    permDoctype: "Purchase Invoice",
+    columns: [
+      { key: "purchase_invoice", label: "Purchase Invoice" },
+      { key: "supplier", label: "Supplier" },
+      { key: "bill_no", label: "Supplier Invoice No" },
+      { key: "bill_date", label: "Supplier Invoice Date" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "grand_total", label: "Grand Total" },
+    ],
+    // Submitted purchase invoices with their supplier bill reference (blank when unrecorded).
+    sql: `SELECT "name" AS "purchase_invoice", "supplier", "bill_no", "bill_date",
+                 "posting_date", coalesce("grand_total", 0)::float8 AS "grand_total"
+          FROM "tabPurchase Invoice"
+          WHERE "docstatus" = 1 AND coalesce("is_return", 0) = 0
+          ORDER BY "supplier", "bill_date", "name"`,
+  },
   "unallocated-payments": {
     permDoctype: "Payment Entry",
     columns: [
