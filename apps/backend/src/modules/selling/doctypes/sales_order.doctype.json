@@ -102,7 +102,7 @@
       "fieldname": "status",
       "label": "Status",
       "fieldtype": "Select",
-      "options": "Draft\nTo Deliver and Bill\nTo Bill\nTo Deliver\nCompleted\nCancelled",
+      "options": "Draft\nTo Deliver and Bill\nTo Bill\nTo Deliver\nCompleted\nClosed\nCancelled",
       "default": "Draft",
       "read_only": true,
       "in_list_view": true,
@@ -111,6 +111,13 @@
     {
       "fieldname": "on_hold",
       "label": "On Hold",
+      "fieldtype": "Check",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "is_closed",
+      "label": "Is Closed",
       "fieldtype": "Check",
       "read_only": true,
       "in_standard_filter": true

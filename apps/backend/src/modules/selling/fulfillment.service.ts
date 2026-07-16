@@ -236,6 +236,16 @@ export class FulfillmentService {
 
   async recomputeSalesOrder(so: string): Promise<void> {
     if (!this.registry.has("Sales Order") || !so) return;
+    // A short-closed order is finalized: its remaining quantity is written off, so
+    // a later delivery/invoice must not silently reopen it.
+    const closed = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("is_closed")} AS c FROM ${quoteIdent(tableNameFor("Sales Order"))}
+         WHERE ${quoteIdent("name")} = $1`,
+        [so],
+      )
+    )[0];
+    if (Number(closed?.c ?? 0) === 1) return;
     const ordered = await this.qtyByItem("Sales Order Item", "Sales Order", "name", so, false);
     const delivered = await this.qtyByItem("Delivery Note Item", "Delivery Note", "sales_order", so, true);
     const billed = await this.qtyByItem("Sales Invoice Item", "Sales Invoice", "sales_order", so, true);
@@ -251,6 +261,54 @@ export class FulfillmentService {
       [perDelivered, perBilled, status, so],
     );
     this.logger.log(`Sales Order ${so}: delivered ${perDelivered}% billed ${perBilled}% -> ${status}`);
+  }
+
+  /**
+   * Short-close a Sales Order: stop expecting the un-delivered / un-billed balance
+   * and mark it Closed so it drops out of the open-order pipeline. Only a
+   * submitted order that is not already Completed or Closed can be short-closed.
+   */
+  async closeSalesOrder(so: string): Promise<{ order: string; status: string }> {
+    if (!this.registry.has("Sales Order")) throw new BadRequestException("Sales Order not registered");
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("docstatus")} AS docstatus, ${quoteIdent("status")} AS status,
+                ${quoteIdent("is_closed")} AS is_closed
+         FROM ${quoteIdent(tableNameFor("Sales Order"))} WHERE ${quoteIdent("name")} = $1`,
+        [so],
+      )
+    )[0];
+    if (!row) throw new BadRequestException(`Sales Order ${so} not found`);
+    if (Number(row.docstatus ?? 0) !== 1) throw new BadRequestException(`Sales Order ${so} must be submitted to close`);
+    if (Number(row.is_closed ?? 0) === 1) throw new BadRequestException(`Sales Order ${so} is already closed`);
+    if (String(row.status) === "Completed") throw new BadRequestException(`Sales Order ${so} is already Completed`);
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Sales Order"))}
+       SET ${quoteIdent("is_closed")} = 1, ${quoteIdent("status")} = 'Closed' WHERE ${quoteIdent("name")} = $1`,
+      [so],
+    );
+    this.logger.log(`Sales Order ${so} short-closed`);
+    return { order: so, status: "Closed" };
+  }
+
+  /** Reopen a short-closed order and recompute its status from its documents. */
+  async reopenSalesOrder(so: string): Promise<{ order: string; status: string }> {
+    if (!this.registry.has("Sales Order")) throw new BadRequestException("Sales Order not registered");
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Sales Order"))} SET ${quoteIdent("is_closed")} = 0
+       WHERE ${quoteIdent("name")} = $1`,
+      [so],
+    );
+    await this.recomputeSalesOrder(so);
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("status")} AS status FROM ${quoteIdent(tableNameFor("Sales Order"))}
+         WHERE ${quoteIdent("name")} = $1`,
+        [so],
+      )
+    )[0];
+    this.logger.log(`Sales Order ${so} reopened`);
+    return { order: so, status: String(row?.status ?? "") };
   }
 
   /**

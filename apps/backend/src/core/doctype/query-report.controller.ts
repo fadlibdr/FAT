@@ -1651,6 +1651,34 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1 AND coalesce("on_hold", 0) = 1
           ORDER BY "name"`,
   },
+  "sales-order-shortfall": {
+    permDoctype: "Sales Order",
+    columns: [
+      { key: "sales_order", label: "Sales Order" },
+      { key: "customer", label: "Customer" },
+      { key: "ordered_qty", label: "Ordered" },
+      { key: "delivered_qty", label: "Delivered" },
+      { key: "shortfall_qty", label: "Shortfall" },
+    ],
+    // Short-closed orders with the un-delivered balance written off at close.
+    sql: `SELECT so."name" AS "sales_order", so."customer",
+                 coalesce(o."qty", 0) AS "ordered_qty",
+                 coalesce(d."qty", 0) AS "delivered_qty",
+                 (coalesce(o."qty", 0) - coalesce(d."qty", 0)) AS "shortfall_qty"
+          FROM "tabSales Order" so
+          LEFT JOIN (
+            SELECT "parent", sum("qty") AS "qty" FROM "tabSales Order Item" GROUP BY "parent"
+          ) o ON o."parent" = so."name"
+          LEFT JOIN (
+            SELECT dni."sales_order" AS so, sum(dnii."qty") AS "qty"
+            FROM "tabDelivery Note Item" dnii
+            JOIN "tabDelivery Note" dni ON dni."name" = dnii."parent"
+            WHERE dni."docstatus" = 1 AND coalesce(dni."is_return", 0) = 0
+            GROUP BY dni."sales_order"
+          ) d ON d.so = so."name"
+          WHERE so."docstatus" = 1 AND coalesce(so."is_closed", 0) = 1
+          ORDER BY so."name"`,
+  },
   "loan-foreclosure-register": {
     permDoctype: "Loan",
     columns: [
