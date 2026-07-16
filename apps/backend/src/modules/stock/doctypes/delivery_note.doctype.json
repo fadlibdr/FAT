@@ -12,7 +12,8 @@
     { "fieldname": "sales_order", "label": "Sales Order", "fieldtype": "Link", "options": "Sales Order", "in_standard_filter": true },
     { "fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Link", "options": "Sales Invoice", "read_only": true, "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Delivery Note Item" },
-    { "fieldname": "total", "label": "Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true }
+    { "fieldname": "total", "label": "Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
+    { "fieldname": "installation_status", "label": "Installation Status", "fieldtype": "Select", "options": "To Install\nPartly Installed\nFully Installed", "default": "To Install", "read_only": true, "in_standard_filter": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
