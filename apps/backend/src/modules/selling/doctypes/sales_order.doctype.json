@@ -107,6 +107,19 @@
       "read_only": true,
       "in_list_view": true,
       "in_standard_filter": true
+    },
+    {
+      "fieldname": "on_hold",
+      "label": "On Hold",
+      "fieldtype": "Check",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "hold_reason",
+      "label": "Hold Reason",
+      "fieldtype": "Small Text",
+      "read_only": true
     }
   ],
   "permissions": [

@@ -10,6 +10,7 @@ import { VariantService } from "./variant.service";
 import { VariantListener } from "./variant.listener";
 import { PromotionListener } from "./promotion.listener";
 import { SoFulfillmentGateListener } from "./so-fulfillment-gate.listener";
+import { SalesOrderHoldService } from "./sales-order-hold.service";
 import { SellingController } from "./selling.controller";
 
 @Module({
@@ -24,6 +25,7 @@ import { SellingController } from "./selling.controller";
     VariantListener,
     PromotionListener,
     SoFulfillmentGateListener,
+    SalesOrderHoldService,
   ],
 })
 export class SellingModule extends BusinessModule {
