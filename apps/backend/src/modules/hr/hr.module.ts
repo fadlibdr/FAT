@@ -7,6 +7,7 @@ import { HrListener } from "./hr.listener";
 import { HrController } from "./hr.controller";
 import { ExpenseClaimListener } from "./expense-claim.listener";
 import { EmployeeAdvanceListener } from "./employee-advance.listener";
+import { EmployeeAdvanceReturnListener } from "./employee-advance-return.listener";
 import { ShiftListener } from "./shift.listener";
 import { LoanListener } from "./loan.listener";
 import { LoanRepaymentListener } from "./loan-repayment.listener";
@@ -29,7 +30,7 @@ import { HolidayListController } from "./holiday-list.controller";
 @Module({
   imports: [CoreModule],
   controllers: [HrController, RecruitmentController, JobOfferController, TravelRequestController, LeavePolicyController, HolidayListController],
-  providers: [HrService, HrListener, ExpenseClaimListener, EmployeeAdvanceListener, ShiftListener, LoanListener, LoanRepaymentListener, GratuityListener, FinalSettlementListener, OnboardingListener, EmployeePromotionListener, AppraisalListener, SeparationListener, RecruitmentService, LeaveEncashmentListener, TravelRequestService, LeavePolicyService, HolidayListService],
+  providers: [HrService, HrListener, ExpenseClaimListener, EmployeeAdvanceListener, EmployeeAdvanceReturnListener, ShiftListener, LoanListener, LoanRepaymentListener, GratuityListener, FinalSettlementListener, OnboardingListener, EmployeePromotionListener, AppraisalListener, SeparationListener, RecruitmentService, LeaveEncashmentListener, TravelRequestService, LeavePolicyService, HolidayListService],
 })
 export class HrModule extends BusinessModule {
   protected readonly baseDir = __dirname;
