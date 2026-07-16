@@ -2307,6 +2307,24 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "employee-promotion-register": {
+    permDoctype: "Employee Promotion",
+    columns: [
+      { key: "employee_promotion", label: "Promotion" },
+      { key: "employee", label: "Employee" },
+      { key: "promotion_date", label: "Date" },
+      { key: "current_designation", label: "From" },
+      { key: "new_designation", label: "To" },
+      { key: "status", label: "Status" },
+    ],
+    // Submitted employee promotions with the from/to designation change.
+    sql: `SELECT "name" AS "employee_promotion", "employee", "promotion_date",
+                 "current_designation", "new_designation",
+                 coalesce("status", 'Draft') AS "status"
+          FROM "tabEmployee Promotion"
+          WHERE "docstatus" = 1
+          ORDER BY "promotion_date" DESC, "name"`,
+  },
   "coupon-usage": {
     permDoctype: "Coupon Code",
     columns: [
