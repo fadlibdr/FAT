@@ -31,4 +31,14 @@ export class HrController {
   ) {
     return this.hr.forecloseLoan(name, body?.settlement_date, user);
   }
+
+  @Post("attendance-request/:name/approve")
+  async approveAttendanceRequest(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    return this.hr.approveAttendanceRequest(name, user);
+  }
+
+  @Post("attendance-request/:name/reject")
+  async rejectAttendanceRequest(@Param("name") name: string) {
+    return this.hr.rejectAttendanceRequest(name);
+  }
 }

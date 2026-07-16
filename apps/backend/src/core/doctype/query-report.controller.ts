@@ -2307,6 +2307,26 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "attendance-request-status": {
+    permDoctype: "Attendance Request",
+    columns: [
+      { key: "attendance_request", label: "Attendance Request" },
+      { key: "employee", label: "Employee" },
+      { key: "from_date", label: "From" },
+      { key: "to_date", label: "To" },
+      { key: "days", label: "Days" },
+      { key: "attendance_status", label: "Mark As" },
+      { key: "request_status", label: "Request Status" },
+    ],
+    // Attendance regularization requests with their inclusive day span and status.
+    sql: `SELECT "name" AS "attendance_request", "employee", "from_date", "to_date",
+                 CASE WHEN "from_date" IS NULL OR "to_date" IS NULL THEN NULL
+                      ELSE ("to_date"::date - "from_date"::date + 1) END AS "days",
+                 "attendance_status",
+                 coalesce("request_status", 'Draft') AS "request_status"
+          FROM "tabAttendance Request"
+          ORDER BY "from_date" DESC, "name"`,
+  },
   "warehouse-capacity": {
     permDoctype: "Warehouse",
     columns: [

@@ -2527,6 +2527,28 @@ volumetric weighting), and reads committed Bin on-hand — the ledger updates
 asynchronously, so a burst of concurrent inbound submits could momentarily
 race the cap.
 
+## Attendance regularization (Phase 122)
+
+An Attendance Request lets an employee ask for attendance to be marked for days
+they missed punching; approval writes the Attendance records.
+
+- **Approve.** `POST /api/hr/attendance-request/:name/approve`
+  (`HrService.approveAttendanceRequest`) enumerates the inclusive `from_date`…
+  `to_date` span (dates normalised via `isoDay`) and creates one Attendance per
+  day with the requested status (Present / Half Day), each linked back through a
+  new `attendance_request` field, then marks the request Approved.
+- **Overlap gate.** Approval is refused if any day in the range already has an
+  Attendance for the employee, if the request is not Draft, or if the range is
+  inverted. `.../reject` marks a Draft request Rejected.
+- **Report.** An `attendance-request-status` report lists requests with their
+  employee, day span, requested mark, and request status.
+
+Verified: a 3-day request created three Present Attendance records and went
+Approved; re-approving it was refused; a request overlapping one of those days
+was blocked ("Attendance already exists … on 2026-07-03"); a fresh request was
+rejected and then could not be approved; the report showed the three requests at
+3 / 2 / 1 days with Approved / Draft / Rejected status.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
