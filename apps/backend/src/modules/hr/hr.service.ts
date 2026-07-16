@@ -88,16 +88,49 @@ export class HrService {
 
   /** Balance for one leave type (allocated − used) for an employee. */
   async balanceFor(employee: string, leaveType: string): Promise<number> {
-    const allocated = await this.sum("Leave Allocation", "new_leaves_allocated", employee, leaveType);
+    const allocated = await this.allocatedFor(employee, leaveType);
     const used = await this.sum("Leave Application", "total_leave_days", employee, leaveType);
     return allocated - used;
+  }
+
+  /**
+   * Total submitted allocation for an employee + leave type, honouring
+   * carry-forward: `total_leaves_allocated` when set (new + carried), else the
+   * plain `new_leaves_allocated` for rows predating the carry-forward feature.
+   */
+  async allocatedFor(employee: string, leaveType: string): Promise<number> {
+    if (!this.registry.has("Leave Allocation")) return 0;
+    const row = (
+      await this.dataSource.query(
+        `SELECT coalesce(sum(coalesce(${quoteIdent("total_leaves_allocated")}, ${quoteIdent("new_leaves_allocated")})),0) AS s
+         FROM ${quoteIdent(tableNameFor("Leave Allocation"))}
+         WHERE ${quoteIdent("employee")} = $1 AND ${quoteIdent("leave_type")} = $2
+           AND ${quoteIdent("docstatus")} = 1`,
+        [employee, leaveType],
+      )
+    )[0];
+    return Number(row?.s ?? 0);
+  }
+
+  /** The Leave Type's carry-forward cap (0 when unset or the type is unknown). */
+  async maxCarryForward(leaveType: string): Promise<number> {
+    if (!leaveType || !this.registry.has("Leave Type")) return 0;
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("max_carry_forward")} AS m FROM ${quoteIdent(tableNameFor("Leave Type"))}
+         WHERE ${quoteIdent("name")} = $1 LIMIT 1`,
+        [leaveType],
+      )
+    )[0];
+    return Math.max(0, Number(row?.m ?? 0));
   }
 
   /** Per-leave-type balances for an employee (union of allocated + used types). */
   async balances(employee: string): Promise<LeaveBalance[]> {
     if (!this.registry.has("Leave Allocation") || !this.registry.has("Leave Application")) return [];
     const alloc = await this.dataSource.query(
-      `SELECT ${quoteIdent("leave_type")} AS t, coalesce(sum(${quoteIdent("new_leaves_allocated")}),0) AS s
+      `SELECT ${quoteIdent("leave_type")} AS t,
+              coalesce(sum(coalesce(${quoteIdent("total_leaves_allocated")}, ${quoteIdent("new_leaves_allocated")})),0) AS s
        FROM ${quoteIdent(tableNameFor("Leave Allocation"))}
        WHERE ${quoteIdent("employee")} = $1 AND ${quoteIdent("docstatus")} = 1
        GROUP BY ${quoteIdent("leave_type")}`,

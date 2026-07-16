@@ -6,6 +6,7 @@
   "fields": [
     { "fieldname": "leave_type_name", "label": "Leave Type", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
     { "fieldname": "max_days_allowed", "label": "Max Days Allowed", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "max_carry_forward", "label": "Max Carry-Forwarded Leaves", "fieldtype": "Float", "default": "0" },
     { "fieldname": "is_paid", "label": "Is Paid Leave", "fieldtype": "Check", "default": "1", "in_list_view": true }
   ],
   "permissions": [

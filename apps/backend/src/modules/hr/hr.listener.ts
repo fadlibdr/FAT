@@ -31,6 +31,63 @@ export class HrListener {
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
+  /**
+   * Leave Allocation carry-forward. When "Add Carry-Forwarded Leaves" is ticked,
+   * the employee's unused balance of the same leave type (from prior submitted
+   * allocations) is carried into this allocation, capped by the Leave Type's
+   * `max_carry_forward`. `total_leaves_allocated` = new + carried is what the
+   * balance calculations consume. Computed on every save so the draft reflects
+   * the numbers before it is submitted.
+   */
+  @OnEvent("doc.before_save:Leave Allocation")
+  async onAllocationSave(payload: BeforeSavePayload): Promise<void> {
+    const d = payload.data;
+    const employee = String(d.employee ?? "");
+    const leaveType = String(d.leave_type ?? "");
+    const newLeaves = Number(d.new_leaves_allocated ?? 0);
+    let carried = 0;
+    if (Boolean(d.carry_forward) && employee && leaveType) {
+      const priorBalance = Math.max(0, await this.hr.balanceFor(employee, leaveType));
+      const cap = await this.hr.maxCarryForward(leaveType);
+      carried = Math.min(priorBalance, cap);
+    }
+    carried = Math.round(carried * 1e6) / 1e6;
+    d.carry_forwarded = carried;
+    d.total_leaves_allocated = Math.round((newLeaves + carried) * 1e6) / 1e6;
+  }
+
+  // suppressErrors:false so a bad allocation aborts the submit.
+  @OnEvent("doc.before_submit:Leave Allocation", { suppressErrors: false })
+  async gateAllocation(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const employee = String(doc.employee ?? "");
+    const leaveType = String(doc.leave_type ?? "");
+    const from = doc.from_date;
+    const to = doc.to_date;
+    if (Number(doc.new_leaves_allocated ?? 0) < 0) {
+      throw new BadRequestException("New Leaves Allocated cannot be negative");
+    }
+    if (from && to && new Date(from as string) > new Date(to as string)) {
+      throw new BadRequestException("From Date cannot be after To Date");
+    }
+    if (!this.registry.has("Leave Allocation") || !employee || !leaveType || !from || !to) return;
+    const clash = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("name")} AS n FROM ${quoteIdent(tableNameFor("Leave Allocation"))}
+         WHERE ${quoteIdent("employee")} = $1 AND ${quoteIdent("leave_type")} = $2
+           AND ${quoteIdent("docstatus")} = 1 AND ${quoteIdent("name")} <> $3
+           AND ${quoteIdent("from_date")} <= $5 AND ${quoteIdent("to_date")} >= $4
+         LIMIT 1`,
+        [employee, leaveType, String(doc.name ?? ""), from, to],
+      )
+    )[0];
+    if (clash) {
+      throw new BadRequestException(
+        `${leaveType} allocation for ${employee} overlaps existing allocation ${clash.n}`,
+      );
+    }
+  }
+
   @OnEvent("doc.before_save:Leave Application")
   onLeaveSave(payload: BeforeSavePayload): void {
     const d = payload.data;
