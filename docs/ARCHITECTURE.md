@@ -2411,6 +2411,30 @@ incomplete Job Card(s)"); after starting and completing both cards the order
 finished to Completed and a second finish was refused; the report showed both
 cards Completed with planned 150 / 225 min vs actual 40.
 
+## Material Request fulfilment (Phase 117)
+
+A Purchase Material Request records demand; Phase 117 closes the loop to Purchase
+Orders and tracks how much of each line has been ordered.
+
+- **Raise a PO.** `POST /api/buying/material-request/:name/make-purchase-order`
+  (`MaterialRequestService.makePurchaseOrder`, supplier in the body) drafts a
+  Purchase Order for the request's still-outstanding lines (requested − ordered),
+  linking each PO line back to the request item.
+- **Fulfilment roll-up.** On a Purchase Order's submit (or cancel) each linked
+  request's per-item `ordered_qty` is recomputed from all submitted POs and its
+  status advances Pending → Partially Ordered → Ordered. A submitted request
+  settles to Pending.
+- **Stop / reopen.** `.../stop` marks a request Stopped and a before_submit gate
+  blocks ordering against it; `.../reopen` clears the flag and recomputes.
+- **Report.** A `material-request-fulfillment` report lists, per request item,
+  requested vs ordered qty, the pending balance, and status.
+
+Verified: a request for 10 went Pending on submit; a PO for 4 moved it to
+Partially Ordered (ordered 4 / pending 6); stopping it blocked a further PO
+("it is stopped") and reopening restored Partially Ordered; a PO for the
+remaining 6 moved it to Ordered (10 / 0), after which a further PO was refused;
+the report tracked 10 → 4 → 10 ordered throughout.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
