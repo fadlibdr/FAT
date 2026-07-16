@@ -2816,6 +2816,29 @@ the same date was blocked ("already has assignment SSA-… effective 2026-01-01"
 a Salary Slip created without a structure resolved to the assigned one; the
 report listed the assignment.
 
+## Depreciation salvage-value floor (Phase 135)
+
+Depreciation posting previously absorbed over-depreciation silently — a
+Depreciation Entry's stated amount was clamped to the remaining depreciable
+value on submit, so the entry could claim more than it posted. A gate now makes
+the entry consistent and enforces the salvage floor.
+
+- **Salvage-floor gate.** `DepreciationGateListener` blocks (before_submit,
+  `suppressErrors:false`) any Depreciation Entry against a fully-depreciated
+  asset, and any amount that would push the asset below its salvage value
+  (`amount > gross − salvage − accumulated`).
+- **Auto-filled amount.** before_save fills a blank amount with the asset's
+  straight-line monthly charge `(gross − salvage) / life / 12`, clamped to the
+  remaining depreciable value, so the entry's amount equals what posts.
+- **Report.** A `depreciation-entry-register` report lists posted depreciation
+  charges with asset, date, amount, and accounts.
+
+Verified: an entry left blank auto-filled to 833.33 on a 12000/2000/1-year asset;
+an amount of 11000 was blocked ("exceeds the remaining depreciable value 10000");
+depreciating the full 10000 left the asset at its 2000 salvage value (Fully
+Depreciated), and a further entry was blocked ("already fully depreciated"); the
+register listed the posted charge.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
