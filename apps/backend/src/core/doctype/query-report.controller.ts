@@ -1525,6 +1525,21 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "non-conformance-status": {
+    permDoctype: "Non Conformance",
+    columns: [
+      { key: "ncr", label: "NCR" },
+      { key: "subject", label: "Subject" },
+      { key: "severity", label: "Severity" },
+      { key: "reference_name", label: "Reference" },
+      { key: "reported_on", label: "Reported On" },
+      { key: "status", label: "Status" },
+    ],
+    sql: `SELECT "name" AS "ncr", "subject", "severity", "reference_name", "reported_on",
+                 CASE "docstatus" WHEN 1 THEN 'Closed' WHEN 2 THEN 'Cancelled' ELSE 'Open' END AS "status"
+          FROM "tabNon Conformance"
+          ORDER BY CASE "severity" WHEN 'Critical' THEN 0 WHEN 'Major' THEN 1 ELSE 2 END, "name" DESC`,
+  },
   "onboarding-status": {
     permDoctype: "Employee Onboarding",
     columns: [

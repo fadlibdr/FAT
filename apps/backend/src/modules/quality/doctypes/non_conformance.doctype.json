@@ -1,0 +1,19 @@
+{
+  "name": "Non Conformance",
+  "module": "Quality",
+  "naming_rule": "series:NCR-.#####",
+  "is_submittable": true,
+  "title_field": "subject",
+  "fields": [
+    { "fieldname": "subject", "label": "Subject", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "severity", "label": "Severity", "fieldtype": "Select", "options": "Minor\nMajor\nCritical", "default": "Minor", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "reference_type", "label": "Reference Type", "fieldtype": "Data", "in_standard_filter": true },
+    { "fieldname": "reference_name", "label": "Reference Name", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "reported_on", "label": "Reported On", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "corrective_action", "label": "Corrective Action", "fieldtype": "Text" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Quality Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}
