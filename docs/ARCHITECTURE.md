@@ -2234,6 +2234,30 @@ the order clears the report and lets the receipt submit.
 As with the Sales Order hold, enforcement is through the fulfilling document's
 linked `purchase_order` — a receipt created without that link is not caught.
 
+## Phase 110 — Purchase Order short-close
+
+Lets a partially-received Purchase Order be finalized so its un-received balance is
+written off and it drops out of the open-order pipeline. Pure SQL over sibling
+tables; Buying imports no other module's services.
+
+- **Close / reopen.** Purchase Order gains an `is_closed` flag and a `Closed`
+  status. `POST /api/buying/purchase-order/:name/close` marks a submitted,
+  not-Completed order Closed; `.../reopen` clears the flag and recomputes status
+  from its documents.
+- **Sticky close.** `recomputePurchaseOrder` short-circuits on a closed order, so a
+  stray Purchase Receipt or Invoice submitted afterward cannot silently reopen it —
+  the order stays Closed until explicitly reopened.
+- **Report.** A `purchase-order-shortfall` report lists closed orders with their
+  ordered qty, received qty, and the written-off shortfall.
+
+Verified: an order 4-of-10 received is short-closed to Closed and the shortfall
+report shows ordered 10 / received 4 / shortfall 6; a further 3-unit receipt leaves
+the order Closed (recompute skipped); reopening recomputes from all receipts
+(7/10 → 70 %, To Receive and Bill).
+
+Short-close is status-only — it does not itself cancel the ordered lines' remaining
+quantity, so reopening restores the original demand.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

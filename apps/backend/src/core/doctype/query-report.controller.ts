@@ -1544,6 +1544,32 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC NULLS LAST, "name"`,
   },
+  "purchase-order-shortfall": {
+    permDoctype: "Purchase Order",
+    columns: [
+      { key: "purchase_order", label: "Purchase Order" },
+      { key: "supplier", label: "Supplier" },
+      { key: "ordered_qty", label: "Ordered" },
+      { key: "received_qty", label: "Received" },
+      { key: "shortfall_qty", label: "Shortfall" },
+    ],
+    sql: `SELECT po."name" AS "purchase_order", po."supplier",
+                 coalesce(o."qty", 0) AS "ordered_qty",
+                 coalesce(r."qty", 0) AS "received_qty",
+                 (coalesce(o."qty", 0) - coalesce(r."qty", 0)) AS "shortfall_qty"
+          FROM "tabPurchase Order" po
+          LEFT JOIN (
+            SELECT "parent", sum("qty") AS "qty" FROM "tabPurchase Order Item" GROUP BY "parent"
+          ) o ON o."parent" = po."name"
+          LEFT JOIN (
+            SELECT pri."purchase_order" AS po, sum(prii."qty") AS "qty"
+            FROM "tabPurchase Receipt Item" prii
+            JOIN "tabPurchase Receipt" pri ON pri."name" = prii."parent" AND pri."docstatus" = 1
+            GROUP BY pri."purchase_order"
+          ) r ON r.po = po."name"
+          WHERE po."docstatus" = 1 AND coalesce(po."is_closed", 0) = 1
+          ORDER BY po."name"`,
+  },
   "purchase-orders-on-hold": {
     permDoctype: "Purchase Order",
     columns: [

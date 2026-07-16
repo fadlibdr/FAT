@@ -17,7 +17,8 @@
     { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
     { "fieldname": "per_received", "label": "% Received", "fieldtype": "Float", "read_only": true, "in_list_view": true },
     { "fieldname": "per_billed", "label": "% Billed", "fieldtype": "Float", "read_only": true, "in_list_view": true },
-    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nTo Receive and Bill\nTo Bill\nTo Receive\nCompleted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nTo Receive and Bill\nTo Bill\nTo Receive\nCompleted\nClosed\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "is_closed", "label": "Is Closed", "fieldtype": "Check", "read_only": true, "in_standard_filter": true },
     { "fieldname": "on_hold", "label": "On Hold", "fieldtype": "Check", "read_only": true, "in_standard_filter": true },
     { "fieldname": "hold_reason", "label": "Hold Reason", "fieldtype": "Small Text", "read_only": true }
   ],
