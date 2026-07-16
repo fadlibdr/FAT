@@ -86,11 +86,12 @@ export class HrService {
     return days > 0 ? days : 0;
   }
 
-  /** Balance for one leave type (allocated − used) for an employee. */
+  /** Balance for one leave type (allocated − used − encashed) for an employee. */
   async balanceFor(employee: string, leaveType: string): Promise<number> {
     const allocated = await this.allocatedFor(employee, leaveType);
     const used = await this.sum("Leave Application", "total_leave_days", employee, leaveType);
-    return allocated - used;
+    const encashed = await this.sum("Leave Encashment", "encashment_days", employee, leaveType);
+    return allocated - used - encashed;
   }
 
   /**
@@ -143,17 +144,31 @@ export class HrService {
        GROUP BY ${quoteIdent("leave_type")}`,
       [employee],
     );
+    // Encashed days consume balance just like taken leave.
+    const encashed = this.registry.has("Leave Encashment")
+      ? await this.dataSource.query(
+          `SELECT ${quoteIdent("leave_type")} AS t, coalesce(sum(${quoteIdent("encashment_days")}),0) AS s
+           FROM ${quoteIdent(tableNameFor("Leave Encashment"))}
+           WHERE ${quoteIdent("employee")} = $1 AND ${quoteIdent("docstatus")} = 1
+           GROUP BY ${quoteIdent("leave_type")}`,
+          [employee],
+        )
+      : [];
     const map = new Map<string, LeaveBalance>();
     for (const r of alloc) {
       map.set(String(r.t), { leave_type: String(r.t), allocated: Number(r.s), used: 0, balance: Number(r.s) });
     }
-    for (const r of used) {
-      const key = String(r.t);
-      const row = map.get(key) ?? { leave_type: key, allocated: 0, used: 0, balance: 0 };
-      row.used = Number(r.s);
-      row.balance = row.allocated - row.used;
-      map.set(key, row);
-    }
+    const consume = (rows: Array<Record<string, unknown>>): void => {
+      for (const r of rows) {
+        const key = String(r.t);
+        const row = map.get(key) ?? { leave_type: key, allocated: 0, used: 0, balance: 0 };
+        row.used += Number(r.s);
+        row.balance = row.allocated - row.used;
+        map.set(key, row);
+      }
+    };
+    consume(used);
+    consume(encashed);
     return [...map.values()];
   }
 

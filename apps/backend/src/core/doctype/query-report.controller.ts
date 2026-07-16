@@ -2355,6 +2355,24 @@ const REPORTS: Record<string, QueryReport> = {
           LEFT JOIN used us ON us."employee" = al."employee" AND us."leave_type" = al."leave_type"
           ORDER BY al."employee", al."leave_type"`,
   },
+  "leave-encashment-register": {
+    permDoctype: "Leave Encashment",
+    columns: [
+      { key: "encashment", label: "Encashment" },
+      { key: "employee", label: "Employee" },
+      { key: "leave_type", label: "Leave Type" },
+      { key: "encashment_days", label: "Days" },
+      { key: "encashment_amount", label: "Amount" },
+      { key: "status", label: "Status" },
+    ],
+    // Every encashment with its days/amount and submit state.
+    sql: `SELECT "name" AS "encashment", "employee", "leave_type",
+                 coalesce("encashment_days", 0)::float8 AS "encashment_days",
+                 coalesce("encashment_amount", 0)::float8 AS "encashment_amount",
+                 CASE "docstatus" WHEN 1 THEN 'Submitted' WHEN 2 THEN 'Cancelled' ELSE 'Draft' END AS "status"
+          FROM "tabLeave Encashment"
+          ORDER BY "employee", "leave_type", "name"`,
+  },
   "leave-allocation-register": {
     permDoctype: "Leave Allocation",
     columns: [
