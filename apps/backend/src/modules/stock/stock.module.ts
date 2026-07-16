@@ -10,11 +10,12 @@ import { FefoAllocationListener } from "./fefo-allocation.listener";
 import { PackingService } from "./packing.service";
 import { ShipmentService } from "./shipment.service";
 import { DeliveryTripService } from "./delivery-trip.service";
+import { WarehouseCapacityListener } from "./warehouse-capacity.listener";
 
 @Module({
   imports: [CoreModule],
   controllers: [StockController],
-  providers: [StockLedgerListener, PickListService, ReservationListener, FefoAllocationListener, PackingService, ShipmentService, DeliveryTripService],
+  providers: [StockLedgerListener, PickListService, ReservationListener, FefoAllocationListener, PackingService, ShipmentService, DeliveryTripService, WarehouseCapacityListener],
 })
 export class StockModule extends BusinessModule {
   protected readonly baseDir = __dirname;
