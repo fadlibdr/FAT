@@ -1,0 +1,18 @@
+{
+  "name": "Appraisal",
+  "module": "HR",
+  "naming_rule": "series:APPR-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "appraisal_period", "label": "Appraisal Period", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "goals", "label": "Goals", "fieldtype": "Table", "options": "Appraisal Goal" },
+    { "fieldname": "total_score", "label": "Total Score", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Appraisal Goal",
+  "module": "HR",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "kra", "label": "Key Result Area", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "weightage", "label": "Weightage (%)", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "score", "label": "Score (0-5)", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "score_earned", "label": "Score Earned", "fieldtype": "Float", "read_only": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

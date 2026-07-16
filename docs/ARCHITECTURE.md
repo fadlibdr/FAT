@@ -2639,6 +2639,25 @@ tracked each order's amount and charge.
 The shipping charge is a tracked field on the Sales Order — it is not folded
 into the (asynchronously recomputed) grand total, nor posted to GL.
 
+## Employee Appraisal (Phase 127)
+
+An Appraisal scores an employee against weighted Key Result Areas.
+
+- **Weighted scoring.** On save, `AppraisalListener` computes each goal's
+  `score_earned = weightage% × score` and the appraisal's `total_score` (Σ
+  score_earned, on a 0-5 scale).
+- **Scoring gate.** A before_submit gate requires at least one goal, each score
+  within 0-5, and the goal weightages to sum to 100. Submitting sets the status
+  Submitted (cancel → Cancelled).
+- **Report.** An `appraisal-summary` report lists submitted appraisals with
+  their employee, period, and weighted total score.
+
+Verified: goals weighted 50 / 30 / 20 with scores 4 / 5 / 3 computed earned
+2.0 / 1.5 / 0.6 and a total of 4.1, and submitted to Submitted; an appraisal
+whose weightages summed to 90 was blocked ("must sum to 100 (got 90)") and one
+with a score of 7 was blocked ("out of the 0-5 range"); the summary showed the
+appraisal at 4.1.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
