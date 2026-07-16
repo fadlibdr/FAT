@@ -1599,6 +1599,34 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY dn."name", dn."customer", di."item_code", ins."installed"
           ORDER BY dn."name", di."item_code"`,
   },
+  "subcontracting-status": {
+    permDoctype: "Subcontracting Order",
+    columns: [
+      { key: "subcontracting_order", label: "Subcontracting Order" },
+      { key: "supplier", label: "Subcontractor" },
+      { key: "finished_item", label: "Finished Item" },
+      { key: "ordered_qty", label: "Ordered" },
+      { key: "received_qty", label: "Received" },
+      { key: "pending_qty", label: "Pending" },
+      { key: "status", label: "Status" },
+    ],
+    // Subcontracting orders with the finished-good qty received to date and the
+    // outstanding balance still to receive.
+    sql: `SELECT sco."name" AS "subcontracting_order", sco."supplier", sco."finished_item",
+                 coalesce(sco."qty", 0)::float8 AS "ordered_qty",
+                 coalesce(r."qty", 0)::float8 AS "received_qty",
+                 (coalesce(sco."qty", 0) - coalesce(r."qty", 0))::float8 AS "pending_qty",
+                 sco."status"
+          FROM "tabSubcontracting Order" sco
+          LEFT JOIN (
+            SELECT "subcontracting_order" AS sco, sum("qty") AS "qty"
+            FROM "tabSubcontracting Receipt"
+            WHERE "docstatus" = 1
+            GROUP BY "subcontracting_order"
+          ) r ON r.sco = sco."name"
+          WHERE sco."docstatus" = 1
+          ORDER BY sco."name"`,
+  },
   "purchase-order-shortfall": {
     permDoctype: "Purchase Order",
     columns: [
