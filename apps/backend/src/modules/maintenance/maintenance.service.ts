@@ -52,4 +52,31 @@ export class MaintenanceService {
     this.logger.log(`Maintenance Schedule ${schedule} -> Maintenance Visit ${visit.name} (${pending.d})`);
     return String(visit.name);
   }
+
+  /**
+   * Draw a draft Maintenance Visit from an open Warranty Claim, pre-filled with
+   * the claim's customer, item and serial and linked back via `warranty_claim`.
+   * Submitting the visit resolves the claim (see MaintenanceListener). Refuses a
+   * claim that is not Open.
+   */
+  async makeVisitFromClaim(claimName: string, ctx?: UserContext): Promise<string> {
+    const claimDt = this.registry.get("Warranty Claim");
+    const visitDt = this.registry.get("Maintenance Visit");
+    if (!claimDt || !visitDt) throw new BadRequestException("Warranty Claim / Maintenance Visit not registered");
+    const context = ctx ?? systemContext();
+    const claim = await this.documents.get(claimDt, claimName);
+    if (String(claim.status ?? "Open") !== "Open") {
+      throw new BadRequestException(`Warranty Claim ${claimName} is not Open (is ${claim.status})`);
+    }
+    const visit = await this.documents.create(visitDt, context, {
+      customer: claim.customer,
+      item_code: claim.item_code ?? null,
+      serial_no: claim.serial_no ?? null,
+      warranty_claim: claimName,
+      visit_date: new Date().toISOString().slice(0, 10),
+      work_done: claim.complaint ?? null,
+    });
+    this.logger.log(`Warranty Claim ${claimName} -> Maintenance Visit ${visit.name}`);
+    return String(visit.name);
+  }
 }

@@ -86,6 +86,17 @@ export class MaintenanceListener {
   async onVisitSubmit(payload: DocEventPayload): Promise<void> {
     const visit = payload.doc;
     await this.setStatus("Maintenance Visit", String(visit.name), "Submitted");
+    // A visit against a warranty claim resolves it.
+    if (visit.warranty_claim && this.registry.has("Warranty Claim")) {
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Warranty Claim"))}
+         SET ${quoteIdent("status")} = 'Resolved', ${quoteIdent("resolution_date")} = $1,
+             ${quoteIdent("resolution")} = coalesce(${quoteIdent("resolution")}, $2)
+         WHERE ${quoteIdent("name")} = $3 AND coalesce(${quoteIdent("status")}, 'Open') = 'Open'`,
+        [visit.visit_date ?? null, visit.work_done ?? null, String(visit.warranty_claim)],
+      );
+      this.logger.log(`Maintenance Visit ${visit.name} resolved Warranty Claim ${visit.warranty_claim}`);
+    }
     if (!visit.maintenance_schedule || !this.registry.has("Maintenance Schedule Detail")) return;
     // Close the earliest still-pending scheduled visit on the referenced schedule.
     const row = (
@@ -112,6 +123,15 @@ export class MaintenanceListener {
   @OnEvent("doc.on_cancel:Maintenance Visit")
   async onVisitCancel(p: DocEventPayload): Promise<void> {
     await this.setStatus("Maintenance Visit", String(p.doc.name), "Cancelled");
+    // Reopen a warranty claim this visit had resolved.
+    if (p.doc.warranty_claim && this.registry.has("Warranty Claim")) {
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Warranty Claim"))}
+         SET ${quoteIdent("status")} = 'Open', ${quoteIdent("resolution_date")} = NULL
+         WHERE ${quoteIdent("name")} = $1 AND ${quoteIdent("status")} = 'Resolved'`,
+        [String(p.doc.warranty_claim)],
+      );
+    }
     if (!p.doc.maintenance_schedule || !this.registry.has("Maintenance Schedule Detail")) return;
     // Reopen the visit this document closed.
     await this.dataSource.query(

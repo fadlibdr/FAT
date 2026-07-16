@@ -1599,6 +1599,35 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY dn."name", dn."customer", di."item_code", ins."installed"
           ORDER BY dn."name", di."item_code"`,
   },
+  "warranty-claim-status": {
+    permDoctype: "Warranty Claim",
+    columns: [
+      { key: "warranty_claim", label: "Warranty Claim" },
+      { key: "customer", label: "Customer" },
+      { key: "item_code", label: "Item" },
+      { key: "warranty_status", label: "Warranty" },
+      { key: "complaint_date", label: "Complaint Date" },
+      { key: "resolution_date", label: "Resolution Date" },
+      { key: "days_open", label: "Days Open" },
+      { key: "status", label: "Status" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    // Warranty claims with warranty status, resolution date, and days open
+    // (to resolution, or to the as-of date while still open).
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT "name" AS "warranty_claim", "customer", "item_code", "warranty_status",
+                      "complaint_date", "resolution_date",
+                      CASE WHEN "complaint_date" IS NULL THEN NULL
+                           ELSE (coalesce("resolution_date"::date, $1::date) - "complaint_date"::date) END AS "days_open",
+                      coalesce("status", 'Open') AS "status"
+               FROM "tabWarranty Claim"
+               ORDER BY coalesce("status", 'Open'), "complaint_date" DESC, "name"`,
+        params: [asOf],
+      };
+    },
+  },
   "material-request-fulfillment": {
     permDoctype: "Material Request",
     columns: [
