@@ -813,6 +813,24 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "depreciation-entry-register": {
+    permDoctype: "Depreciation Entry",
+    columns: [
+      { key: "entry", label: "Entry" },
+      { key: "asset", label: "Asset" },
+      { key: "posting_date", label: "Posting Date" },
+      { key: "amount", label: "Amount" },
+      { key: "expense_account", label: "Expense Account" },
+      { key: "accumulated_account", label: "Accumulated Account" },
+    ],
+    // Every posted depreciation charge, newest first.
+    sql: `SELECT "name" AS "entry", "asset", "posting_date",
+                 coalesce("amount", 0)::float8 AS "amount",
+                 "expense_account", "accumulated_account"
+          FROM "tabDepreciation Entry"
+          WHERE "docstatus" = 1
+          ORDER BY "posting_date" DESC, "name"`,
+  },
   "gratuity-summary": {
     permDoctype: "Gratuity",
     columns: [

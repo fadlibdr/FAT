@@ -5,11 +5,12 @@ import { BusinessModule } from "../module-base";
 import { AssetsListener } from "./assets.listener";
 import { AssetsController } from "./assets.controller";
 import { AssetDepreciationService } from "./asset-depreciation.service";
+import { DepreciationGateListener } from "./depreciation-gate.listener";
 
 @Module({
   imports: [CoreModule],
   controllers: [AssetsController],
-  providers: [AssetsListener, AssetDepreciationService],
+  providers: [AssetsListener, AssetDepreciationService, DepreciationGateListener],
 })
 export class AssetsModule extends BusinessModule {
   protected readonly baseDir = __dirname;
