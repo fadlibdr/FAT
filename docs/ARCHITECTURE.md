@@ -2211,6 +2211,29 @@ and billed via that invoice.
 Approval is a single flat status with no approver identity, multi-level sign-off,
 or link back to a rejection reason.
 
+## Phase 109 — Purchase Order hold
+
+The buying-side mirror of the Sales Order hold: a submitted Purchase Order can be
+frozen so nothing is received or billed against it — a supplier dispute, quality
+freeze, or budget review — until it is resumed. Pure SQL over sibling tables;
+Buying imports no other module's services.
+
+- **Hold / resume.** Purchase Order gains `on_hold` + `hold_reason`.
+  `POST /api/buying/purchase-order/:name/hold` (with a reason) and `.../resume`
+  toggle the flag on a submitted order.
+- **Gate.** A `before_submit` gate on Purchase Receipt and Purchase Invoice blocks
+  receiving or billing any document whose linked `purchase_order` is on hold; a
+  return is exempt.
+- **Report.** A `purchase-orders-on-hold` report lists the held orders with their
+  supplier, amount, and hold reason.
+
+Verified: holding an order surfaces it on the on-hold report and makes both a
+Purchase Receipt and a Purchase Invoice against it fail ("it is on hold"); resuming
+the order clears the report and lets the receipt submit.
+
+As with the Sales Order hold, enforcement is through the fulfilling document's
+linked `purchase_order` — a receipt created without that link is not caught.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

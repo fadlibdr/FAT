@@ -2,6 +2,7 @@ import { Body, Controller, ForbiddenException, Get, Param, Post } from "@nestjs/
 import { ReorderService } from "./reorder.service";
 import { SourcingService } from "./sourcing.service";
 import { PoFulfillmentService } from "./po-fulfillment.service";
+import { PurchaseOrderHoldService } from "./purchase-order-hold.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -17,7 +18,18 @@ export class BuyingController {
     private readonly reorder: ReorderService,
     private readonly sourcing: SourcingService,
     private readonly poFulfillment: PoFulfillmentService,
+    private readonly holds: PurchaseOrderHoldService,
   ) {}
+
+  @Post("purchase-order/:name/hold")
+  async holdOrder(@Param("name") name: string, @Body() body: { reason?: string }) {
+    return this.holds.hold(name, body?.reason ?? "");
+  }
+
+  @Post("purchase-order/:name/resume")
+  async resumeOrder(@Param("name") name: string) {
+    return this.holds.resume(name);
+  }
 
   @Post("run-reorder")
   async runReorder(@CurrentUser() user: UserContext, @Body() body: { as_of?: string }) {
