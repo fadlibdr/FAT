@@ -2458,6 +2458,28 @@ moved the claim to Resolved with a resolution date and a second make-visit was
 refused ("is not Open"); cancelling the visit reopened the claim to Open and
 cleared the date; the report showed the claim Open at 15 days.
 
+## Project & Task lifecycle (Phase 119)
+
+Tasks already roll their progress up to a Project's `percent_complete` and honour
+a date-based finish-to-start dependency. Phase 119 adds status-based completion
+control and explicit project closure.
+
+- **Task completion gate.** `POST /api/projects/task/:name/complete`
+  (`ProjectService.completeTask`) marks a task Completed (progress 100) but
+  refuses if the task it `depends_on` is not itself Completed — finish-to-start
+  on status. The write recomputes the project's percent complete.
+- **Project close gate.** `POST /api/projects/project/:name/close` marks a
+  project Completed only once every task is Completed or Cancelled, reporting the
+  open-task count otherwise; `.../reopen` returns it to Open.
+- **Report.** A `project-task-status` report lists each project's task counts
+  (total / completed / open), rolled-up percent complete, and status.
+
+Verified: closing a project with two open tasks was blocked; completing the
+dependent task before its dependency was refused ("is null" — not Completed);
+after completing the dependency (project 50 %) the dependent task completed
+(100 %); the project then closed to Completed, a second close was refused, and
+reopening returned it to Open; the report showed 2 tasks / 2 completed / 0 open.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

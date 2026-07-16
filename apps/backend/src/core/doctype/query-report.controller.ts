@@ -1599,6 +1599,28 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY dn."name", dn."customer", di."item_code", ins."installed"
           ORDER BY dn."name", di."item_code"`,
   },
+  "project-task-status": {
+    permDoctype: "Project",
+    columns: [
+      { key: "project", label: "Project" },
+      { key: "total_tasks", label: "Tasks" },
+      { key: "completed_tasks", label: "Completed" },
+      { key: "open_tasks", label: "Open" },
+      { key: "percent_complete", label: "% Complete" },
+      { key: "status", label: "Status" },
+    ],
+    // Per project: task counts by completion and the rolled-up percent complete.
+    sql: `SELECT p."name" AS "project",
+                 count(t."name") AS "total_tasks",
+                 coalesce(sum(CASE WHEN t."status" = 'Completed' THEN 1 ELSE 0 END), 0) AS "completed_tasks",
+                 coalesce(sum(CASE WHEN coalesce(t."status", 'Open') NOT IN ('Completed', 'Cancelled') THEN 1 ELSE 0 END), 0) AS "open_tasks",
+                 coalesce(p."percent_complete", 0)::float8 AS "percent_complete",
+                 coalesce(p."status", 'Open') AS "status"
+          FROM "tabProject" p
+          LEFT JOIN "tabTask" t ON t."project" = p."name"
+          GROUP BY p."name", p."percent_complete", p."status"
+          ORDER BY p."name"`,
+  },
   "warranty-claim-status": {
     permDoctype: "Warranty Claim",
     columns: [
