@@ -2,13 +2,17 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { DoctypeRegistryService } from "../../core/doctype/doctype-registry.service";
+import { DocumentService } from "../../core/doctype/document.service";
+import { systemContext } from "../../core/permissions/system-context";
+import type { UserContext } from "../../core/permissions/permission.service";
 import { tableNameFor, quoteIdent } from "../../core/doctype/schema-sync.service";
 
 /**
  * Recruitment lifecycle for Job Applicants against a Job Opening. Applicants move
  * Open -> Shortlisted -> Hired/Rejected; hiring is capped at the opening's
- * vacancies and closes the opening once it is filled. Pure SQL over the engine's
- * tables — HR imports no other module's services.
+ * vacancies and closes the opening once it is filled. A Job Offer to an applicant
+ * can be accepted, which spins up an Employee. Pure SQL / generic CRUD over the
+ * engine's tables — HR imports no other module's services.
  */
 @Injectable()
 export class RecruitmentService {
@@ -16,6 +20,7 @@ export class RecruitmentService {
 
   constructor(
     private readonly registry: DoctypeRegistryService,
+    private readonly documents: DocumentService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
@@ -24,6 +29,7 @@ export class RecruitmentService {
     const row = (
       await this.dataSource.query(
         `SELECT ${quoteIdent("name")} AS name, ${quoteIdent("job_opening")} AS job_opening,
+                ${quoteIdent("applicant_name")} AS applicant_name,
                 coalesce(${quoteIdent("status")}, 'Open') AS status
          FROM ${quoteIdent(tableNameFor("Job Applicant"))} WHERE ${quoteIdent("name")} = $1`,
         [name],
@@ -105,5 +111,90 @@ export class RecruitmentService {
     );
     this.logger.log(`Applicant ${name} hired into ${openingName} (${newFilled}/${vacancies}, ${openingStatus})`);
     return { applicant: name, job_opening: openingName, filled: newFilled, opening_status: openingStatus };
+  }
+
+  /**
+   * Extend a Job Offer to an applicant. Refuses a Rejected applicant and any
+   * applicant that already has a live offer (Draft or Accepted).
+   */
+  async makeOffer(
+    applicantName: string,
+    details: { designation?: string; offer_ctc?: number; offer_date?: string; company?: string },
+    ctx?: UserContext,
+  ): Promise<{ offer: string }> {
+    const offerDt = this.registry.get("Job Offer");
+    if (!offerDt) throw new BadRequestException("Job Offer not registered");
+    const app = await this.applicant(applicantName);
+    if (String(app.status) === "Rejected") {
+      throw new BadRequestException(`Applicant ${applicantName} is Rejected and cannot be offered a role`);
+    }
+    const live = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("name")} AS n FROM ${quoteIdent(tableNameFor("Job Offer"))}
+         WHERE ${quoteIdent("job_applicant")} = $1 AND coalesce(${quoteIdent("status")}, 'Draft') IN ('Draft', 'Accepted')
+         LIMIT 1`,
+        [applicantName],
+      )
+    )[0];
+    if (live) throw new BadRequestException(`Applicant ${applicantName} already has a live offer ${live.n}`);
+
+    const offer = await this.documents.create(offerDt, ctx ?? systemContext(), {
+      job_applicant: applicantName,
+      applicant_name: app.applicant_name ?? null,
+      designation: details.designation ?? null,
+      offer_ctc: details.offer_ctc ?? null,
+      offer_date: details.offer_date ?? null,
+      company: details.company ?? null,
+    });
+    this.logger.log(`Job Offer ${offer.name} extended to ${applicantName}`);
+    return { offer: String(offer.name) };
+  }
+
+  private async offer(name: string): Promise<Record<string, unknown>> {
+    const dt = this.registry.get("Job Offer");
+    if (!dt) throw new BadRequestException("Job Offer not registered");
+    return this.documents.get(dt, name);
+  }
+
+  /** Accept a Draft offer: create an Employee, link it, and mark the applicant Hired. */
+  async acceptOffer(name: string, ctx?: UserContext): Promise<{ offer: string; employee: string }> {
+    const offerDt = this.registry.get("Job Offer");
+    const empDt = this.registry.get("Employee");
+    if (!offerDt || !empDt) throw new BadRequestException("Job Offer or Employee not registered");
+    const off = await this.offer(name);
+    if (String(off.status ?? "Draft") !== "Draft") {
+      throw new BadRequestException(`Job Offer ${name} is ${off.status}, only a Draft offer can be accepted`);
+    }
+    const context = ctx ?? systemContext();
+    const employee = await this.documents.create(empDt, context, {
+      employee_name: off.applicant_name ?? off.job_applicant,
+      designation: off.designation ?? null,
+      company: off.company ?? null,
+      status: "Active",
+    });
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Job Offer"))}
+       SET ${quoteIdent("status")} = 'Accepted', ${quoteIdent("employee")} = $1 WHERE ${quoteIdent("name")} = $2`,
+      [employee.name, name],
+    );
+    if (off.job_applicant) {
+      await this.setApplicantStatus(String(off.job_applicant), "Hired");
+    }
+    this.logger.log(`Job Offer ${name} accepted -> Employee ${employee.name}`);
+    return { offer: name, employee: String(employee.name) };
+  }
+
+  /** Reject a Draft offer. */
+  async rejectOffer(name: string): Promise<{ offer: string; status: string }> {
+    const off = await this.offer(name);
+    if (String(off.status ?? "Draft") !== "Draft") {
+      throw new BadRequestException(`Job Offer ${name} is ${off.status}, only a Draft offer can be rejected`);
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Job Offer"))} SET ${quoteIdent("status")} = 'Rejected'
+       WHERE ${quoteIdent("name")} = $1`,
+      [name],
+    );
+    return { offer: name, status: "Rejected" };
   }
 }

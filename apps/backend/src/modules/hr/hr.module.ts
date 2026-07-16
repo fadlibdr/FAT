@@ -17,11 +17,11 @@ import { EmployeePromotionListener } from "./employee-promotion.listener";
 import { AppraisalListener } from "./appraisal.listener";
 import { SeparationListener } from "./separation.listener";
 import { RecruitmentService } from "./recruitment.service";
-import { RecruitmentController } from "./recruitment.controller";
+import { RecruitmentController, JobOfferController } from "./recruitment.controller";
 
 @Module({
   imports: [CoreModule],
-  controllers: [HrController, RecruitmentController],
+  controllers: [HrController, RecruitmentController, JobOfferController],
   providers: [HrService, HrListener, ExpenseClaimListener, EmployeeAdvanceListener, ShiftListener, LoanListener, LoanRepaymentListener, GratuityListener, FinalSettlementListener, OnboardingListener, EmployeePromotionListener, AppraisalListener, SeparationListener, RecruitmentService],
 })
 export class HrModule extends BusinessModule {

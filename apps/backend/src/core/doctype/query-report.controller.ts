@@ -1944,6 +1944,23 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY o."name", o."job_title", o."vacancies", o."status"
           ORDER BY o."name" DESC`,
   },
+  "job-offer-status": {
+    permDoctype: "Job Offer",
+    columns: [
+      { key: "offer", label: "Offer" },
+      { key: "applicant_name", label: "Applicant" },
+      { key: "designation", label: "Designation" },
+      { key: "offer_ctc", label: "CTC" },
+      { key: "status", label: "Status" },
+      { key: "employee", label: "Employee" },
+    ],
+    // Job offers with their current state and any employee created on acceptance.
+    sql: `SELECT "name" AS "offer", "applicant_name", "designation",
+                 coalesce("offer_ctc", 0)::float8 AS "offer_ctc",
+                 coalesce("status", 'Draft') AS "status", "employee"
+          FROM "tabJob Offer"
+          ORDER BY "name" DESC`,
+  },
   "sales-target-achievement": {
     permDoctype: "Sales Target",
     columns: [

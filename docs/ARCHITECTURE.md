@@ -2884,6 +2884,31 @@ hired (filled 1/1); hiring a second applicant into the closed opening was blocke
 the hired applicant was blocked ("already Hired"); the pipeline report showed 3
 applicants / 1 hired / Closed.
 
+## Job Offer (Phase 138)
+
+Completes the recruitment bridge into HR: a Job Offer is extended to an
+applicant and, on acceptance, creates the Employee.
+
+- **Offer + accept.** A `Job Offer` (applicant, designation, CTC, status
+  Draft/Accepted/Rejected/Withdrawn, created employee). `RecruitmentService`
+  exposes `POST /api/hr/applicant/:name/make-offer` and
+  `POST /api/hr/offer/:name/{accept,reject}`. Accepting a Draft offer creates an
+  Employee from the applicant (name, designation), links it on the offer, and
+  marks the applicant Hired.
+- **Guards.** An offer cannot go to a Rejected applicant or to one that already
+  has a live offer (Draft or Accepted). Only a Draft offer can be accepted or
+  rejected.
+- **Report.** A `job-offer-status` report lists offers with applicant,
+  designation, CTC, status, and any employee created on acceptance.
+
+Verified: offering a rejected applicant was blocked ("is Rejected"); a second
+offer to the same applicant was blocked ("already has a live offer"); accepting
+the offer created an Active Employee with the offered designation and moved the
+applicant to Hired; re-accepting and rejecting the accepted offer were both
+blocked ("only a Draft offer can be…"); a draft offer to another applicant was
+rejected; the report showed the Accepted offer with its employee and the
+Rejected one.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
