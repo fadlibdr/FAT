@@ -1,7 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { DoctypeRegistryService } from "../../core/doctype/doctype-registry.service";
+import { DocumentService } from "../../core/doctype/document.service";
+import { systemContext } from "../../core/permissions/system-context";
+import type { UserContext } from "../../core/permissions/permission.service";
 import { tableNameFor, quoteIdent } from "../../core/doctype/schema-sync.service";
 
 export interface LeaveBalance {
@@ -22,8 +25,56 @@ export interface LeaveBalance {
 export class HrService {
   constructor(
     private readonly registry: DoctypeRegistryService,
+    private readonly documents: DocumentService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
+
+  /**
+   * Foreclose (early-settle) a disbursed employee loan. The remaining principal
+   * (loan amount − principal already repaid) is collected in one payment —
+   * Dr the disbursed-from account (cash in) / Cr the loan asset — and the loan is
+   * marked fully repaid and Closed. Only a Disbursed loan with a positive balance
+   * can be foreclosed. Reuses the generic DocumentService; HR imports no other
+   * module's services.
+   */
+  async forecloseLoan(
+    loanName: string,
+    settlementDate?: string,
+    ctx?: UserContext,
+  ): Promise<{ outstanding: number; status: string }> {
+    const loanDt = this.registry.get("Loan");
+    const glDt = this.registry.get("GL Entry");
+    if (!loanDt) throw new BadRequestException("Loan not registered");
+    const context = ctx ?? systemContext();
+    const loan = await this.documents.get(loanDt, loanName);
+    if (String(loan.status) !== "Disbursed") {
+      throw new BadRequestException(`Loan ${loanName} is ${loan.status}, not Disbursed — cannot foreclose`);
+    }
+    const outstanding = Math.round((Number(loan.loan_amount ?? 0) - Number(loan.repaid_principal ?? 0)) * 100) / 100;
+    if (outstanding <= 0) {
+      throw new BadRequestException(`Loan ${loanName} has no outstanding principal to foreclose`);
+    }
+    const loanAccount = String(loan.loan_account || "Employee Loan");
+    const cash = String(loan.disbursed_from || "Cash");
+    const postingDate = settlementDate ?? new Date().toISOString().slice(0, 10);
+    if (glDt) {
+      await this.documents.create(glDt, context, {
+        posting_date: postingDate, voucher_type: "Loan Foreclosure", voucher_no: loanName,
+        account: cash, debit: outstanding, credit: 0, against: String(loan.employee ?? ""),
+      });
+      await this.documents.create(glDt, context, {
+        posting_date: postingDate, voucher_type: "Loan Foreclosure", voucher_no: loanName,
+        account: loanAccount, debit: 0, credit: outstanding, against: String(loan.employee ?? ""),
+      });
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Loan"))}
+       SET ${quoteIdent("repaid_principal")} = ${quoteIdent("loan_amount")}, ${quoteIdent("status")} = 'Closed'
+       WHERE ${quoteIdent("name")} = $1`,
+      [loanName],
+    );
+    return { outstanding, status: "Closed" };
+  }
 
   /** Inclusive whole-day count between two dates (from and to both counted). */
   static leaveDays(from: unknown, to: unknown): number {

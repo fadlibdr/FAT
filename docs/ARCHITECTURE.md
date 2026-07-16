@@ -2142,6 +2142,29 @@ non-conformance-status report lists an open Critical above the closed Major.
 The reference is free text (not a validated Link), and severity drives only report
 ordering — there is no severity-based approval or auto-escalation.
 
+## Phase 106 — Loan foreclosure
+
+Lets a disbursed employee loan be settled early in one payment. Reuses the generic
+DocumentService; HR imports no other module's services.
+
+- **Foreclose.** `POST /api/hr/loan/:name/foreclose` (optional settlement date)
+  computes the remaining principal (loan amount − principal already repaid),
+  collects it in one entry — **Dr the disbursed-from account / Cr the loan asset**
+  — marks the loan fully repaid and Closed, and tags the GL `Loan Foreclosure`.
+- **Guard.** Only a **Disbursed** loan with a positive outstanding balance can be
+  foreclosed; a Draft, already-Closed, or zero-balance loan is rejected.
+- **Report.** A `loan-foreclosure-register` report lists foreclosed loans with the
+  employee, settlement date, and settled amount (the existing `loan-outstanding`
+  report then shows the loan at 0 / Closed).
+
+Verified: a 12 000 loan with 2 000 already repaid is foreclosed for the remaining
+**10 000** — the GL posts Dr Cash / Cr Employee Loan, the loan reads 0 outstanding /
+Closed, and a second foreclosure is rejected ("is Closed, not Disbursed"); the
+loan-foreclosure-register shows the 10 000 settlement.
+
+Foreclosure settles principal only — it does not charge or waive any
+foreclosure-date accrued interest or a prepayment penalty.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
