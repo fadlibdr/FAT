@@ -5,25 +5,142 @@
   "is_submittable": true,
   "title_field": "supplier",
   "fields": [
-    { "fieldname": "supplier", "label": "Supplier", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
-    { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
-    { "fieldname": "sales_order", "label": "Against Sales Order", "fieldtype": "Link", "options": "Sales Order", "in_standard_filter": true },
-    { "fieldname": "is_drop_ship", "label": "Is Drop Ship", "fieldtype": "Check", "in_standard_filter": true },
-    { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Purchase Order Item" },
-    { "fieldname": "total", "label": "Net Total", "fieldtype": "Currency", "read_only": true },
-    { "fieldname": "taxes_template", "label": "Taxes Template", "fieldtype": "Link", "options": "Purchase Taxes Template" },
-    { "fieldname": "taxes", "label": "Taxes and Charges", "fieldtype": "Table", "options": "Purchase Taxes and Charges" },
-    { "fieldname": "total_taxes_and_charges", "label": "Total Taxes", "fieldtype": "Currency", "read_only": true },
-    { "fieldname": "grand_total", "label": "Grand Total", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
-    { "fieldname": "per_received", "label": "% Received", "fieldtype": "Float", "read_only": true, "in_list_view": true },
-    { "fieldname": "per_billed", "label": "% Billed", "fieldtype": "Float", "read_only": true, "in_list_view": true },
-    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nTo Receive and Bill\nTo Bill\nTo Receive\nCompleted\nClosed\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
-    { "fieldname": "is_closed", "label": "Is Closed", "fieldtype": "Check", "read_only": true, "in_standard_filter": true },
-    { "fieldname": "on_hold", "label": "On Hold", "fieldtype": "Check", "read_only": true, "in_standard_filter": true },
-    { "fieldname": "hold_reason", "label": "Hold Reason", "fieldtype": "Small Text", "read_only": true }
+    {
+      "fieldname": "supplier",
+      "label": "Supplier",
+      "fieldtype": "Link",
+      "options": "Supplier",
+      "reqd": true,
+      "in_list_view": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "transaction_date",
+      "label": "Date",
+      "fieldtype": "Date",
+      "reqd": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "sales_order",
+      "label": "Against Sales Order",
+      "fieldtype": "Link",
+      "options": "Sales Order",
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "material_request",
+      "label": "Material Request",
+      "fieldtype": "Link",
+      "options": "Material Request",
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "is_drop_ship",
+      "label": "Is Drop Ship",
+      "fieldtype": "Check",
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "items",
+      "label": "Items",
+      "fieldtype": "Table",
+      "options": "Purchase Order Item"
+    },
+    {
+      "fieldname": "total",
+      "label": "Net Total",
+      "fieldtype": "Currency",
+      "read_only": true
+    },
+    {
+      "fieldname": "taxes_template",
+      "label": "Taxes Template",
+      "fieldtype": "Link",
+      "options": "Purchase Taxes Template"
+    },
+    {
+      "fieldname": "taxes",
+      "label": "Taxes and Charges",
+      "fieldtype": "Table",
+      "options": "Purchase Taxes and Charges"
+    },
+    {
+      "fieldname": "total_taxes_and_charges",
+      "label": "Total Taxes",
+      "fieldtype": "Currency",
+      "read_only": true
+    },
+    {
+      "fieldname": "grand_total",
+      "label": "Grand Total",
+      "fieldtype": "Currency",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "per_received",
+      "label": "% Received",
+      "fieldtype": "Float",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "per_billed",
+      "label": "% Billed",
+      "fieldtype": "Float",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Draft\nTo Receive and Bill\nTo Bill\nTo Receive\nCompleted\nClosed\nCancelled",
+      "default": "Draft",
+      "read_only": true,
+      "in_list_view": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "is_closed",
+      "label": "Is Closed",
+      "fieldtype": "Check",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "on_hold",
+      "label": "On Hold",
+      "fieldtype": "Check",
+      "read_only": true,
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "hold_reason",
+      "label": "Hold Reason",
+      "fieldtype": "Small Text",
+      "read_only": true
+    }
   ],
   "permissions": [
-    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
-    { "role": "Purchase User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "submit": 1,
+      "cancel": 1,
+      "report": 1
+    },
+    {
+      "role": "Purchase User",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "submit": 1,
+      "report": 1
+    }
   ]
 }

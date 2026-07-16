@@ -1599,6 +1599,28 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY dn."name", dn."customer", di."item_code", ins."installed"
           ORDER BY dn."name", di."item_code"`,
   },
+  "material-request-fulfillment": {
+    permDoctype: "Material Request",
+    columns: [
+      { key: "material_request", label: "Material Request" },
+      { key: "item_code", label: "Item" },
+      { key: "requested_qty", label: "Requested" },
+      { key: "ordered_qty", label: "Ordered" },
+      { key: "pending_qty", label: "Pending" },
+      { key: "status", label: "Status" },
+    ],
+    // Per Material Request item: requested vs ordered qty, the outstanding
+    // balance, and the request's overall status.
+    sql: `SELECT mr."name" AS "material_request", mri."item_code",
+                 coalesce(mri."qty", 0)::float8 AS "requested_qty",
+                 coalesce(mri."ordered_qty", 0)::float8 AS "ordered_qty",
+                 (coalesce(mri."qty", 0) - coalesce(mri."ordered_qty", 0))::float8 AS "pending_qty",
+                 mr."status"
+          FROM "tabMaterial Request" mr
+          JOIN "tabMaterial Request Item" mri ON mri."parent" = mr."name"
+          WHERE mr."docstatus" = 1
+          ORDER BY mr."name", mri."item_code"`,
+  },
   "job-card-status": {
     permDoctype: "Job Card",
     columns: [

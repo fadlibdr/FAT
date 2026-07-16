@@ -9,7 +9,8 @@
     { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true },
     { "fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "Material Request Item" },
-    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nPending\nOrdered\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nPending\nPartially Ordered\nOrdered\nStopped\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "is_stopped", "label": "Is Stopped", "fieldtype": "Check", "read_only": true, "in_standard_filter": true },
     { "fieldname": "purchase_order", "label": "Purchase Order", "fieldtype": "Data", "read_only": true }
   ],
   "permissions": [

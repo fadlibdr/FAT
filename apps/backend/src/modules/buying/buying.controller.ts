@@ -4,6 +4,7 @@ import { SourcingService } from "./sourcing.service";
 import { PoFulfillmentService } from "./po-fulfillment.service";
 import { PurchaseOrderHoldService } from "./purchase-order-hold.service";
 import { SubcontractingService } from "./subcontracting.service";
+import { MaterialRequestService } from "./material-request.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -21,12 +22,33 @@ export class BuyingController {
     private readonly poFulfillment: PoFulfillmentService,
     private readonly holds: PurchaseOrderHoldService,
     private readonly subcontracting: SubcontractingService,
+    private readonly materialRequests: MaterialRequestService,
   ) {}
 
   @Post("subcontracting-order/:name/make-receipt")
   async makeSubcontractingReceipt(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const subcontractingReceipt = await this.subcontracting.makeSubcontractingReceipt(name, user);
     return { subcontractingReceipt };
+  }
+
+  @Post("material-request/:name/make-purchase-order")
+  async makePurchaseOrderFromMr(
+    @CurrentUser() user: UserContext,
+    @Param("name") name: string,
+    @Body() body: { supplier?: string },
+  ) {
+    const purchaseOrder = await this.materialRequests.makePurchaseOrder(name, body?.supplier ?? "", user);
+    return { purchaseOrder };
+  }
+
+  @Post("material-request/:name/stop")
+  async stopMaterialRequest(@Param("name") name: string) {
+    return this.materialRequests.stop(name);
+  }
+
+  @Post("material-request/:name/reopen")
+  async reopenMaterialRequest(@Param("name") name: string) {
+    return this.materialRequests.reopen(name);
   }
 
   @Post("purchase-order/:name/hold")
