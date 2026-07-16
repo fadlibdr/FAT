@@ -2307,6 +2307,31 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "warehouse-capacity": {
+    permDoctype: "Warehouse",
+    columns: [
+      { key: "warehouse", label: "Warehouse" },
+      { key: "max_capacity", label: "Capacity" },
+      { key: "on_hand", label: "On Hand" },
+      { key: "available", label: "Available" },
+      { key: "utilization_pct", label: "Utilization %" },
+    ],
+    // Capacity-limited warehouses with their total on-hand units and remaining
+    // headroom (capacity − on-hand).
+    sql: `SELECT w."name" AS "warehouse",
+                 coalesce(w."max_capacity", 0)::float8 AS "max_capacity",
+                 coalesce(b."qty", 0)::float8 AS "on_hand",
+                 (coalesce(w."max_capacity", 0) - coalesce(b."qty", 0))::float8 AS "available",
+                 CASE WHEN coalesce(w."max_capacity", 0) > 0
+                      THEN round((coalesce(b."qty", 0) / w."max_capacity" * 100)::numeric, 2)
+                      ELSE 0 END AS "utilization_pct"
+          FROM "tabWarehouse" w
+          LEFT JOIN (
+            SELECT "warehouse", sum("actual_qty") AS "qty" FROM "tabBin" GROUP BY "warehouse"
+          ) b ON b."warehouse" = w."name"
+          WHERE coalesce(w."max_capacity", 0) > 0
+          ORDER BY w."name"`,
+  },
   "pick-list-shortfall": {
     permDoctype: "Pick List",
     columns: [

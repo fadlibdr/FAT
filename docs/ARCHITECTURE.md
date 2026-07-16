@@ -2502,6 +2502,31 @@ picked_qty and the report showed to-pick 10 / picked 7 / short 3; delivering
 before confirming was refused; after confirming, the Delivery Note carried the
 picked 7 and the list moved to Delivered.
 
+## Warehouse capacity (Phase 121)
+
+A Warehouse may declare a `max_capacity` (total units across all items); inbound
+stock moves that would overflow it are blocked before submit.
+
+- **Capacity gate.** `WarehouseCapacityListener` runs a before_submit gate on
+  Putaway (per-line `to_warehouse`) and Stock Entry (per-line `t_warehouse` —
+  Material Receipt / Transfer / Manufacture). For each target warehouse it sums
+  the incoming quantity and, when a cap is declared, aborts if current Bin
+  on-hand plus incoming would exceed it. A warehouse with no `max_capacity`
+  (0 / unset) is unlimited.
+- **Report.** A `warehouse-capacity` report lists capacity-limited warehouses
+  with their on-hand units, remaining headroom, and utilization percentage.
+
+Verified: receiving 8 into a cap-10 warehouse succeeded, a further 5 was blocked
+("capacity 10 exceeded — on hand 8 + incoming 5"), and 2 more filled it to 10; a
+putaway of 1 into the now-full warehouse was blocked while a putaway into an
+uncapped warehouse succeeded; the report showed capacity 10 / on-hand 10 /
+available 0 / 100 %.
+
+Capacity is counted in raw stock units across all items (no per-item or
+volumetric weighting), and reads committed Bin on-hand — the ledger updates
+asynchronously, so a burst of concurrent inbound submits could momentarily
+race the cap.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
