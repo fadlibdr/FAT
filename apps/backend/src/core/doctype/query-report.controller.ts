@@ -2307,6 +2307,26 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "shipping-charges": {
+    permDoctype: "Sales Order",
+    columns: [
+      { key: "sales_order", label: "Sales Order" },
+      { key: "customer", label: "Customer" },
+      { key: "shipping_rule", label: "Shipping Rule" },
+      { key: "order_amount", label: "Order Amount" },
+      { key: "shipping_charge", label: "Shipping Charge" },
+    ],
+    // Sales Orders carrying a shipping rule, with the freight charge it computed.
+    sql: `SELECT so."name" AS "sales_order", so."customer", so."shipping_rule",
+                 coalesce(i."amt", 0)::float8 AS "order_amount",
+                 coalesce(so."shipping_charge", 0)::float8 AS "shipping_charge"
+          FROM "tabSales Order" so
+          LEFT JOIN (
+            SELECT "parent", sum("qty" * "rate") AS "amt" FROM "tabSales Order Item" GROUP BY "parent"
+          ) i ON i."parent" = so."name"
+          WHERE so."shipping_rule" IS NOT NULL AND so."shipping_rule" <> ''
+          ORDER BY so."name"`,
+  },
   "employee-promotion-register": {
     permDoctype: "Employee Promotion",
     columns: [
