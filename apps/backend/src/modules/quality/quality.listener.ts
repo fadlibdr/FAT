@@ -9,8 +9,11 @@ import { tableNameFor, quoteIdent } from "../../core/doctype/schema-sync.service
 /**
  * Quality control. Two pure event-bus behaviours, no cross-module imports:
  *
- *  1. before_save on a Quality Inspection derives its overall status from the
- *     readings grid — Rejected if any reading is Rejected, else Accepted.
+ *  1. before_save on a Quality Inspection evaluates each reading that carries a
+ *     numeric spec (a min and/or max value) — the reading's acceptance is set
+ *     from whether its reading_value falls in range — then derives the overall
+ *     status from the readings grid: Rejected if any reading is Rejected, else
+ *     Accepted. Readings without a numeric spec keep their manual acceptance.
  *  2. before_submit on a Purchase Receipt gates the transition: any received
  *     item whose Item requires incoming inspection must have a submitted,
  *     Accepted Quality Inspection referencing this receipt, or submit is blocked.
@@ -30,8 +33,58 @@ export class QualityListener {
   onInspectionSave(payload: BeforeSavePayload): void {
     const readings = payload.data.readings as Array<Record<string, unknown>> | undefined;
     if (!Array.isArray(readings)) return;
+    for (const r of readings) {
+      const verdict = QualityListener.evaluate(r);
+      if (verdict) r.acceptance = verdict; // numeric spec overrides the manual field
+    }
     const rejected = readings.some((r) => String(r?.acceptance ?? "Accepted") === "Rejected");
     payload.data.status = rejected ? "Rejected" : "Accepted";
+  }
+
+  /** A finite number or null (treats null/undefined/blank as "unset"). */
+  private static num(value: unknown): number | null {
+    if (value === null || value === undefined || value === "") return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /**
+   * Acceptance for a reading with a numeric spec: Accepted when reading_value is
+   * within [min, max] (either bound optional), Rejected otherwise. Returns null
+   * when the reading has no numeric spec, leaving its manual acceptance untouched.
+   */
+  private static evaluate(r: Record<string, unknown>): "Accepted" | "Rejected" | null {
+    const min = QualityListener.num(r.min_value);
+    const max = QualityListener.num(r.max_value);
+    if (min === null && max === null) return null; // qualitative reading
+    const value = QualityListener.num(r.reading_value);
+    if (value === null) return "Rejected"; // a numeric spec with a non-numeric reading fails
+    if (min !== null && value < min) return "Rejected";
+    if (max !== null && value > max) return "Rejected";
+    return "Accepted";
+  }
+
+  // suppressErrors:false so a bad inspection aborts the submit.
+  @OnEvent("doc.before_submit:Quality Inspection", { suppressErrors: false })
+  gateInspection(payload: DocEventPayload): void {
+    const readings = (payload.doc.readings as Array<Record<string, unknown>>) ?? [];
+    if (readings.length === 0) {
+      throw new BadRequestException(`Quality Inspection ${payload.doc.name}: at least one reading is required`);
+    }
+    for (const r of readings) {
+      const min = QualityListener.num(r.min_value);
+      const max = QualityListener.num(r.max_value);
+      if (min !== null && max !== null && min > max) {
+        throw new BadRequestException(
+          `Quality Inspection ${payload.doc.name}: parameter "${r.parameter}" has min ${min} greater than max ${max}`,
+        );
+      }
+      if ((min !== null || max !== null) && QualityListener.num(r.reading_value) === null) {
+        throw new BadRequestException(
+          `Quality Inspection ${payload.doc.name}: parameter "${r.parameter}" needs a numeric reading for its spec range`,
+        );
+      }
+    }
   }
 
   // suppressErrors:false so a thrown gate error rejects emitAsync and aborts the

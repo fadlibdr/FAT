@@ -6,6 +6,8 @@
   "fields": [
     { "fieldname": "parameter", "label": "Parameter", "fieldtype": "Data", "reqd": true, "in_list_view": true },
     { "fieldname": "specification", "label": "Specification", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "min_value", "label": "Min Value", "fieldtype": "Float" },
+    { "fieldname": "max_value", "label": "Max Value", "fieldtype": "Float" },
     { "fieldname": "reading_value", "label": "Reading", "fieldtype": "Data", "in_list_view": true },
     { "fieldname": "acceptance", "label": "Acceptance", "fieldtype": "Select", "options": "Accepted\nRejected", "default": "Accepted", "in_list_view": true }
   ],
