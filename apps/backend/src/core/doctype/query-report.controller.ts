@@ -1599,6 +1599,25 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY dn."name", dn."customer", di."item_code", ins."installed"
           ORDER BY dn."name", di."item_code"`,
   },
+  "job-card-status": {
+    permDoctype: "Job Card",
+    columns: [
+      { key: "job_card", label: "Job Card" },
+      { key: "work_order", label: "Work Order" },
+      { key: "operation", label: "Operation" },
+      { key: "workstation", label: "Workstation" },
+      { key: "planned_time", label: "Planned (min)" },
+      { key: "actual_time", label: "Actual (min)" },
+      { key: "status", label: "Status" },
+    ],
+    // Every Job Card with its operation, planned vs actual minutes, and status.
+    sql: `SELECT "name" AS "job_card", "work_order", "operation", "workstation",
+                 coalesce("time_in_mins", 0)::float8 AS "planned_time",
+                 coalesce("actual_time_in_mins", 0)::float8 AS "actual_time",
+                 "status"
+          FROM "tabJob Card"
+          ORDER BY "work_order", "name"`,
+  },
   "subcontracting-status": {
     permDoctype: "Subcontracting Order",
     columns: [

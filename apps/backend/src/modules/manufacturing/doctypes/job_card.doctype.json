@@ -8,9 +8,10 @@
     { "fieldname": "operation", "label": "Operation", "fieldtype": "Data", "in_list_view": true },
     { "fieldname": "workstation", "label": "Workstation", "fieldtype": "Data", "in_list_view": true },
     { "fieldname": "for_quantity", "label": "For Quantity", "fieldtype": "Float", "in_list_view": true },
-    { "fieldname": "time_in_mins", "label": "Time (mins)", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "time_in_mins", "label": "Planned Time (mins)", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "actual_time_in_mins", "label": "Actual Time (mins)", "fieldtype": "Float", "read_only": true, "in_list_view": true },
     { "fieldname": "operating_cost", "label": "Operating Cost", "fieldtype": "Currency", "in_list_view": true },
-    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nCompleted", "default": "Open", "in_list_view": true, "in_standard_filter": true }
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nWork In Progress\nCompleted", "default": "Open", "read_only": true, "in_list_view": true, "in_standard_filter": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
