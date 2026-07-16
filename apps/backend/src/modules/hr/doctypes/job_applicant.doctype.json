@@ -1,0 +1,17 @@
+{
+  "name": "Job Applicant",
+  "module": "HR",
+  "naming_rule": "series:APP-.#####",
+  "title_field": "applicant_name",
+  "fields": [
+    { "fieldname": "applicant_name", "label": "Applicant Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "job_opening", "label": "Job Opening", "fieldtype": "Link", "options": "Job Opening", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "email", "label": "Email", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "phone", "label": "Phone", "fieldtype": "Data" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nShortlisted\nRejected\nHired", "default": "Open", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

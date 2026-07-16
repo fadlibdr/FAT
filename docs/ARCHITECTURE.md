@@ -2862,6 +2862,28 @@ renewed"); renewing a submitted 2026 contract produced a draft starting
 was blocked ("already been renewed"); cancelling the renewal reset the original's
 flag; the report listed the renewal against its original.
 
+## Recruitment (Phase 137)
+
+A new recruitment domain: openings advertise vacancies, applicants apply against
+them and move through a hiring pipeline.
+
+- **Doctypes + hire.** `Job Opening` (title, vacancies, filled, status) and
+  `Job Applicant` (name, opening, email, status Open/Shortlisted/Rejected/Hired).
+  `RecruitmentService` exposes `POST /api/hr/applicant/:name/{shortlist,reject,hire}`.
+  Hiring increments the opening's `filled` count.
+- **Hire gates + auto-close.** Hiring refuses a Closed or fully-filled opening,
+  an already-Hired applicant, or a Rejected one; shortlisting only applies to an
+  Open applicant, and rejecting an already-Hired applicant is refused. When the
+  last vacancy is filled the opening auto-closes.
+- **Report.** A `recruitment-pipeline` report shows per-opening applicant counts
+  by stage (applicants / shortlisted / hired) against the vacancy target.
+
+Verified: an opening with one vacancy closed after its shortlisted applicant was
+hired (filled 1/1); hiring a second applicant into the closed opening was blocked
+("is Closed"); a rejected applicant could not be hired ("is Rejected"); re-hiring
+the hired applicant was blocked ("already Hired"); the pipeline report showed 3
+applicants / 1 hired / Closed.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
