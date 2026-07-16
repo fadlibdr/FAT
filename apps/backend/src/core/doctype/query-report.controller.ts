@@ -1525,6 +1525,19 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "sales-orders-on-hold": {
+    permDoctype: "Sales Order",
+    columns: [
+      { key: "sales_order", label: "Sales Order" },
+      { key: "customer", label: "Customer" },
+      { key: "grand_total", label: "Amount" },
+      { key: "hold_reason", label: "Hold Reason" },
+    ],
+    sql: `SELECT "name" AS "sales_order", "customer", "grand_total", "hold_reason"
+          FROM "tabSales Order"
+          WHERE "docstatus" = 1 AND coalesce("on_hold", 0) = 1
+          ORDER BY "name"`,
+  },
   "loan-foreclosure-register": {
     permDoctype: "Loan",
     columns: [

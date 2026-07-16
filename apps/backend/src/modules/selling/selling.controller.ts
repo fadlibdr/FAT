@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { FulfillmentService } from "./fulfillment.service";
 import { VariantService } from "./variant.service";
+import { SalesOrderHoldService } from "./sales-order-hold.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -13,7 +14,18 @@ export class SellingController {
   constructor(
     private readonly fulfillment: FulfillmentService,
     private readonly variants: VariantService,
+    private readonly holds: SalesOrderHoldService,
   ) {}
+
+  @Post("sales-order/:name/hold")
+  async holdOrder(@Param("name") name: string, @Body() body: { reason?: string }) {
+    return this.holds.hold(name, body?.reason ?? "");
+  }
+
+  @Post("sales-order/:name/resume")
+  async resumeOrder(@Param("name") name: string) {
+    return this.holds.resume(name);
+  }
 
   @Post("sales-order/:name/make-delivery-note")
   async makeDeliveryNote(@CurrentUser() user: UserContext, @Param("name") name: string) {

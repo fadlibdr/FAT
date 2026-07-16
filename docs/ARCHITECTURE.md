@@ -2165,6 +2165,28 @@ loan-foreclosure-register shows the 10 000 settlement.
 Foreclosure settles principal only — it does not charge or waive any
 foreclosure-date accrued interest or a prepayment penalty.
 
+## Phase 107 — Sales Order hold
+
+Lets a submitted Sales Order be frozen so nothing ships or bills against it — a
+credit review, dispute, or stock-check pause — until it is explicitly resumed.
+Pure SQL over sibling tables; Selling imports no other module's services.
+
+- **Hold / resume.** Sales Order gains `on_hold` + `hold_reason`.
+  `POST /api/selling/sales-order/:name/hold` (with a reason) and `.../resume`
+  toggle the flag on a submitted order.
+- **Gate.** A `before_submit` gate on Delivery Note and Sales Invoice blocks
+  fulfilling (delivering or billing) any document whose linked `sales_order` is on
+  hold; a return is exempt.
+- **Report.** A `sales-orders-on-hold` report lists the held orders with their
+  customer, amount, and hold reason.
+
+Verified: holding an order surfaces it on the on-hold report and makes both a
+Delivery Note and a Sales Invoice against it fail ("it is on hold"); resuming the
+order clears the report and lets the delivery submit.
+
+The hold is enforced only through the linked `sales_order` on the fulfilling
+document — a Delivery Note created without that link is not caught.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
