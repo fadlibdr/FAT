@@ -26,6 +26,30 @@ export class ProjectsBillingService {
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
+  /**
+   * Approve or reject a submitted Timesheet. Only an Approved timesheet can be
+   * billed (see makeSalesInvoice); a rejected one is barred from billing.
+   */
+  async setApproval(timesheet: string, status: "Approved" | "Rejected"): Promise<{ timesheet: string; approval_status: string }> {
+    const tsDt = this.registry.get("Timesheet");
+    if (!tsDt) throw new BadRequestException("Timesheet not registered");
+    if (status !== "Approved" && status !== "Rejected") {
+      throw new BadRequestException(`Approval status must be Approved or Rejected (got ${status})`);
+    }
+    const ts = await this.documents.get(tsDt, timesheet);
+    if ((ts.docstatus ?? 0) !== 1) throw new BadRequestException("Timesheet must be submitted to approve");
+    if (ts.sales_invoice) {
+      throw new BadRequestException(`Timesheet ${timesheet} is already billed via ${ts.sales_invoice}`);
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Timesheet"))} SET ${quoteIdent("approval_status")} = $1
+       WHERE ${quoteIdent("name")} = $2`,
+      [status, timesheet],
+    );
+    this.logger.log(`Timesheet ${timesheet} ${status}`);
+    return { timesheet, approval_status: status };
+  }
+
   async makeSalesInvoice(timesheet: string, ctx?: UserContext): Promise<string> {
     const tsDt = this.registry.get("Timesheet");
     const siDt = this.registry.get("Sales Invoice");
@@ -35,6 +59,11 @@ export class ProjectsBillingService {
     const ts = await this.documents.get(tsDt, timesheet);
     if ((ts.docstatus ?? 0) !== 1) throw new BadRequestException("Timesheet must be submitted");
     if (Number(ts.is_billable ?? 0) !== 1) throw new BadRequestException(`Timesheet ${timesheet} is not billable`);
+    if (String(ts.approval_status ?? "Draft") !== "Approved") {
+      throw new BadRequestException(
+        `Timesheet ${timesheet} is ${ts.approval_status ?? "Draft"} — it must be Approved before billing`,
+      );
+    }
     if (ts.sales_invoice) throw new BadRequestException(`Timesheet ${timesheet} already billed via ${ts.sales_invoice}`);
 
     const project = String(ts.project ?? "");

@@ -8,6 +8,16 @@ import type { UserContext } from "../../core/permissions/permission.service";
 export class ProjectsController {
   constructor(private readonly billing: ProjectsBillingService) {}
 
+  @Post("timesheet/:name/approve")
+  async approveTimesheet(@Param("name") name: string) {
+    return this.billing.setApproval(name, "Approved");
+  }
+
+  @Post("timesheet/:name/reject")
+  async rejectTimesheet(@Param("name") name: string) {
+    return this.billing.setApproval(name, "Rejected");
+  }
+
   @Post("timesheet/:name/make-sales-invoice")
   async billTimesheet(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const salesInvoice = await this.billing.makeSalesInvoice(name, user);
