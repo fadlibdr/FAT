@@ -45,6 +45,11 @@ export class SellingController {
     return { salesOrder };
   }
 
+  @Post("expire-quotations")
+  async expireQuotations(@Body() body: { as_of?: string }) {
+    return this.fulfillment.expireQuotations(body?.as_of);
+  }
+
   @Post("delivery-note/:name/make-sales-invoice")
   async billDelivery(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const salesInvoice = await this.fulfillment.makeSalesInvoiceFromDelivery(name, user);

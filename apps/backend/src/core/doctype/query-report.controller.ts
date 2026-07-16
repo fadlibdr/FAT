@@ -1544,6 +1544,31 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC NULLS LAST, "name"`,
   },
+  "quotation-expiry-status": {
+    permDoctype: "Quotation",
+    columns: [
+      { key: "quotation", label: "Quotation" },
+      { key: "customer", label: "Customer" },
+      { key: "grand_total", label: "Amount" },
+      { key: "valid_till", label: "Valid Till" },
+      { key: "days_to_expiry", label: "Days to Expiry" },
+      { key: "status", label: "Status" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT "name" AS "quotation", "customer", "grand_total", "valid_till",
+                      CASE WHEN "valid_till" IS NULL THEN NULL
+                           ELSE ("valid_till"::date - $1::date) END AS "days_to_expiry",
+                      "status"
+               FROM "tabQuotation"
+               WHERE "docstatus" = 1
+               ORDER BY "valid_till" NULLS LAST, "name"`,
+        params: [asOf],
+      };
+    },
+  },
   "purchase-order-shortfall": {
     permDoctype: "Purchase Order",
     columns: [

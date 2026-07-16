@@ -2258,6 +2258,29 @@ the order Closed (recompute skipped); reopening recomputes from all receipts
 Short-close is status-only — it does not itself cancel the ordered lines' remaining
 quantity, so reopening restores the original demand.
 
+## Quotation expiry (Phase 111)
+
+Quotations carry a `valid_till` date; once past, they should not convert into
+Sales Orders and should be visible as stale. Phase 111 closes that loop.
+
+- **Expiry run.** `POST /api/selling/expire-quotations` (`FulfillmentService.
+  expireQuotations(asOf?)`) selects submitted, un-ordered quotations whose
+  `valid_till` is on or before `asOf` (default today) and marks them `Expired`
+  in a single `UPDATE ... = ANY($1)`. Dates are normalised through an `isoDay`
+  helper (UTC `YYYY-MM-DD`) so raw-SQL comparisons never see a weekday string.
+- **Conversion gate.** `makeSalesOrder` throws a `BadRequestException` when the
+  source quotation is already `Expired` or its `valid_till` is before the
+  conversion date — an expired quotation cannot silently become an order.
+- **Report.** A `quotation-expiry-status` query-report lists submitted
+  quotations with their `valid_till`, `days_to_expiry` (relative to an `as_of`
+  filter), and status (Expired / Ordered / open).
+
+Verified: an expiry run as of 2026-07-16 marked QTN-00001 (valid till
+2026-06-30) Expired and left QTN-00002 (2026-12-31) untouched; converting the
+expired quotation was blocked ("Quotation QTN-00001 has expired (valid till
+2026-06-30) and cannot be converted") while the valid one converted to SO-00003;
+the report showed QTN-00001 at −16 days Expired and QTN-00002 at 168 days Ordered.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
