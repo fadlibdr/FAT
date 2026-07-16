@@ -1469,6 +1469,25 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "contract-renewals": {
+    permDoctype: "Contract",
+    columns: [
+      { key: "renewal", label: "Renewal Contract" },
+      { key: "renewed_from", label: "Original" },
+      { key: "party", label: "Party" },
+      { key: "start_date", label: "Start" },
+      { key: "end_date", label: "End" },
+      { key: "contract_value", label: "Value" },
+      { key: "status", label: "Status" },
+    ],
+    // Renewal contracts (those drawn from an earlier contract), newest first.
+    sql: `SELECT "name" AS "renewal", "renewed_from", "party", "start_date", "end_date",
+                 coalesce("contract_value", 0)::float8 AS "contract_value",
+                 coalesce("status", 'Draft') AS "status"
+          FROM "tabContract"
+          WHERE "renewed_from" IS NOT NULL AND "renewed_from" <> ''
+          ORDER BY "start_date" DESC, "name"`,
+  },
   "quality-inspection-status": {
     permDoctype: "Quality Inspection",
     columns: [

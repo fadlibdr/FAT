@@ -11,6 +11,8 @@
     { "fieldname": "end_date", "label": "End Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "contract_value", "label": "Contract Value", "fieldtype": "Currency", "in_list_view": true },
     { "fieldname": "terms", "label": "Terms", "fieldtype": "Small Text" },
+    { "fieldname": "renewed_from", "label": "Renewed From", "fieldtype": "Link", "options": "Contract", "read_only": true, "in_standard_filter": true },
+    { "fieldname": "renewed", "label": "Renewed", "fieldtype": "Check", "default": "0", "read_only": true, "in_standard_filter": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nActive\nExpired\nCancelled", "default": "Draft", "in_list_view": true, "in_standard_filter": true }
   ],
   "permissions": [
