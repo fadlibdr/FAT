@@ -26,6 +26,16 @@ export class PoFulfillmentService {
 
   async recomputePurchaseOrder(po: string): Promise<void> {
     if (!this.registry.has("Purchase Order") || !po) return;
+    // A short-closed order is finalized: its remaining quantity is written off, so
+    // a later receipt/invoice must not silently reopen it.
+    const closed = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("is_closed")} AS c FROM ${quoteIdent(tableNameFor("Purchase Order"))}
+         WHERE ${quoteIdent("name")} = $1`,
+        [po],
+      )
+    )[0];
+    if (Number(closed?.c ?? 0) === 1) return;
     const ordered = await this.qtyByItem("Purchase Order Item", "Purchase Order", "name", po, false);
     const received = await this.qtyByItem("Purchase Receipt Item", "Purchase Receipt", "purchase_order", po, true);
     const billed = await this.qtyByItem("Purchase Invoice Item", "Purchase Invoice", "purchase_order", po, true);
@@ -41,6 +51,54 @@ export class PoFulfillmentService {
       [perReceived, perBilled, status, po],
     );
     this.logger.log(`Purchase Order ${po}: received ${perReceived}% billed ${perBilled}% -> ${status}`);
+  }
+
+  /**
+   * Short-close a Purchase Order: stop expecting the un-received balance and mark
+   * it Closed so it drops out of the open-order pipeline. Only a submitted order
+   * that is not already Completed or Closed can be short-closed.
+   */
+  async closePurchaseOrder(po: string): Promise<{ order: string; status: string }> {
+    if (!this.registry.has("Purchase Order")) throw new BadRequestException("Purchase Order not registered");
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("docstatus")} AS docstatus, ${quoteIdent("status")} AS status,
+                ${quoteIdent("is_closed")} AS is_closed
+         FROM ${quoteIdent(tableNameFor("Purchase Order"))} WHERE ${quoteIdent("name")} = $1`,
+        [po],
+      )
+    )[0];
+    if (!row) throw new BadRequestException(`Purchase Order ${po} not found`);
+    if (Number(row.docstatus ?? 0) !== 1) throw new BadRequestException(`Purchase Order ${po} must be submitted to close`);
+    if (Number(row.is_closed ?? 0) === 1) throw new BadRequestException(`Purchase Order ${po} is already closed`);
+    if (String(row.status) === "Completed") throw new BadRequestException(`Purchase Order ${po} is already Completed`);
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Purchase Order"))}
+       SET ${quoteIdent("is_closed")} = 1, ${quoteIdent("status")} = 'Closed' WHERE ${quoteIdent("name")} = $1`,
+      [po],
+    );
+    this.logger.log(`Purchase Order ${po} short-closed`);
+    return { order: po, status: "Closed" };
+  }
+
+  /** Reopen a short-closed order and recompute its status from its documents. */
+  async reopenPurchaseOrder(po: string): Promise<{ order: string; status: string }> {
+    if (!this.registry.has("Purchase Order")) throw new BadRequestException("Purchase Order not registered");
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Purchase Order"))} SET ${quoteIdent("is_closed")} = 0
+       WHERE ${quoteIdent("name")} = $1`,
+      [po],
+    );
+    await this.recomputePurchaseOrder(po);
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("status")} AS status FROM ${quoteIdent(tableNameFor("Purchase Order"))}
+         WHERE ${quoteIdent("name")} = $1`,
+        [po],
+      )
+    )[0];
+    this.logger.log(`Purchase Order ${po} reopened`);
+    return { order: po, status: String(row?.status ?? "") };
   }
 
   /**

@@ -31,6 +31,16 @@ export class BuyingController {
     return this.holds.resume(name);
   }
 
+  @Post("purchase-order/:name/close")
+  async closeOrder(@Param("name") name: string) {
+    return this.poFulfillment.closePurchaseOrder(name);
+  }
+
+  @Post("purchase-order/:name/reopen")
+  async reopenOrder(@Param("name") name: string) {
+    return this.poFulfillment.reopenPurchaseOrder(name);
+  }
+
   @Post("run-reorder")
   async runReorder(@CurrentUser() user: UserContext, @Body() body: { as_of?: string }) {
     if (!user.isSuper) throw new ForbiddenException("System Manager access required");
