@@ -1,0 +1,13 @@
+{
+  "name": "Leave Policy Detail",
+  "module": "HR",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "leave_type", "label": "Leave Type", "fieldtype": "Link", "options": "Leave Type", "reqd": true, "in_list_view": true },
+    { "fieldname": "annual_allocation", "label": "Annual Allocation", "fieldtype": "Float", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

@@ -2978,6 +2978,29 @@ Claimed; claiming again and rejecting the claimed request were both blocked; a
 fresh draft rejected cleanly; the report showed the claimed, draft, and rejected
 requests.
 
+## Leave Policy (Phase 142)
+
+A Leave Policy bundles a per-leave-type annual allocation; assigning it to an
+employee provisions their leave for a period in one step, feeding the Phase 130
+allocation flow.
+
+- **Policy + assign.** A `Leave Policy` (name, active flag, `Leave Policy Detail`
+  lines of leave type + annual allocation). `POST /api/hr/leave-policy/:name/assign`
+  with `{employee, from_date, to_date}` creates and submits one Leave Allocation
+  per line, returning the created allocations and any skipped lines.
+- **Guards.** Assign requires the policy to have lines and an ordered date range;
+  each allocation still passes the Leave Allocation gate (no overlap,
+  non-negative), and a line that fails (e.g. an overlapping allocation) is
+  reported as skipped instead of aborting the whole run.
+- **Report.** A `leave-policy-summary` report lists each policy's leave-type
+  annual allocations.
+
+Verified: an inverted date range was rejected; assigning a two-line policy
+(Annual 20 / Sick 10) created both allocations and left the employee with
+balances of 20 and 10; re-assigning for an overlapping period created nothing and
+skipped both lines with the overlap reason; the summary listed the policy's two
+lines.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

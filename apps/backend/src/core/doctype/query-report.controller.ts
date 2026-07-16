@@ -2355,6 +2355,22 @@ const REPORTS: Record<string, QueryReport> = {
           LEFT JOIN used us ON us."employee" = al."employee" AND us."leave_type" = al."leave_type"
           ORDER BY al."employee", al."leave_type"`,
   },
+  "leave-policy-summary": {
+    permDoctype: "Leave Policy",
+    columns: [
+      { key: "policy", label: "Policy" },
+      { key: "leave_type", label: "Leave Type" },
+      { key: "annual_allocation", label: "Annual Allocation" },
+      { key: "is_active", label: "Active" },
+    ],
+    // Each policy's per-leave-type annual allocation lines.
+    sql: `SELECT p."name" AS "policy", d."leave_type",
+                 coalesce(d."annual_allocation", 0)::float8 AS "annual_allocation",
+                 coalesce(p."is_active", 0) AS "is_active"
+          FROM "tabLeave Policy Detail" d
+          JOIN "tabLeave Policy" p ON d."parent" = p."name"
+          ORDER BY p."name", d."leave_type"`,
+  },
   "leave-encashment-register": {
     permDoctype: "Leave Encashment",
     columns: [
