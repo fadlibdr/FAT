@@ -2307,6 +2307,26 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "employee-separation-status": {
+    permDoctype: "Employee Separation",
+    columns: [
+      { key: "separation", label: "Separation" },
+      { key: "employee", label: "Employee" },
+      { key: "relieving_date", label: "Relieving Date" },
+      { key: "completed_activities", label: "Completed" },
+      { key: "total_activities", label: "Total" },
+      { key: "percent_complete", label: "% Complete" },
+      { key: "status", label: "Status" },
+    ],
+    // Employee separations with their exit-activity completion and status.
+    sql: `SELECT "name" AS "separation", "employee", "relieving_date",
+                 coalesce("completed_activities", 0) AS "completed_activities",
+                 coalesce("total_activities", 0) AS "total_activities",
+                 coalesce("percent_complete", 0)::float8 AS "percent_complete",
+                 coalesce("status", 'Draft') AS "status"
+          FROM "tabEmployee Separation"
+          ORDER BY "relieving_date" DESC, "name"`,
+  },
   "appraisal-summary": {
     permDoctype: "Appraisal",
     columns: [
