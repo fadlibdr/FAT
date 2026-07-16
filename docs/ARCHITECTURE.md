@@ -2697,6 +2697,32 @@ and put exactly 7 into the item's Bin on submit; an over-rejection (12 of 10)
 was blocked ("rejected qty 12 exceeds received qty 10"); the report showed
 received 10 / rejected 3 / accepted 7.
 
+## Leave Allocation carry-forward (Phase 130)
+
+Leave Allocation was a passive record summed by the balance calculation. It now
+carries a validated lifecycle and can roll unused leave into a new period.
+
+- **Validation gate.** A before_submit gate (`suppressErrors:false`) rejects a
+  negative `new_leaves_allocated`, an inverted date range, and any allocation
+  whose dates overlap an existing submitted allocation for the same
+  employee + leave type (preventing double-counted balances).
+- **Carry-forward.** When "Add Carry-Forwarded Leaves" is ticked, before_save
+  computes `carry_forwarded = min(prior unused balance, Leave Type
+  max_carry_forward)` and sets `total_leaves_allocated = new + carried`. The
+  balance calculations (`balanceFor`, `balances`) and the `leave-balance`
+  report now sum `coalesce(total_leaves_allocated, new_leaves_allocated)`, so
+  carried days count toward availability while pre-feature rows fall back to the
+  plain allocation.
+- **Report.** A `leave-allocation-register` report lists each allocation with
+  its new / carry-forwarded / total split and submit status.
+
+Verified: an FY2025 allocation of 10 with 3 days taken left a balance of 7; a
+following FY2026 allocation of 8 with carry-forward ticked carried 5 (capped
+from the 7 available by the type's max of 5) for a total of 13; the balance
+report then showed allocated 23 / used 3 / balance 20. An overlapping
+allocation was blocked ("overlaps existing allocation LAL-…"), as were an
+inverted date range and a negative allocation.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

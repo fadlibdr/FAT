@@ -9,7 +9,10 @@
     { "fieldname": "leave_type", "label": "Leave Type", "fieldtype": "Link", "options": "Leave Type", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
-    { "fieldname": "new_leaves_allocated", "label": "New Leaves Allocated", "fieldtype": "Float", "reqd": true, "in_list_view": true }
+    { "fieldname": "new_leaves_allocated", "label": "New Leaves Allocated", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "carry_forward", "label": "Add Carry-Forwarded Leaves", "fieldtype": "Check", "default": "0" },
+    { "fieldname": "carry_forwarded", "label": "Carry-Forwarded Leaves", "fieldtype": "Float", "read_only": true, "default": "0", "in_list_view": true },
+    { "fieldname": "total_leaves_allocated", "label": "Total Leaves Allocated", "fieldtype": "Float", "read_only": true, "in_list_view": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },

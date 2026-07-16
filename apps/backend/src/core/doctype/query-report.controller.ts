@@ -2188,7 +2188,8 @@ const REPORTS: Record<string, QueryReport> = {
     ],
     // Per employee + leave type: submitted allocations minus submitted applications' days.
     sql: `WITH alloc AS (
-            SELECT "employee", "leave_type", coalesce(sum("new_leaves_allocated"), 0)::float8 AS a
+            SELECT "employee", "leave_type",
+                   coalesce(sum(coalesce("total_leaves_allocated", "new_leaves_allocated")), 0)::float8 AS a
             FROM "tabLeave Allocation" WHERE "docstatus" = 1 GROUP BY "employee", "leave_type"
           ), used AS (
             SELECT "employee", "leave_type", coalesce(sum("total_leave_days"), 0)::float8 AS u
@@ -2201,6 +2202,28 @@ const REPORTS: Record<string, QueryReport> = {
           FROM alloc al
           LEFT JOIN used us ON us."employee" = al."employee" AND us."leave_type" = al."leave_type"
           ORDER BY al."employee", al."leave_type"`,
+  },
+  "leave-allocation-register": {
+    permDoctype: "Leave Allocation",
+    columns: [
+      { key: "allocation", label: "Allocation" },
+      { key: "employee", label: "Employee" },
+      { key: "leave_type", label: "Leave Type" },
+      { key: "from_date", label: "From" },
+      { key: "to_date", label: "To" },
+      { key: "new_leaves_allocated", label: "New" },
+      { key: "carry_forwarded", label: "Carry-Forwarded" },
+      { key: "total_leaves_allocated", label: "Total" },
+      { key: "status", label: "Status" },
+    ],
+    // One row per allocation with the new/carried/total split and a submit-state label.
+    sql: `SELECT "name" AS "allocation", "employee", "leave_type", "from_date", "to_date",
+                 coalesce("new_leaves_allocated", 0)::float8 AS "new_leaves_allocated",
+                 coalesce("carry_forwarded", 0)::float8 AS "carry_forwarded",
+                 coalesce("total_leaves_allocated", "new_leaves_allocated", 0)::float8 AS "total_leaves_allocated",
+                 CASE "docstatus" WHEN 1 THEN 'Submitted' WHEN 2 THEN 'Cancelled' ELSE 'Draft' END AS "status"
+          FROM "tabLeave Allocation"
+          ORDER BY "employee", "leave_type", "from_date"`,
   },
   "unallocated-payments": {
     permDoctype: "Payment Entry",
