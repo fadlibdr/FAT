@@ -1,0 +1,19 @@
+{
+  "name": "Delivery Trip",
+  "module": "Stock",
+  "naming_rule": "series:TRIP-.#####",
+  "is_submittable": true,
+  "title_field": "driver",
+  "fields": [
+    { "fieldname": "driver", "label": "Driver", "fieldtype": "Link", "options": "Employee", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "vehicle", "label": "Vehicle", "fieldtype": "Link", "options": "Vehicle", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "trip_date", "label": "Trip Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "departure_time", "label": "Departure Time", "fieldtype": "Data" },
+    { "fieldname": "stops", "label": "Stops", "fieldtype": "Table", "options": "Delivery Trip Stop" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nScheduled\nIn Transit\nCompleted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

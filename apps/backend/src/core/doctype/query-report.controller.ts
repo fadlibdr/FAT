@@ -1834,6 +1834,27 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY sh."name", sh."carrier", sh."awb_number", sh."total_weight", sh."docstatus"
           ORDER BY sh."name"`,
   },
+  "delivery-trip-status": {
+    permDoctype: "Delivery Trip",
+    columns: [
+      { key: "delivery_trip", label: "Delivery Trip" },
+      { key: "driver", label: "Driver" },
+      { key: "vehicle", label: "Vehicle" },
+      { key: "stops", label: "Stops" },
+      { key: "delivered", label: "Delivered" },
+      { key: "status", label: "Status" },
+    ],
+    // Per trip: stop count vs delivered-stop count and the current status.
+    sql: `SELECT t."name" AS "delivery_trip", t."driver", t."vehicle",
+                 count(s."name") AS "stops",
+                 coalesce(sum(CASE WHEN coalesce(s."delivered", 0) = 1 THEN 1 ELSE 0 END), 0) AS "delivered",
+                 t."status"
+          FROM "tabDelivery Trip" t
+          LEFT JOIN "tabDelivery Trip Stop" s ON s."parent" = t."name"
+          WHERE t."docstatus" < 2
+          GROUP BY t."name", t."driver", t."vehicle", t."status"
+          ORDER BY t."name"`,
+  },
   "packing-slip-status": {
     permDoctype: "Delivery Note",
     columns: [

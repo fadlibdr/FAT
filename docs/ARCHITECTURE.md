@@ -2335,6 +2335,29 @@ reopening recomputes from its documents (4/10 → 40 %, To Deliver and Bill).
 Short-close is status-only — it does not itself cancel the ordered lines'
 remaining quantity, so reopening restores the original demand.
 
+## Delivery Trip (Phase 114)
+
+A Delivery Trip dispatches an own-fleet driver + vehicle along a route of stops,
+one per submitted Delivery Note. It differs from a Shipment (a carrier
+consignment measured by weight/AWB) by carrying a dispatch lifecycle.
+
+- **Build.** `POST /api/stock/make-delivery-trip` (`DeliveryTripService.
+  makeFromDeliveryNotes`) drafts a trip with one stop per note (pulling each
+  note's customer and a sequence number) and assigns the driver + vehicle.
+- **Lifecycle.** On submit the trip becomes `Scheduled`;
+  `.../dispatch` moves it to `In Transit`; `.../complete` moves it to
+  `Completed` and marks every stop delivered. Each transition guards its source
+  state (e.g. completing requires In Transit).
+- **Uniqueness gate.** A before_submit gate rejects a stop whose Delivery Note
+  is not submitted, is a return, or already rides on another submitted trip.
+- **Report.** A `delivery-trip-status` report lists each trip's driver,
+  vehicle, stop count, delivered-stop count, and status.
+
+Verified: a trip over two Delivery Notes went Scheduled → In Transit → Completed
+(both stops marked delivered), completing before dispatch was blocked, and a
+second trip reusing one of the notes was rejected at submit ("already on trip
+TRIP-00001"); the report showed 2 stops / 2 delivered / Completed.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

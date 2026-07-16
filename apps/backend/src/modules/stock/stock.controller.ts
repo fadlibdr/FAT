@@ -2,6 +2,7 @@ import { Body, Controller, Param, Post } from "@nestjs/common";
 import { PickListService } from "./pick-list.service";
 import { PackingService } from "./packing.service";
 import { ShipmentService } from "./shipment.service";
+import { DeliveryTripService } from "./delivery-trip.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -12,7 +13,32 @@ export class StockController {
     private readonly pickList: PickListService,
     private readonly packing: PackingService,
     private readonly shipment: ShipmentService,
+    private readonly deliveryTrip: DeliveryTripService,
   ) {}
+
+  @Post("make-delivery-trip")
+  async makeDeliveryTrip(
+    @CurrentUser() user: UserContext,
+    @Body() body: { delivery_notes?: string[]; driver?: string; vehicle?: string },
+  ) {
+    const deliveryTrip = await this.deliveryTrip.makeFromDeliveryNotes(
+      body?.delivery_notes ?? [],
+      body?.driver ?? "",
+      body?.vehicle ?? "",
+      user,
+    );
+    return { deliveryTrip };
+  }
+
+  @Post("delivery-trip/:name/dispatch")
+  async dispatchTrip(@Param("name") name: string) {
+    return this.deliveryTrip.dispatch(name);
+  }
+
+  @Post("delivery-trip/:name/complete")
+  async completeTrip(@Param("name") name: string) {
+    return this.deliveryTrip.complete(name);
+  }
 
   @Post("delivery-note/:name/make-packing-slip")
   async dnToPackingSlip(@CurrentUser() user: UserContext, @Param("name") name: string) {
