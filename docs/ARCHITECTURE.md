@@ -2388,6 +2388,29 @@ materials' issue or the finished good's receipt to the stock ledger, nor book
 subcontracting-service GL (valuation is out of scope, as for Packing Slips and
 Shipments).
 
+## Job Card execution (Phase 116)
+
+Job Cards are created per BOM operation when a Work Order is submitted. Phase 116
+gives them a shop-floor lifecycle and makes Work Order completion explicit.
+
+- **Lifecycle.** Submitting a Work Order still produces the finished goods (the
+  Manufacture stock entry) but now leaves the order `In Process` with its Job
+  Cards `Open`. `POST /api/manufacturing/job-card/:name/start` moves a card to
+  `Work In Progress`; `.../complete` moves it to `Completed`, recording actual
+  minutes (defaulting to the planned time).
+- **Finish gate.** `POST /api/manufacturing/work-order/:name/finish`
+  (`JobCardService.finishWorkOrder`) marks the order `Completed`, but only once
+  every one of its Job Cards is `Completed`; otherwise it reports the outstanding
+  count.
+- **Report.** A `job-card-status` report lists each card's operation,
+  workstation, planned vs actual minutes, and status.
+
+Verified: a Work Order for 5 (BOM with Cutting + Assembly operations) went
+In Process on submit with two Open Job Cards; finishing was blocked ("has 2
+incomplete Job Card(s)"); after starting and completing both cards the order
+finished to Completed and a second finish was refused; the report showed both
+cards Completed with planned 150 / 225 min vs actual 40.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

@@ -177,8 +177,10 @@ export class ManufacturingListener {
       });
       await this.documents.setDocStatus(seDt, ctx, String(se.name), 1);
 
+      // Goods are produced on submit, but the order stays In Process until every
+      // Job Card is completed and it is explicitly finished (JobCardService).
       await this.setWorkOrder(String(wo.name), {
-        status: "Completed",
+        status: "In Process",
         stock_entry: se.name,
         produced_value: rmValue + opValue,
       });
@@ -218,7 +220,7 @@ export class ManufacturingListener {
           for_quantity: woQty,
           time_in_mins: Math.round(mins * 100) / 100,
           operating_cost: Math.round(cost * 100) / 100,
-          status: "Completed",
+          status: "Open",
         });
       } catch (err) {
         this.logger.error(`Job Card for ${wo.name}/${op.operation}: ${(err as Error).message}`);
