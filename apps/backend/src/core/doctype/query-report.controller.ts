@@ -1544,6 +1544,19 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "posting_date" DESC NULLS LAST, "name"`,
   },
+  "purchase-orders-on-hold": {
+    permDoctype: "Purchase Order",
+    columns: [
+      { key: "purchase_order", label: "Purchase Order" },
+      { key: "supplier", label: "Supplier" },
+      { key: "grand_total", label: "Amount" },
+      { key: "hold_reason", label: "Hold Reason" },
+    ],
+    sql: `SELECT "name" AS "purchase_order", "supplier", "grand_total", "hold_reason"
+          FROM "tabPurchase Order"
+          WHERE "docstatus" = 1 AND coalesce("on_hold", 0) = 1
+          ORDER BY "name"`,
+  },
   "sales-orders-on-hold": {
     permDoctype: "Sales Order",
     columns: [
