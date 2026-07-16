@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
@@ -31,6 +31,45 @@ export class PromotionListener {
     private readonly documents: DocumentService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
+
+  /** UTC YYYY-MM-DD for a date value. */
+  private isoDay(value: unknown): string {
+    const d = value instanceof Date ? value : new Date(String(value));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  }
+
+  /**
+   * Before a Sales Invoice carrying a coupon is submitted, refuse the coupon if
+   * it is exhausted (used has reached max_use) or lapsed (past valid_upto vs the
+   * invoice posting date). An unknown coupon is left to link validation.
+   * suppressErrors:false so the throw aborts the submit.
+   */
+  @OnEvent("doc.before_submit:Sales Invoice", { suppressErrors: false })
+  async gateCoupon(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const coupon = String(doc.coupon_code ?? "");
+    if (!coupon || !this.registry.has("Coupon Code")) return;
+    const row = (
+      await this.dataSource.query(
+        `SELECT ${quoteIdent("max_use")} AS max_use, ${quoteIdent("used")} AS used,
+                ${quoteIdent("valid_upto")} AS valid_upto
+         FROM ${quoteIdent(tableNameFor("Coupon Code"))} WHERE ${quoteIdent("name")} = $1`,
+        [coupon],
+      )
+    )[0];
+    if (!row) return;
+    const maxUse = Number(row.max_use ?? 0);
+    const used = Number(row.used ?? 0);
+    if (maxUse > 0 && used >= maxUse) {
+      throw new BadRequestException(`Coupon ${coupon} is exhausted (used ${used} of ${maxUse})`);
+    }
+    if (row.valid_upto) {
+      const asOf = this.isoDay(doc.posting_date ?? new Date());
+      if (this.isoDay(row.valid_upto) < asOf) {
+        throw new BadRequestException(`Coupon ${coupon} expired on ${this.isoDay(row.valid_upto)}`);
+      }
+    }
+  }
 
   @OnEvent("doc.on_submit:Sales Invoice")
   async onInvoiceSubmit(payload: DocEventPayload): Promise<void> {

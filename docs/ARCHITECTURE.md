@@ -2575,6 +2575,24 @@ refused the claim; the report showed days-to-expiry −16 Expired, 168 Claimed,
 Bank Guarantees are tracking documents — they do not post GL (no contingent-
 liability or margin-deposit entries).
 
+## Coupon Code enforcement (Phase 124)
+
+A Coupon Code already tracked its `used` count as invoices redeemed it; Phase 124
+enforces the coupon's limits at redemption.
+
+- **Redemption gate.** Before a Sales Invoice carrying a `coupon_code` is
+  submitted, `PromotionListener.gateCoupon` refuses the coupon if it is exhausted
+  (`used` has reached `max_use`, when a max is set) or lapsed (`valid_upto`
+  before the invoice posting date). An unknown coupon is left to link validation.
+- **Report.** A `coupon-usage` report lists coupons with their used / max /
+  remaining counts, `valid_upto`, and a derived status (Active / Exhausted /
+  Expired relative to an `as_of` filter).
+
+Verified: the first invoice against a max-1 coupon redeemed it (used → 1) and a
+second was blocked ("exhausted (used 1 of 1)"); an invoice against a coupon past
+its valid_upto was blocked ("expired on 2026-06-30"); the report showed the two
+coupons as Exhausted (1/1, remaining 0) and Expired.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

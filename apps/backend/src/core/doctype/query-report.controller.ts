@@ -2307,6 +2307,37 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "coupon-usage": {
+    permDoctype: "Coupon Code",
+    columns: [
+      { key: "coupon_code", label: "Coupon" },
+      { key: "max_use", label: "Max Use" },
+      { key: "used", label: "Used" },
+      { key: "remaining", label: "Remaining" },
+      { key: "valid_upto", label: "Valid Upto" },
+      { key: "coupon_status", label: "Status" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    // Coupons with remaining uses and a derived status: Expired if past valid_upto,
+    // Exhausted if a max is set and reached, else Active.
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT "name" AS "coupon_code",
+                      coalesce("max_use", 0)::float8 AS "max_use",
+                      coalesce("used", 0)::float8 AS "used",
+                      CASE WHEN coalesce("max_use", 0) > 0
+                           THEN (coalesce("max_use", 0) - coalesce("used", 0))::float8 ELSE NULL END AS "remaining",
+                      "valid_upto",
+                      CASE WHEN "valid_upto" IS NOT NULL AND "valid_upto"::date < $1::date THEN 'Expired'
+                           WHEN coalesce("max_use", 0) > 0 AND coalesce("used", 0) >= "max_use" THEN 'Exhausted'
+                           ELSE 'Active' END AS "coupon_status"
+               FROM "tabCoupon Code"
+               ORDER BY "valid_upto" NULLS LAST, "name"`,
+        params: [asOf],
+      };
+    },
+  },
   "bank-guarantee-status": {
     permDoctype: "Bank Guarantee",
     columns: [
