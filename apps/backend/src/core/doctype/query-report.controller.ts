@@ -1525,6 +1525,22 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "loan-foreclosure-register": {
+    permDoctype: "Loan",
+    columns: [
+      { key: "loan", label: "Loan" },
+      { key: "employee", label: "Employee" },
+      { key: "settlement_date", label: "Settlement Date" },
+      { key: "settled_amount", label: "Settled Amount" },
+    ],
+    sql: `SELECT "voucher_no" AS "loan", max("against") AS "employee",
+                 max("posting_date") AS "settlement_date",
+                 coalesce(sum("debit"), 0) AS "settled_amount"
+          FROM "tabGL Entry"
+          WHERE "voucher_type" = 'Loan Foreclosure'
+          GROUP BY "voucher_no"
+          ORDER BY max("posting_date") DESC, "voucher_no"`,
+  },
   "non-conformance-status": {
     permDoctype: "Non Conformance",
     columns: [
