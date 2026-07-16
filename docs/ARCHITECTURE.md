@@ -2593,6 +2593,28 @@ second was blocked ("exhausted (used 1 of 1)"); an invoice against a coupon past
 its valid_upto was blocked ("expired on 2026-06-30"); the report showed the two
 coupons as Exhausted (1/1, remaining 0) and Expired.
 
+## Employee Promotion (Phase 125)
+
+An Employee Promotion applies a new designation to an employee, effective on the
+promotion date.
+
+- **Apply on submit.** `EmployeePromotionListener` snapshots the employee's
+  current designation onto the promotion (`current_designation`) and writes the
+  `new_designation` to the Employee record; cancelling restores the snapshot
+  (only if the employee still carries the promoted designation, so a later
+  promotion isn't undone).
+- **Gate.** A before_submit gate requires the employee to be Active, a
+  non-empty new designation, and a promotion date on or after the employee's
+  joining date.
+- **Report.** An `employee-promotion-register` report lists submitted promotions
+  with their from → to designation change.
+
+Verified: promoting before the joining date was blocked ("cannot be before the
+joining date 2025-01-01"); a valid promotion moved the employee Engineer →
+Senior Engineer and snapshotted the prior designation; the register showed the
+change; cancelling reverted the employee to Engineer and marked the promotion
+Cancelled.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
