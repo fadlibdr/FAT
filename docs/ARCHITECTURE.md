@@ -2187,6 +2187,30 @@ order clears the report and lets the delivery submit.
 The hold is enforced only through the linked `sales_order` on the fulfilling
 document — a Delivery Note created without that link is not caught.
 
+## Phase 108 — Timesheet approval
+
+Puts a review step between logging billable time and invoicing it: a timesheet
+must be approved before it can be billed. Reuses the generic DocumentService;
+Projects imports no other module's services.
+
+- **Approve / reject.** Timesheet gains an `approval_status` (Draft / Approved /
+  Rejected). `POST /api/projects/timesheet/:name/approve` and `.../reject` set it
+  on a submitted, not-yet-billed timesheet.
+- **Gate.** `makeSalesInvoice` now refuses to bill a timesheet whose
+  `approval_status` is not Approved, so Draft or Rejected time never reaches an
+  invoice.
+- **Report.** A `timesheet-approval-status` report lists submitted timesheets with
+  their employee, project, hours, billable amount, approval status, and the
+  invoice they were billed on.
+
+Verified: a submitted 10-hour timesheet (billable 1000) cannot be billed while
+Draft ("must be Approved before billing"); approving it lets the make-sales-invoice
+call raise the invoice; the timesheet-approval-status report then shows it Approved
+and billed via that invoice.
+
+Approval is a single flat status with no approver identity, multi-level sign-off,
+or link back to a rejection reason.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

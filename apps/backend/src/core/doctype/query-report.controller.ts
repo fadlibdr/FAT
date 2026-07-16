@@ -1525,6 +1525,25 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "timesheet-approval-status": {
+    permDoctype: "Timesheet",
+    columns: [
+      { key: "timesheet", label: "Timesheet" },
+      { key: "employee", label: "Employee" },
+      { key: "project", label: "Project" },
+      { key: "hours", label: "Hours" },
+      { key: "billable_amount", label: "Billable" },
+      { key: "approval_status", label: "Approval" },
+      { key: "sales_invoice", label: "Billed Via" },
+    ],
+    sql: `SELECT "name" AS "timesheet", "employee", "project", "hours",
+                 coalesce("billable_amount", 0) AS "billable_amount",
+                 coalesce("approval_status", 'Draft') AS "approval_status",
+                 "sales_invoice"
+          FROM "tabTimesheet"
+          WHERE "docstatus" = 1
+          ORDER BY "posting_date" DESC NULLS LAST, "name"`,
+  },
   "sales-orders-on-hold": {
     permDoctype: "Sales Order",
     columns: [

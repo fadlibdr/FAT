@@ -14,7 +14,8 @@
     { "fieldname": "is_billable", "label": "Is Billable", "fieldtype": "Check", "default": "1" },
     { "fieldname": "billing_rate", "label": "Billing Rate", "fieldtype": "Currency" },
     { "fieldname": "billable_amount", "label": "Billable Amount", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
-    { "fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Data", "read_only": true }
+    { "fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Data", "read_only": true },
+    { "fieldname": "approval_status", "label": "Approval Status", "fieldtype": "Select", "options": "Draft\nApproved\nRejected", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
   ],
   "permissions": [
     { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
