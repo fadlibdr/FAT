@@ -2309,6 +2309,32 @@ delivered 10"); a note for 6 moved the delivery to Partly Installed and a second
 note for the remaining 4 to Fully Installed, after which a further note was
 refused; the report showed delivered 10 / installed 10 / pending 0.
 
+## Sales Order short-close (Phase 113)
+
+The selling-side mirror of the Purchase Order short-close (Phase 110). When a
+customer cancels the remaining balance of an order, the order can be closed so
+it drops out of the open-order pipeline without cancelling the whole document.
+
+- **Close / reopen.** `POST /api/selling/sales-order/:name/close`
+  (`FulfillmentService.closeSalesOrder`) sets `is_closed` and status `Closed`;
+  `.../reopen` clears the flag and recomputes status from the order's documents.
+  Only a submitted, not-Completed, not-already-closed order can be closed.
+- **Sticky close.** `recomputeSalesOrder` short-circuits on a closed order, so a
+  stray Delivery Note or Sales Invoice cannot silently reopen it — the order
+  stays Closed until explicitly reopened.
+- **Enforcement.** `SalesOrderCloseGateListener` aborts a Delivery Note or Sales
+  Invoice submit against a closed order (a return is exempt).
+- **Report.** A `sales-order-shortfall` report lists closed orders with their
+  ordered qty, delivered qty, and the written-off shortfall.
+
+Verified: an order 4-of-10 delivered is short-closed to Closed and the shortfall
+report shows ordered 10 / delivered 4 / shortfall 6; a further delivery is
+blocked ("it is closed") and the order stays Closed (recompute skipped);
+reopening recomputes from its documents (4/10 → 40 %, To Deliver and Bill).
+
+Short-close is status-only — it does not itself cancel the ordered lines'
+remaining quantity, so reopening restores the original demand.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

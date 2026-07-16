@@ -29,6 +29,16 @@ export class SellingController {
     return this.holds.resume(name);
   }
 
+  @Post("sales-order/:name/close")
+  async closeOrder(@Param("name") name: string) {
+    return this.fulfillment.closeSalesOrder(name);
+  }
+
+  @Post("sales-order/:name/reopen")
+  async reopenOrder(@Param("name") name: string) {
+    return this.fulfillment.reopenSalesOrder(name);
+  }
+
   @Post("sales-order/:name/make-delivery-note")
   async makeDeliveryNote(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const deliveryNote = await this.fulfillment.makeFromSalesOrder(name, "Delivery Note", user);
