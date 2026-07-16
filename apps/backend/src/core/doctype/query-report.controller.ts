@@ -1569,6 +1569,36 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "installation-status": {
+    permDoctype: "Delivery Note",
+    columns: [
+      { key: "delivery_note", label: "Delivery Note" },
+      { key: "customer", label: "Customer" },
+      { key: "item_code", label: "Item" },
+      { key: "delivered", label: "Delivered" },
+      { key: "installed", label: "Installed" },
+      { key: "pending", label: "Pending" },
+    ],
+    // Per Delivery Note + item: delivered qty vs installed qty (submitted
+    // Installation Notes) and the outstanding balance still to install.
+    sql: `SELECT dn."name" AS "delivery_note", dn."customer",
+                 di."item_code",
+                 coalesce(sum(di."qty"), 0)::float8 AS "delivered",
+                 coalesce(ins."installed", 0)::float8 AS "installed",
+                 (coalesce(sum(di."qty"), 0) - coalesce(ins."installed", 0))::float8 AS "pending"
+          FROM "tabDelivery Note" dn
+          JOIN "tabDelivery Note Item" di ON di."parent" = dn."name"
+          LEFT JOIN (
+            SELECT ino."delivery_note" AS dnn, ii."item_code" AS ic, sum(ii."qty") AS "installed"
+            FROM "tabInstallation Note" ino
+            JOIN "tabInstallation Note Item" ii ON ii."parent" = ino."name"
+            WHERE ino."docstatus" = 1
+            GROUP BY ino."delivery_note", ii."item_code"
+          ) ins ON ins.dnn = dn."name" AND ins.ic = di."item_code"
+          WHERE dn."docstatus" = 1 AND coalesce(dn."is_return", 0) = 0
+          GROUP BY dn."name", dn."customer", di."item_code", ins."installed"
+          ORDER BY dn."name", di."item_code"`,
+  },
   "purchase-order-shortfall": {
     permDoctype: "Purchase Order",
     columns: [

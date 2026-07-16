@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { FulfillmentService } from "./fulfillment.service";
 import { VariantService } from "./variant.service";
 import { SalesOrderHoldService } from "./sales-order-hold.service";
+import { InstallationService } from "./installation.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -15,6 +16,7 @@ export class SellingController {
     private readonly fulfillment: FulfillmentService,
     private readonly variants: VariantService,
     private readonly holds: SalesOrderHoldService,
+    private readonly installations: InstallationService,
   ) {}
 
   @Post("sales-order/:name/hold")
@@ -54,6 +56,12 @@ export class SellingController {
   async billDelivery(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const salesInvoice = await this.fulfillment.makeSalesInvoiceFromDelivery(name, user);
     return { salesInvoice };
+  }
+
+  @Post("delivery-note/:name/make-installation-note")
+  async makeInstallationNote(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const installationNote = await this.installations.makeInstallationNote(name, user);
+    return { installationNote };
   }
 
   @Post("sales-invoice/:name/make-return")

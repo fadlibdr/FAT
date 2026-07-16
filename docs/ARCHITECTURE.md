@@ -2281,6 +2281,34 @@ expired quotation was blocked ("Quotation QTN-00001 has expired (valid till
 2026-06-30) and cannot be converted") while the valid one converted to SO-00003;
 the report showed QTN-00001 at −16 days Expired and QTN-00002 at 168 days Ordered.
 
+## Installation Notes (Phase 112)
+
+Items shipped on a Delivery Note are often installed at the customer site
+afterwards; Installation Notes record that step and track how much of each
+delivery is still to install.
+
+- **Make from delivery.** `POST /api/selling/delivery-note/:name/make-installation-note`
+  (`InstallationService.makeInstallationNote`) drafts an Installation Note
+  pre-filled with each line's outstanding-to-install quantity (delivered −
+  already installed on other submitted notes). It refuses a non-submitted or
+  return delivery, or one already fully installed.
+- **Status roll-up.** On an Installation Note's submit (or cancel) the linked
+  Delivery Note's `installation_status` is recomputed from the installed-so-far
+  total: To Install → Partly Installed → Fully Installed. Like the async totals
+  path this is eventually-consistent (the recompute runs on the fire-and-forget
+  `on_submit` event).
+- **Over-install gate.** `InstallationGateListener` aborts an Installation
+  Note's submit when installed qty per item (this note plus other submitted
+  notes) would exceed the Delivery Note's delivered qty.
+- **Report.** An `installation-status` query-report lists, per Delivery Note +
+  item, delivered vs installed vs the pending balance.
+
+Verified: a Delivery Note of 10 drafted an Installation Note for the full 10;
+submitting 12 was blocked ("installed 12 exceeds Delivery Note DN-00013
+delivered 10"); a note for 6 moved the delivery to Partly Installed and a second
+note for the remaining 4 to Fully Installed, after which a further note was
+refused; the report showed delivered 10 / installed 10 / pending 0.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
