@@ -462,13 +462,17 @@ export class StockLedgerListener {
     for (const row of (doc.items as Array<Record<string, unknown>>) ?? []) {
       const qty = Number(row.qty ?? 0);
       if (!qty || !row.warehouse) continue;
+      // A receipt only takes the accepted quantity into stock; rejected units are
+      // held aside (returned to the supplier). A return ships the full qty back.
+      const accepted = isReturn ? qty : Math.max(0, qty - Number(row.rejected_qty ?? 0));
+      if (accepted <= 0) continue;
       try {
         await this.post(
           ctx,
           {
             item: String(row.item_code),
             warehouse: String(row.warehouse),
-            delta: isReturn ? -qty : qty,
+            delta: isReturn ? -accepted : accepted,
             incomingRate: isReturn
               ? undefined
               : Number(row.rate ?? 0) || (await this.itemRate(String(row.item_code))),

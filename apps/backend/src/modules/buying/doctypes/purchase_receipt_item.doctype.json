@@ -5,7 +5,9 @@
   "naming_rule": "hash",
   "fields": [
     { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
-    { "fieldname": "qty", "label": "Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "qty", "label": "Received Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "rejected_qty", "label": "Rejected Qty", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "accepted_qty", "label": "Accepted Qty", "fieldtype": "Float", "read_only": true, "in_list_view": true },
     { "fieldname": "rate", "label": "Rate", "fieldtype": "Currency", "in_list_view": true },
     { "fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "read_only": true, "in_list_view": true },
     { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "in_list_view": true },
