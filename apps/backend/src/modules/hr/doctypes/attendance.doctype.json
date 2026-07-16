@@ -8,6 +8,7 @@
     { "fieldname": "attendance_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Present\nAbsent\nHalf Day\nOn Leave", "default": "Present", "reqd": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "leave_application", "label": "Leave Application", "fieldtype": "Link", "options": "Leave Application", "read_only": true, "in_standard_filter": true },
+    { "fieldname": "attendance_request", "label": "Attendance Request", "fieldtype": "Link", "options": "Attendance Request", "read_only": true, "in_standard_filter": true },
     { "fieldname": "shift", "label": "Shift", "fieldtype": "Link", "options": "Shift Type", "in_standard_filter": true },
     { "fieldname": "check_in", "label": "Check In", "fieldtype": "Datetime" },
     { "fieldname": "check_out", "label": "Check Out", "fieldtype": "Datetime" },

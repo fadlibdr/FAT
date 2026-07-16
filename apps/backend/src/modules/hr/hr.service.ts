@@ -142,4 +142,83 @@ export class HrService {
     )[0];
     return Number(row?.s ?? 0);
   }
+
+  /** UTC YYYY-MM-DD for a date value (Date columns deserialize as Date objects). */
+  private isoDay(value: unknown): string {
+    const d = value instanceof Date ? value : new Date(String(value));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  }
+
+  /**
+   * Approve an Attendance Request (regularization): create one Attendance record
+   * per day in the requested range with the requested status, linked back to the
+   * request, then mark it Approved. Refuses a non-Draft request, an inverted date
+   * range, or any day that already has an Attendance for the employee.
+   */
+  async approveAttendanceRequest(name: string, ctx?: UserContext): Promise<{ request: string; created: string[] }> {
+    const reqDt = this.registry.get("Attendance Request");
+    const attDt = this.registry.get("Attendance");
+    if (!reqDt || !attDt) throw new BadRequestException("Attendance Request / Attendance not registered");
+    const context = ctx ?? systemContext();
+    const req = await this.documents.get(reqDt, name);
+    if (String(req.request_status ?? "Draft") !== "Draft") {
+      throw new BadRequestException(`Attendance Request ${name} is not Draft (is ${req.request_status})`);
+    }
+    const employee = String(req.employee ?? "");
+    const from = this.isoDay(req.from_date);
+    const to = this.isoDay(req.to_date);
+    if (to < from) throw new BadRequestException("To Date cannot be before From Date");
+    const status = String(req.attendance_status ?? "Present");
+
+    // Enumerate days in the inclusive range and refuse any that already have attendance.
+    const days: string[] = [];
+    for (let d = new Date(from + "T00:00:00Z"); this.isoDay(d) <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+      days.push(this.isoDay(d));
+    }
+    for (const day of days) {
+      const clash = (
+        await this.dataSource.query(
+          `SELECT ${quoteIdent("name")} AS n FROM ${quoteIdent(tableNameFor("Attendance"))}
+           WHERE ${quoteIdent("employee")} = $1 AND ${quoteIdent("attendance_date")} = $2 LIMIT 1`,
+          [employee, day],
+        )
+      )[0];
+      if (clash) {
+        throw new BadRequestException(`Attendance already exists for ${employee} on ${day} (${clash.n})`);
+      }
+    }
+
+    const created: string[] = [];
+    for (const day of days) {
+      const att = await this.documents.create(attDt, context, {
+        employee,
+        attendance_date: day,
+        status,
+        attendance_request: name,
+      });
+      created.push(String(att.name));
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Attendance Request"))} SET ${quoteIdent("request_status")} = 'Approved'
+       WHERE ${quoteIdent("name")} = $1`,
+      [name],
+    );
+    return { request: name, created };
+  }
+
+  /** Reject a Draft Attendance Request. */
+  async rejectAttendanceRequest(name: string): Promise<{ request: string; request_status: string }> {
+    const reqDt = this.registry.get("Attendance Request");
+    if (!reqDt) throw new BadRequestException("Attendance Request not registered");
+    const req = await this.documents.get(reqDt, name);
+    if (String(req.request_status ?? "Draft") !== "Draft") {
+      throw new BadRequestException(`Attendance Request ${name} is not Draft (is ${req.request_status})`);
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Attendance Request"))} SET ${quoteIdent("request_status")} = 'Rejected'
+       WHERE ${quoteIdent("name")} = $1`,
+      [name],
+    );
+    return { request: name, request_status: "Rejected" };
+  }
 }
