@@ -12,6 +12,7 @@ import { PromotionListener } from "./promotion.listener";
 import { SoFulfillmentGateListener } from "./so-fulfillment-gate.listener";
 import { SalesOrderHoldService } from "./sales-order-hold.service";
 import { SalesOrderCloseGateListener } from "./sales-order-close-gate.listener";
+import { ShippingRuleListener } from "./shipping-rule.listener";
 import { InstallationService } from "./installation.service";
 import { InstallationGateListener } from "./installation-gate.listener";
 import { SellingController } from "./selling.controller";
@@ -30,6 +31,7 @@ import { SellingController } from "./selling.controller";
     SoFulfillmentGateListener,
     SalesOrderHoldService,
     SalesOrderCloseGateListener,
+    ShippingRuleListener,
     InstallationService,
     InstallationGateListener,
   ],

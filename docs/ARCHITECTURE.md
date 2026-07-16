@@ -2615,6 +2615,30 @@ Senior Engineer and snapshotted the prior designation; the register showed the
 change; cancelling reverted the employee to Engineer and marked the promotion
 Cancelled.
 
+## Shipping Rule (Phase 126)
+
+A Shipping Rule computes a freight charge on a Sales Order from value-slab
+conditions.
+
+- **Charge computation.** On a Sales Order's save, if it carries a
+  `shipping_rule`, `ShippingRuleListener` finds the condition slab that brackets
+  the order's base value — total amount (Σ qty × rate) or total quantity, per the
+  rule's `calculate_based_on` — and writes its `shipping_amount` to
+  `shipping_charge`. No matching slab (or no rule) → zero.
+- **Slab-validation gate.** On a Shipping Rule's save, a gate rejects a condition
+  whose `from_value` exceeds its `to_value`, or slabs that overlap. A `to_value`
+  of 0 is treated as open-ended (unbounded upper slab).
+- **Report.** A `shipping-charges` report lists Sales Orders carrying a shipping
+  rule with their order amount and the computed freight.
+
+Verified: a rule with overlapping slabs was rejected ("slabs overlap near 400");
+against a rule of <500→50, 500–1000→30, >1000→0, orders of 800 / 300 / 2000
+computed freight 30 / 50 / 0, an order with no rule got 0, and the report
+tracked each order's amount and charge.
+
+The shipping charge is a tracked field on the Sales Order — it is not folded
+into the (asynchronously recomputed) grand total, nor posted to GL.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

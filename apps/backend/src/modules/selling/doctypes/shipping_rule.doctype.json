@@ -1,0 +1,15 @@
+{
+  "name": "Shipping Rule",
+  "module": "Selling",
+  "naming_rule": "field:label",
+  "title_field": "label",
+  "fields": [
+    { "fieldname": "label", "label": "Label", "fieldtype": "Data", "reqd": true, "unique": true, "in_list_view": true },
+    { "fieldname": "calculate_based_on", "label": "Calculate Based On", "fieldtype": "Select", "options": "Amount\nQuantity", "default": "Amount", "reqd": true, "in_list_view": true },
+    { "fieldname": "conditions", "label": "Conditions", "fieldtype": "Table", "options": "Shipping Rule Condition" }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

@@ -46,6 +46,19 @@
       "options": "Sales Taxes Template"
     },
     {
+      "fieldname": "shipping_rule",
+      "label": "Shipping Rule",
+      "fieldtype": "Link",
+      "options": "Shipping Rule",
+      "in_standard_filter": true
+    },
+    {
+      "fieldname": "shipping_charge",
+      "label": "Shipping Charge",
+      "fieldtype": "Currency",
+      "read_only": true
+    },
+    {
       "fieldname": "quotation",
       "label": "Quotation",
       "fieldtype": "Link",

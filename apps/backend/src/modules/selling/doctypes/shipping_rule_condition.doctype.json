@@ -1,0 +1,14 @@
+{
+  "name": "Shipping Rule Condition",
+  "module": "Selling",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "from_value", "label": "From Value", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "to_value", "label": "To Value", "fieldtype": "Float", "in_list_view": true },
+    { "fieldname": "shipping_amount", "label": "Shipping Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}
