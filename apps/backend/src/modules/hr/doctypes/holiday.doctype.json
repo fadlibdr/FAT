@@ -1,0 +1,13 @@
+{
+  "name": "Holiday",
+  "module": "HR",
+  "istable": true,
+  "naming_rule": "hash",
+  "fields": [
+    { "fieldname": "holiday_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "description", "label": "Description", "fieldtype": "Data", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1 }
+  ]
+}

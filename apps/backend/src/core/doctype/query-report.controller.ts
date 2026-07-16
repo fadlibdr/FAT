@@ -2355,6 +2355,22 @@ const REPORTS: Record<string, QueryReport> = {
           LEFT JOIN used us ON us."employee" = al."employee" AND us."leave_type" = al."leave_type"
           ORDER BY al."employee", al."leave_type"`,
   },
+  "holiday-list-summary": {
+    permDoctype: "Holiday List",
+    columns: [
+      { key: "holiday_list", label: "Holiday List" },
+      { key: "from_date", label: "From" },
+      { key: "to_date", label: "To" },
+      { key: "weekly_off", label: "Weekly Off" },
+      { key: "total_holidays", label: "Total Holidays" },
+    ],
+    // Holiday lists with their coverage window and holiday count.
+    sql: `SELECT "name" AS "holiday_list", "from_date", "to_date",
+                 coalesce("weekly_off", 'None') AS "weekly_off",
+                 coalesce("total_holidays", 0) AS "total_holidays"
+          FROM "tabHoliday List"
+          ORDER BY "from_date" DESC, "name"`,
+  },
   "leave-policy-summary": {
     permDoctype: "Leave Policy",
     columns: [
