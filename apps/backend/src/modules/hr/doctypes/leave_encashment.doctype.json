@@ -1,0 +1,21 @@
+{
+  "name": "Leave Encashment",
+  "module": "HR",
+  "naming_rule": "series:LENC-.#####",
+  "is_submittable": true,
+  "title_field": "employee",
+  "fields": [
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "leave_type", "label": "Leave Type", "fieldtype": "Link", "options": "Leave Type", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "encashment_days", "label": "Encashment Days", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "encashment_amount", "label": "Encashment Amount", "fieldtype": "Currency", "in_list_view": true },
+    { "fieldname": "expense_account", "label": "Expense Account", "fieldtype": "Link", "options": "Account", "default": "Salary Expense" },
+    { "fieldname": "payable_account", "label": "Payable Account", "fieldtype": "Link", "options": "Account", "default": "Salaries Payable" },
+    { "fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 }
+  ]
+}

@@ -18,11 +18,12 @@ import { AppraisalListener } from "./appraisal.listener";
 import { SeparationListener } from "./separation.listener";
 import { RecruitmentService } from "./recruitment.service";
 import { RecruitmentController, JobOfferController } from "./recruitment.controller";
+import { LeaveEncashmentListener } from "./leave-encashment.listener";
 
 @Module({
   imports: [CoreModule],
   controllers: [HrController, RecruitmentController, JobOfferController],
-  providers: [HrService, HrListener, ExpenseClaimListener, EmployeeAdvanceListener, ShiftListener, LoanListener, LoanRepaymentListener, GratuityListener, FinalSettlementListener, OnboardingListener, EmployeePromotionListener, AppraisalListener, SeparationListener, RecruitmentService],
+  providers: [HrService, HrListener, ExpenseClaimListener, EmployeeAdvanceListener, ShiftListener, LoanListener, LoanRepaymentListener, GratuityListener, FinalSettlementListener, OnboardingListener, EmployeePromotionListener, AppraisalListener, SeparationListener, RecruitmentService, LeaveEncashmentListener],
 })
 export class HrModule extends BusinessModule {
   protected readonly baseDir = __dirname;

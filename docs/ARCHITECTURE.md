@@ -2933,6 +2933,28 @@ to cost 600 / margin 400 over 15 hours; timesheets with negative hours or a
 negative costing rate were blocked; cancelling the first timesheet recomputed the
 project to billable 0 / cost 200 / margin −200; the margin report reflected it.
 
+## Leave Encashment (Phase 140)
+
+Employees can convert unused leave into a payout, drawing down the same balance
+the leave allocation/application flow maintains.
+
+- **Encashment + balance + GL.** A submittable `Leave Encashment` (employee,
+  leave type, days, amount) whose submitted days count against the leave
+  balance — `balanceFor`/`balances` now net off submitted encashments alongside
+  taken leave. On submit the payout is booked Dr Salary Expense / Cr Salaries
+  Payable; cancel reverses the GL and restores the balance.
+- **Balance gate.** A before_submit gate (`suppressErrors:false`) requires the
+  days to be positive and no greater than the employee's current balance for the
+  leave type (allocated − taken − already-encashed).
+- **Report.** A `leave-encashment-register` report lists encashments with days,
+  amount, and submit status.
+
+Verified: with 20 days allocated, an encashment of 25 was blocked ("balance is
+20"); encashing 8 dropped the balance to 12 and posted Dr Salary Expense 800 /
+Cr Salaries Payable 800; a further 15 was blocked against the remaining 12;
+cancelling the encashment restored the balance to 20 and removed its GL; the
+register listed the encashments.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
