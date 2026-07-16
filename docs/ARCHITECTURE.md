@@ -2358,6 +2358,36 @@ Verified: a trip over two Delivery Notes went Scheduled → In Transit → Compl
 second trip reusing one of the notes was rejected at submit ("already on trip
 TRIP-00001"); the report showed 2 stops / 2 delivered / Completed.
 
+## Subcontracting (Phase 115)
+
+A Subcontracting Order sends raw materials to a subcontractor who returns a
+finished item; Subcontracting Receipts book the finished goods back and drive
+the order to completion.
+
+- **Order + receipt.** The Subcontracting Order carries the finished item, its
+  ordered qty, and a supplied-raw-materials child table.
+  `POST /api/buying/subcontracting-order/:name/make-receipt`
+  (`SubcontractingService.makeSubcontractingReceipt`) drafts a Subcontracting
+  Receipt for the outstanding finished quantity (ordered − already received).
+- **Status roll-up.** On a receipt's submit (or cancel) the order's
+  `per_received` and status are recomputed (To Receive → Completed), eventually
+  consistent via the fire-and-forget `on_submit` event.
+- **Over-receipt gate.** A before_submit gate aborts a receipt whose qty, added
+  to what's already received, would exceed the order's ordered qty.
+- **Report.** A `subcontracting-status` report lists each order's finished item,
+  ordered vs received qty, the pending balance, and status.
+
+Verified: an order for 10 went To Receive on submit; a 6-unit receipt moved it
+to 60 %, a second receipt of the remaining 4 to Completed (100 %); a 12-unit
+receipt was blocked ("received 12 exceeds ordered 10") and a fully-received
+order refused a further receipt; the report showed ordered 10 / received 10 /
+pending 0 / Completed.
+
+Subcontracting is qty/status tracking only — it does not yet post the supplied
+materials' issue or the finished good's receipt to the stock ledger, nor book
+subcontracting-service GL (valuation is out of scope, as for Packing Slips and
+Shipments).
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

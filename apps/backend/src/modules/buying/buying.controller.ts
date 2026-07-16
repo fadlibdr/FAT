@@ -3,6 +3,7 @@ import { ReorderService } from "./reorder.service";
 import { SourcingService } from "./sourcing.service";
 import { PoFulfillmentService } from "./po-fulfillment.service";
 import { PurchaseOrderHoldService } from "./purchase-order-hold.service";
+import { SubcontractingService } from "./subcontracting.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -19,7 +20,14 @@ export class BuyingController {
     private readonly sourcing: SourcingService,
     private readonly poFulfillment: PoFulfillmentService,
     private readonly holds: PurchaseOrderHoldService,
+    private readonly subcontracting: SubcontractingService,
   ) {}
+
+  @Post("subcontracting-order/:name/make-receipt")
+  async makeSubcontractingReceipt(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    const subcontractingReceipt = await this.subcontracting.makeSubcontractingReceipt(name, user);
+    return { subcontractingReceipt };
+  }
 
   @Post("purchase-order/:name/hold")
   async holdOrder(@Param("name") name: string, @Body() body: { reason?: string }) {

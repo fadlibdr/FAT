@@ -1,0 +1,18 @@
+{
+  "name": "Subcontracting Receipt",
+  "module": "Buying",
+  "naming_rule": "series:SCR-.#####",
+  "is_submittable": true,
+  "title_field": "supplier",
+  "fields": [
+    { "fieldname": "supplier", "label": "Subcontractor", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "subcontracting_order", "label": "Subcontracting Order", "fieldtype": "Link", "options": "Subcontracting Order", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "finished_item", "label": "Finished Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "qty", "label": "Received Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Purchase User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

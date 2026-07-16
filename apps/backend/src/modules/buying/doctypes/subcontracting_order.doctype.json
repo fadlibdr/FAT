@@ -1,0 +1,21 @@
+{
+  "name": "Subcontracting Order",
+  "module": "Buying",
+  "naming_rule": "series:SCO-.#####",
+  "is_submittable": true,
+  "title_field": "supplier",
+  "fields": [
+    { "fieldname": "supplier", "label": "Subcontractor", "fieldtype": "Link", "options": "Supplier", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "transaction_date", "label": "Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "finished_item", "label": "Finished Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
+    { "fieldname": "qty", "label": "Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "rate", "label": "Service Rate", "fieldtype": "Currency" },
+    { "fieldname": "supplied_items", "label": "Supplied Raw Materials", "fieldtype": "Table", "options": "Subcontracting Supplied Item" },
+    { "fieldname": "per_received", "label": "% Received", "fieldtype": "Float", "read_only": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nTo Receive\nCompleted\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Purchase User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

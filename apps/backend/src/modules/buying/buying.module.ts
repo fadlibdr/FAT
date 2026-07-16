@@ -10,11 +10,12 @@ import { BuyingController } from "./buying.controller";
 import { ScorecardListener } from "./scorecard.listener";
 import { ThreeWayMatchListener } from "./three-way-match.listener";
 import { PurchaseOrderHoldService } from "./purchase-order-hold.service";
+import { SubcontractingService } from "./subcontracting.service";
 
 @Module({
   imports: [CoreModule],
   controllers: [BuyingController],
-  providers: [ReorderService, SourcingService, PoFulfillmentService, PoFulfillmentListener, ScorecardListener, ThreeWayMatchListener, PurchaseOrderHoldService],
+  providers: [ReorderService, SourcingService, PoFulfillmentService, PoFulfillmentListener, ScorecardListener, ThreeWayMatchListener, PurchaseOrderHoldService, SubcontractingService],
 })
 export class BuyingModule extends BusinessModule {
   protected readonly baseDir = __dirname;
