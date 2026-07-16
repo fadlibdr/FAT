@@ -1143,6 +1143,27 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "employee-advance-return-register": {
+    permDoctype: "Employee Advance Return",
+    columns: [
+      { key: "return_name", label: "Return" },
+      { key: "employee", label: "Employee" },
+      { key: "employee_advance", label: "Advance" },
+      { key: "posting_date", label: "Date" },
+      { key: "return_amount", label: "Returned" },
+      { key: "outstanding", label: "Advance Outstanding" },
+    ],
+    // Each submitted return with the parent advance's current unsettled balance
+    // (paid − claimed − returned).
+    sql: `SELECT r."name" AS "return_name", r."employee", r."employee_advance", r."posting_date",
+                 r."return_amount"::float8 AS "return_amount",
+                 (coalesce(a."advance_amount", 0) - coalesce(a."claimed_amount", 0)
+                    - coalesce(a."returned_amount", 0))::float8 AS "outstanding"
+          FROM "tabEmployee Advance Return" r
+          LEFT JOIN "tabEmployee Advance" a ON a."name" = r."employee_advance"
+          WHERE r."docstatus" = 1
+          ORDER BY r."employee", r."posting_date", r."name"`,
+  },
   "top-selling-items": {
     permDoctype: "Sales Invoice",
     columns: [

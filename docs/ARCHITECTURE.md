@@ -3044,6 +3044,33 @@ both B and C with their on-hand stock (25 and 7); a self-alternative and a
 duplicate A→B mapping were each rejected with 400; the report listed both
 mappings.
 
+## Phase 145 — Employee Advance Return
+
+Returning the unspent part of an employee advance — the mirror of paying it —
+which shrinks the receivable the employee owes back.
+
+- **Return + GL + settlement.** An `Employee Advance Return` DocType
+  (submittable: `employee_advance`, `employee`, `posting_date`, `return_amount`,
+  `return_to`, `advance_account`). On submit it books Dr the return-to account
+  (Cash) / Cr Employee Advance for the returned amount and rolls the figure onto
+  the parent advance's new `returned_amount` field; once the advance is fully
+  worked down (`claimed + returned ≥ advance_amount`) it is marked Claimed.
+  Cancel deletes the GL and rolls the return back (reverting a Claimed advance to
+  Paid). Pure event-bus listener — HR imports no other module's services.
+- **Gate.** A `before_submit:Employee Advance Return` listener
+  (`suppressErrors:false`) requires the parent advance to be submitted and the
+  return amount to be positive and within the outstanding balance
+  (`advance − claimed − returned`).
+- **Report.** An `employee-advance-return-register` report lists each submitted
+  return with its advance and that advance's current outstanding balance.
+
+Verified: a 1000 advance took a 300 return (Dr Cash 300 / Cr Employee Advance
+300, advance still Paid) then a 700 return (advance fully settled → Claimed); a
+further return, a zero-amount return, and a return against an unsubmitted advance
+were each rejected with 400; cancelling the 700 return removed its GL and reverted
+the advance to Paid with `returned_amount` back to 300; the register showed the
+outstanding balance.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

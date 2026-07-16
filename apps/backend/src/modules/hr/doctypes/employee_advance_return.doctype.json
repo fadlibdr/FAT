@@ -1,0 +1,21 @@
+{
+  "name": "Employee Advance Return",
+  "module": "HR",
+  "naming_rule": "series:EADR-.#####",
+  "is_submittable": true,
+  "title_field": "employee_advance",
+  "fields": [
+    { "fieldname": "employee_advance", "label": "Employee Advance", "fieldtype": "Link", "options": "Employee Advance", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "posting_date", "label": "Posting Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "return_amount", "label": "Return Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "return_to", "label": "Return To", "fieldtype": "Link", "options": "Account", "default": "Cash" },
+    { "fieldname": "advance_account", "label": "Advance Account", "fieldtype": "Link", "options": "Account", "default": "Employee Advance" },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nSubmitted\nCancelled", "default": "Draft", "read_only": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "HR User", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "report": 1 }
+  ]
+}
