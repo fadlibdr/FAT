@@ -2307,6 +2307,33 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "bank-guarantee-status": {
+    permDoctype: "Bank Guarantee",
+    columns: [
+      { key: "bank_guarantee", label: "Bank Guarantee" },
+      { key: "bg_type", label: "Type" },
+      { key: "party", label: "Party" },
+      { key: "amount", label: "Amount" },
+      { key: "end_date", label: "End Date" },
+      { key: "days_to_expiry", label: "Days to Expiry" },
+      { key: "status", label: "Status" },
+    ],
+    filters: [{ fieldname: "as_of", label: "As Of", fieldtype: "Date" }],
+    // Submitted bank guarantees with their days to expiry (relative to as_of).
+    build: (f) => {
+      const asOf = f.as_of || today();
+      return {
+        text: `SELECT "name" AS "bank_guarantee", "bg_type", "party", "amount", "end_date",
+                      CASE WHEN "end_date" IS NULL THEN NULL
+                           ELSE ("end_date"::date - $1::date) END AS "days_to_expiry",
+                      "status"
+               FROM "tabBank Guarantee"
+               WHERE "docstatus" = 1
+               ORDER BY "end_date" NULLS LAST, "name"`,
+        params: [asOf],
+      };
+    },
+  },
   "attendance-request-status": {
     permDoctype: "Attendance Request",
     columns: [
