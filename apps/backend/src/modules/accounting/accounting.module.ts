@@ -24,6 +24,7 @@ import { TaxTemplateListener } from "./tax-template.listener";
 import { ContraEntryListener } from "./contra-entry.listener";
 import { CostCenterAllocationListener } from "./cost-center-allocation.listener";
 import { BankGuaranteeService } from "./bank-guarantee.service";
+import { SupplierBillListener } from "./supplier-bill.listener";
 
 @Module({
   imports: [CoreModule],
@@ -49,6 +50,7 @@ import { BankGuaranteeService } from "./bank-guarantee.service";
     TaxTemplateListener,
     ContraEntryListener,
     CostCenterAllocationListener,
+    SupplierBillListener,
   ],
 })
 export class AccountingModule extends BusinessModule {
