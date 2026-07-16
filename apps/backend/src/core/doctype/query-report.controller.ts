@@ -2307,6 +2307,23 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "appraisal-summary": {
+    permDoctype: "Appraisal",
+    columns: [
+      { key: "appraisal", label: "Appraisal" },
+      { key: "employee", label: "Employee" },
+      { key: "appraisal_period", label: "Period" },
+      { key: "total_score", label: "Total Score" },
+      { key: "status", label: "Status" },
+    ],
+    // Submitted appraisals with their weighted total score (0-5 scale).
+    sql: `SELECT "name" AS "appraisal", "employee", "appraisal_period",
+                 coalesce("total_score", 0)::float8 AS "total_score",
+                 coalesce("status", 'Draft') AS "status"
+          FROM "tabAppraisal"
+          WHERE "docstatus" = 1
+          ORDER BY "total_score" DESC, "name"`,
+  },
   "shipping-charges": {
     permDoctype: "Sales Order",
     columns: [
