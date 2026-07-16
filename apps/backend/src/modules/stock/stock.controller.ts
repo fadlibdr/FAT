@@ -3,6 +3,7 @@ import { PickListService } from "./pick-list.service";
 import { PackingService } from "./packing.service";
 import { ShipmentService } from "./shipment.service";
 import { DeliveryTripService } from "./delivery-trip.service";
+import { SerialWarrantyService } from "./serial-warranty.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -14,7 +15,14 @@ export class StockController {
     private readonly packing: PackingService,
     private readonly shipment: ShipmentService,
     private readonly deliveryTrip: DeliveryTripService,
+    private readonly serialWarranty: SerialWarrantyService,
   ) {}
+
+  @Post("run-serial-warranty")
+  async runSerialWarranty(@Body() body: { as_of?: string }) {
+    const updated = await this.serialWarranty.recompute(body?.as_of);
+    return { updated };
+  }
 
   @Post("make-delivery-trip")
   async makeDeliveryTrip(

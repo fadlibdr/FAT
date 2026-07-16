@@ -9,6 +9,7 @@
     { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Active\nDelivered", "default": "Active", "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "warranty_expiry_date", "label": "Warranty Expiry", "fieldtype": "Date", "in_list_view": true },
+    { "fieldname": "warranty_status", "label": "Warranty Status", "fieldtype": "Select", "options": "No Warranty\nIn Warranty\nOut of Warranty", "default": "No Warranty", "read_only": true, "in_list_view": true, "in_standard_filter": true },
     { "fieldname": "voucher_no", "label": "Voucher No", "fieldtype": "Data", "in_standard_filter": true }
   ],
   "permissions": [

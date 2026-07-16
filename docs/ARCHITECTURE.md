@@ -2771,6 +2771,29 @@ on Purchase Invoice PINV-…"); the same number under a different supplier and a
 different number under the same supplier both submitted; the register listed all
 three with their bill references.
 
+## Serial warranty tracking (Phase 133)
+
+Serial numbers carried a `warranty_expiry_date` field that nothing populated.
+Delivery now stamps it from the item's warranty period, and a run keeps each
+serial's warranty state current.
+
+- **Warranty stamping on delivery.** Item gains `warranty_period_days`. When a
+  Delivery Note is submitted, `SerialWarrantyService` stamps each delivered
+  serial's `warranty_expiry_date` = posting date + the item's warranty period
+  (only when the item has a positive period and the serial has no expiry yet). A
+  return is exempt.
+- **Warranty-status run.** Serial No gains a computed `warranty_status`
+  (No Warranty / In Warranty / Out of Warranty). A daily cron —
+  also `POST /api/stock/run-serial-warranty` with an optional `as_of` — recomputes
+  it from the expiry date, and the delivery stamp refreshes it inline.
+- **Report.** A `serial-warranty-status` report lists serials with their stock
+  status, warranty expiry, and warranty state.
+
+Verified: delivering a serial of an item with a 365-day warranty on 2026-07-16
+stamped its expiry to 2027-07-16 and set it In Warranty, while an undelivered
+serial stayed No Warranty; running the recompute as of 2028-01-01 flipped the
+delivered serial to Out of Warranty; the report showed the expiry and state.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
