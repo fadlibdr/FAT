@@ -1452,6 +1452,26 @@ const REPORTS: Record<string, QueryReport> = {
           WHERE "docstatus" = 1
           ORDER BY "name"`,
   },
+  "quality-inspection-readings": {
+    permDoctype: "Quality Inspection",
+    columns: [
+      { key: "quality_inspection", label: "Inspection" },
+      { key: "item_code", label: "Item" },
+      { key: "parameter", label: "Parameter" },
+      { key: "min_value", label: "Min" },
+      { key: "max_value", label: "Max" },
+      { key: "reading_value", label: "Reading" },
+      { key: "acceptance", label: "Acceptance" },
+    ],
+    // Every reading of every submitted inspection, with its numeric spec bounds.
+    sql: `SELECT qi."name" AS "quality_inspection", qi."item_code",
+                 r."parameter", r."min_value", r."max_value", r."reading_value",
+                 coalesce(r."acceptance", 'Accepted') AS "acceptance"
+          FROM "tabQuality Inspection Reading" r
+          JOIN "tabQuality Inspection" qi ON r."parent" = qi."name"
+          WHERE qi."docstatus" = 1
+          ORDER BY qi."name", r."parameter"`,
+  },
   "bank-reconciliation-status": {
     permDoctype: "Bank Transaction",
     columns: [

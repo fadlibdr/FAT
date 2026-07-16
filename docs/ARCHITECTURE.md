@@ -2723,6 +2723,31 @@ report then showed allocated 23 / used 3 / balance 20. An overlapping
 allocation was blocked ("overlaps existing allocation LAL-…"), as were an
 inverted date range and a negative allocation.
 
+## Quality Inspection numeric evaluation (Phase 131)
+
+Quality Inspection already derives an overall Accepted/Rejected status from its
+readings and gates Purchase Receipt / Delivery Note submission. Readings were
+judged purely by a manually-set `acceptance` field; they can now be evaluated
+objectively against a numeric spec range.
+
+- **Numeric auto-acceptance.** Readings gain `min_value` / `max_value`. On save
+  each reading that carries a numeric spec (a min and/or max) has its
+  `acceptance` set from whether `reading_value` falls in range — a
+  non-numeric reading against a numeric spec fails. Readings with no numeric
+  spec keep their manual acceptance. The overall inspection status is then
+  derived as before (Rejected if any reading is Rejected).
+- **Validation gate.** A before_submit gate (`suppressErrors:false`) requires at
+  least one reading, rejects a spec whose min exceeds its max, and rejects a
+  numeric-spec reading whose value is not a number.
+- **Report.** A `quality-inspection-readings` report lists every reading of each
+  submitted inspection with its spec bounds, reading, and acceptance.
+
+Verified: a reading of 15 against 10–20 auto-accepted while 25 auto-rejected
+(overall Rejected), and a qualitative reading kept its manual Accepted; an
+inspection with no readings, one with min 20 > max 10, and one with a
+non-numeric reading against a 10–20 spec were each blocked on submit; the
+readings report showed the numeric and qualitative rows with their bounds.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
