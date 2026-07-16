@@ -706,6 +706,22 @@ const REPORTS: Record<string, QueryReport> = {
       };
     },
   },
+  "salary-structure-assignment": {
+    permDoctype: "Salary Structure Assignment",
+    columns: [
+      { key: "assignment", label: "Assignment" },
+      { key: "employee", label: "Employee" },
+      { key: "salary_structure", label: "Salary Structure" },
+      { key: "from_date", label: "From Date" },
+      { key: "base", label: "Base" },
+    ],
+    // Submitted structure assignments, most recent effective date first per employee.
+    sql: `SELECT "name" AS "assignment", "employee", "salary_structure", "from_date",
+                 coalesce("base", 0)::float8 AS "base"
+          FROM "tabSalary Structure Assignment"
+          WHERE "docstatus" = 1
+          ORDER BY "employee", "from_date" DESC`,
+  },
   "recurring-journal-status": {
     permDoctype: "Recurring Journal",
     columns: [

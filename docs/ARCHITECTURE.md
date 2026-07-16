@@ -2794,6 +2794,28 @@ stamped its expiry to 2027-07-16 and set it In Warranty, while an undelivered
 serial stayed No Warranty; running the recompute as of 2028-01-01 flipped the
 delivered serial to Out of Warranty; the report showed the expiry and state.
 
+## Salary Structure Assignment (Phase 134)
+
+Salary Slips linked a Salary Structure directly. A new time-effective assignment
+ties an employee to a structure from a date, and slips follow it automatically.
+
+- **Assignment + slip resolution.** A submittable `Salary Structure Assignment`
+  (employee, salary structure, from date, base) records which structure applies
+  from when. `SalaryAssignmentListener` fills a Salary Slip's `salary_structure`
+  on save when it is blank, resolving the employee's latest submitted assignment
+  effective on or before the slip's period start.
+- **Validation gate.** A before_submit gate (`suppressErrors:false`) requires the
+  from date, rejects an inactive salary structure, and blocks a second submitted
+  assignment for the same employee on the same effective date.
+- **Report.** A `salary-structure-assignment` report lists submitted assignments
+  with employee, structure, from date, and base.
+
+Verified: an assignment against an inactive structure was blocked ("is not
+active"); a valid assignment effective 2026-01-01 submitted, and a duplicate on
+the same date was blocked ("already has assignment SSA-… effective 2026-01-01");
+a Salary Slip created without a structure resolved to the assigned one; the
+report listed the assignment.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
