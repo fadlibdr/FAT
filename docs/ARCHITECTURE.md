@@ -2121,6 +2121,27 @@ reads 100 % and submits; the onboarding-status report shows 2/2, 100 %, Complete
 Onboarding is a checklist only — activities carry no owner, due date, or
 auto-generated follow-up task.
 
+## Phase 105 — Quality non-conformances
+
+Records quality defects and enforces that closing one documents what was done
+about it. Pure event-bus listener, no cross-module service imports.
+
+- **Raise.** A submittable `Non Conformance` DocType (subject, severity
+  Minor/Major/Critical, a free reference type + name, reported date, corrective
+  action). Draft is Open; submitted is Closed.
+- **Gate.** A `before_submit` gate blocks closing a Non Conformance without a
+  recorded corrective action (and requires a subject), so every closed NCR carries
+  its resolution.
+- **Report.** A `non-conformance-status` report lists NCRs with severity,
+  reference, and Open/Closed status, ordered Critical → Major → Minor.
+
+Verified: a Major NCR cannot be closed until a corrective action is added
+("a corrective action is required before it can be closed"), then closes; the
+non-conformance-status report lists an open Critical above the closed Major.
+
+The reference is free text (not a validated Link), and severity drives only report
+ordering — there is no severity-based approval or auto-escalation.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
