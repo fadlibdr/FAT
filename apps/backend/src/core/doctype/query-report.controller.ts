@@ -2307,6 +2307,25 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "purchase-receipt-rejection": {
+    permDoctype: "Purchase Receipt",
+    columns: [
+      { key: "purchase_receipt", label: "Purchase Receipt" },
+      { key: "item_code", label: "Item" },
+      { key: "received_qty", label: "Received" },
+      { key: "rejected_qty", label: "Rejected" },
+      { key: "accepted_qty", label: "Accepted" },
+    ],
+    // Purchase-receipt lines that rejected part of the received quantity.
+    sql: `SELECT pr."name" AS "purchase_receipt", pri."item_code",
+                 coalesce(pri."qty", 0)::float8 AS "received_qty",
+                 coalesce(pri."rejected_qty", 0)::float8 AS "rejected_qty",
+                 coalesce(pri."accepted_qty", 0)::float8 AS "accepted_qty"
+          FROM "tabPurchase Receipt Item" pri
+          JOIN "tabPurchase Receipt" pr ON pr."name" = pri."parent"
+          WHERE pr."docstatus" = 1 AND coalesce(pri."rejected_qty", 0) > 0
+          ORDER BY pr."name", pri."item_code"`,
+  },
   "employee-separation-status": {
     permDoctype: "Employee Separation",
     columns: [

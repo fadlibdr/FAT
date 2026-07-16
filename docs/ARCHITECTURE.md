@@ -2677,6 +2677,26 @@ Verified: a separation with one pending activity sat at 50 % and refused submit
 submitting relieved the employee (status Left) and the report showed 2/2
 Completed; cancelling reinstated the employee to Active.
 
+## Purchase Receipt rejection (Phase 129)
+
+Incoming goods can fail quality control: each Purchase Receipt line records how
+many units were rejected, and only the accepted balance is taken into stock.
+
+- **Accepted-only stock posting.** `PurchaseRejectionListener` keeps
+  `accepted_qty = max(0, qty − rejected_qty)` current on save; the stock ledger
+  posts only the accepted quantity into the warehouse Bin (a return still sends
+  the full qty back). Received qty is the total off the truck; rejected units
+  never enter on-hand stock.
+- **Rejected-qty gate.** A before_submit gate blocks a submit whose rejected qty
+  is negative or exceeds the received qty (returns are exempt).
+- **Report.** A `purchase-receipt-rejection` report lists receipt lines with
+  received, rejected, and accepted quantities.
+
+Verified: a receipt for qty 10 with rejected 3 computed accepted 7 on the draft
+and put exactly 7 into the item's Bin on submit; an over-rejection (12 of 10)
+was blocked ("rejected qty 12 exceeds received qty 10"); the report showed
+received 10 / rejected 3 / accepted 7.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
