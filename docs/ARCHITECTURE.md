@@ -2658,6 +2658,25 @@ whose weightages summed to 90 was blocked ("must sum to 100 (got 90)") and one
 with a score of 7 was blocked ("out of the 0-5 range"); the summary showed the
 appraisal at 4.1.
 
+## Employee Separation (Phase 128)
+
+The exit counterpart to Employee Onboarding: a checklist of exit activities that,
+once complete, relieves the employee.
+
+- **Completion tracking + relieve.** `SeparationListener` keeps
+  `percent_complete` current on save; a before_submit gate requires at least one
+  activity and every activity Completed. Submitting sets the separation Completed
+  and marks the employee's status `Left`.
+- **Revert.** Cancelling the separation restores the employee to `Active` (only
+  if they are still Left from this separation) and marks it Cancelled.
+- **Report.** An `employee-separation-status` report lists separations with the
+  employee, relieving date, activity completion, and status.
+
+Verified: a separation with one pending activity sat at 50 % and refused submit
+("1 of 2 activities still pending"); completing both moved it to 100 %,
+submitting relieved the employee (status Left) and the report showed 2/2
+Completed; cancelling reinstated the employee to Active.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
