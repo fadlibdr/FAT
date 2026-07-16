@@ -1,0 +1,21 @@
+{
+  "name": "Bank Guarantee",
+  "module": "Accounting",
+  "naming_rule": "series:BG-.#####",
+  "is_submittable": true,
+  "title_field": "party",
+  "fields": [
+    { "fieldname": "bg_type", "label": "Type", "fieldtype": "Select", "options": "Receiving\nProviding", "default": "Receiving", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "party_type", "label": "Party Type", "fieldtype": "Select", "options": "Customer\nSupplier", "default": "Customer", "in_standard_filter": true },
+    { "fieldname": "party", "label": "Party", "fieldtype": "Data", "in_list_view": true },
+    { "fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "reqd": true, "in_list_view": true },
+    { "fieldname": "bank", "label": "Bank", "fieldtype": "Data" },
+    { "fieldname": "start_date", "label": "Start Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "end_date", "label": "End Date", "fieldtype": "Date", "reqd": true, "in_list_view": true },
+    { "fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nActive\nClaimed\nExpired\nCancelled", "default": "Draft", "read_only": true, "in_list_view": true, "in_standard_filter": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1 },
+    { "role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1 }
+  ]
+}

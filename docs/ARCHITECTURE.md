@@ -2549,6 +2549,32 @@ was blocked ("Attendance already exists … on 2026-07-03"); a fresh request was
 rejected and then could not be approved; the report showed the three requests at
 3 / 2 / 1 days with Approved / Draft / Rejected status.
 
+## Bank Guarantee (Phase 123)
+
+A Bank Guarantee (Receiving from a customer, or Providing to a supplier) is
+tracked through its validity window with a claim action.
+
+- **Lifecycle.** Submitting a guarantee makes it `Active`; a before_submit gate
+  rejects an inverted validity window (end before start).
+- **Expiry run.** `POST /api/accounting/bank-guarantee/expire`
+  (`BankGuaranteeService.expireBankGuarantees(asOf?)`) lapses every Active
+  guarantee whose `end_date` is on or before `asOf` (default today) to `Expired`.
+- **Claim.** `POST /api/accounting/bank-guarantee/:name/claim` marks a
+  submitted, Active, Receiving guarantee `Claimed` (the counterparty defaulted);
+  it refuses a Providing guarantee, or one not Active.
+- **Report.** A `bank-guarantee-status` report lists submitted guarantees with
+  their `days_to_expiry` (relative to an `as_of` filter) and status.
+
+Verified: an inverted window was blocked at submit; an expiry run as of
+2026-07-16 lapsed a guarantee ending 2026-06-30 to Expired and left one ending
+2026-12-31 Active; claiming the Expired guarantee was refused while the live
+Receiving one became Claimed and could not be re-claimed; a Providing guarantee
+refused the claim; the report showed days-to-expiry −16 Expired, 168 Claimed,
+168 Active.
+
+Bank Guarantees are tracking documents — they do not post GL (no contingent-
+liability or margin-deposit entries).
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

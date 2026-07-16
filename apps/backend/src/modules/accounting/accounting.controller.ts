@@ -4,6 +4,7 @@ import { PaymentService } from "./payment.service";
 import { JournalService } from "./journal.service";
 import { DeferredRevenueService } from "./deferred-revenue.service";
 import { RecurringJournalService } from "./recurring-journal.service";
+import { BankGuaranteeService } from "./bank-guarantee.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -16,6 +17,7 @@ export class AccountingController {
     private readonly journals: JournalService,
     private readonly deferredRevenue: DeferredRevenueService,
     private readonly recurringJournals: RecurringJournalService,
+    private readonly bankGuarantees: BankGuaranteeService,
   ) {}
 
   @Post("recurring-journal/run")
@@ -50,5 +52,15 @@ export class AccountingController {
   async reverseJournalEntry(@CurrentUser() user: UserContext, @Param("name") name: string) {
     const reversal = await this.journals.makeReversal(name, user);
     return { reversal };
+  }
+
+  @Post("bank-guarantee/expire")
+  async expireBankGuarantees(@Body() body: { as_of?: string }) {
+    return this.bankGuarantees.expireBankGuarantees(body?.as_of);
+  }
+
+  @Post("bank-guarantee/:name/claim")
+  async claimBankGuarantee(@Param("name") name: string) {
+    return this.bankGuarantees.claimBankGuarantee(name);
   }
 }

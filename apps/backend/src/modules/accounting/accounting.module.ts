@@ -23,6 +23,7 @@ import { WriteOffListener } from "./write-off.listener";
 import { TaxTemplateListener } from "./tax-template.listener";
 import { ContraEntryListener } from "./contra-entry.listener";
 import { CostCenterAllocationListener } from "./cost-center-allocation.listener";
+import { BankGuaranteeService } from "./bank-guarantee.service";
 
 @Module({
   imports: [CoreModule],
@@ -42,6 +43,7 @@ import { CostCenterAllocationListener } from "./cost-center-allocation.listener"
     ExchangeRevaluationListener,
     InventoryGlListener,
     BudgetGateListener,
+    BankGuaranteeService,
     PeriodLockListener,
     WriteOffListener,
     TaxTemplateListener,
