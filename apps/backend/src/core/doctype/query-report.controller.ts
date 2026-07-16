@@ -2689,6 +2689,24 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabAttendance Request"
           ORDER BY "from_date" DESC, "name"`,
   },
+  "travel-request-status": {
+    permDoctype: "Travel Request",
+    columns: [
+      { key: "travel_request", label: "Travel Request" },
+      { key: "employee", label: "Employee" },
+      { key: "from_date", label: "From" },
+      { key: "to_date", label: "To" },
+      { key: "estimated_cost", label: "Estimated Cost" },
+      { key: "status", label: "Status" },
+      { key: "expense_claim", label: "Expense Claim" },
+    ],
+    // Travel requests with their trip window, cost, approval state, and any raised claim.
+    sql: `SELECT "name" AS "travel_request", "employee", "from_date", "to_date",
+                 coalesce("estimated_cost", 0)::float8 AS "estimated_cost",
+                 coalesce("status", 'Draft') AS "status", "expense_claim"
+          FROM "tabTravel Request"
+          ORDER BY "from_date" DESC, "name"`,
+  },
   "warehouse-capacity": {
     permDoctype: "Warehouse",
     columns: [

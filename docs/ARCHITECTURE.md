@@ -2955,6 +2955,29 @@ Cr Salaries Payable 800; a further 15 was blocked against the remaining 12;
 cancelling the encashment restored the balance to 20 and removed its GL; the
 register listed the encashments.
 
+## Travel Request (Phase 141)
+
+A travel-approval flow that feeds the expense system: an employee requests a
+trip, it is approved, and the approved cost becomes an Expense Claim.
+
+- **Request + approve + claim.** A `Travel Request` (employee, purpose, from/to
+  dates, estimated cost, status Draft/Approved/Rejected/Claimed). `TravelRequestService`
+  exposes `POST /api/hr/travel-request/:name/{approve,reject,make-expense-claim}`.
+  Making the claim raises an Expense Claim for the estimated cost (one Travel
+  expense line), links it back, and marks the request Claimed.
+- **Guards.** Approve/reject apply only to a Draft request, and approval requires
+  an ordered date range. A claim can be raised only from an Approved request and
+  only once.
+- **Report.** A `travel-request-status` report lists requests with their trip
+  window, cost, status, and any raised claim.
+
+Verified: claiming before approval was blocked ("only an Approved request can be
+claimed"); approving an inverted date range was blocked; approving then claiming
+produced an Expense Claim with a 1200 Travel line and moved the request to
+Claimed; claiming again and rejecting the claimed request were both blocked; a
+fresh draft rejected cleanly; the report showed the claimed, draft, and rejected
+requests.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
