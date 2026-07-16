@@ -3023,6 +3023,27 @@ Verified: a January-2026 list with one manual holiday populated its four Sundays
 Year + one Sunday) = 5; an inverted range and a populate with no weekly-off were
 both rejected; the summary showed the list as Sunday / 5 holidays.
 
+## Phase 144 — Item Alternative
+
+Substitute items a planner can fall back on when a primary item is short, with
+their live on-hand stock so an in-stock alternative can be picked at a glance.
+
+- **Mapping + lookup.** An `Item Alternative` DocType (`item_code`,
+  `alternative_item_code`, a `two_way` flag). `GET /api/stock/item/:code/alternatives`
+  returns every alternative for the item — direct mappings plus the reverse side
+  of any two-way mapping — each annotated with its current on-hand quantity summed
+  across all `Bin` rows. Pure event-bus + SQL, no cross-module service imports.
+- **Gates.** A `before_save:Item Alternative` listener (`suppressErrors:false`)
+  rejects a self-alternative (an item mapped to itself) and a duplicate mapping
+  for the same item→alternative pair.
+- **Report.** An `item-alternatives` report lists every configured mapping with
+  its item, alternative, and two-way flag.
+
+Verified: with A→B (one-way) and C→A (two-way) mapped, the lookup for A returned
+both B and C with their on-hand stock (25 and 7); a self-alternative and a
+duplicate A→B mapping were each rejected with 400; the report listed both
+mappings.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

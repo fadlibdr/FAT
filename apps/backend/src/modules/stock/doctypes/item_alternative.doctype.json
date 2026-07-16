@@ -1,0 +1,15 @@
+{
+  "name": "Item Alternative",
+  "module": "Stock",
+  "naming_rule": "series:IALT-.#####",
+  "title_field": "item_code",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "alternative_item_code", "label": "Alternative Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "two_way", "label": "Two-way", "fieldtype": "Check", "default": "0", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

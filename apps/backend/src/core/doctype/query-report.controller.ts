@@ -2227,6 +2227,20 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "item-alternatives": {
+    permDoctype: "Item Alternative",
+    columns: [
+      { key: "mapping", label: "Mapping" },
+      { key: "item_code", label: "Item" },
+      { key: "alternative_item_code", label: "Alternative" },
+      { key: "two_way", label: "Two-way" },
+    ],
+    // Configured substitute-item mappings.
+    sql: `SELECT "name" AS "mapping", "item_code", "alternative_item_code",
+                 coalesce("two_way", 0) AS "two_way"
+          FROM "tabItem Alternative"
+          ORDER BY "item_code", "alternative_item_code"`,
+  },
   "serial-warranty-status": {
     permDoctype: "Serial No",
     columns: [

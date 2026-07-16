@@ -1,9 +1,10 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { PickListService } from "./pick-list.service";
 import { PackingService } from "./packing.service";
 import { ShipmentService } from "./shipment.service";
 import { DeliveryTripService } from "./delivery-trip.service";
 import { SerialWarrantyService } from "./serial-warranty.service";
+import { ItemAlternativeService } from "./item-alternative.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -16,12 +17,18 @@ export class StockController {
     private readonly shipment: ShipmentService,
     private readonly deliveryTrip: DeliveryTripService,
     private readonly serialWarranty: SerialWarrantyService,
+    private readonly itemAlternatives: ItemAlternativeService,
   ) {}
 
   @Post("run-serial-warranty")
   async runSerialWarranty(@Body() body: { as_of?: string }) {
     const updated = await this.serialWarranty.recompute(body?.as_of);
     return { updated };
+  }
+
+  @Get("item/:code/alternatives")
+  async getItemAlternatives(@Param("code") code: string) {
+    return this.itemAlternatives.alternativesFor(code);
   }
 
   @Post("make-delivery-trip")
