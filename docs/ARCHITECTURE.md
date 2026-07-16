@@ -2480,6 +2480,28 @@ after completing the dependency (project 50 %) the dependent task completed
 (100 %); the project then closed to Completed, a second close was refused, and
 reopening returned it to Open; the report showed 2 tasks / 2 completed / 0 open.
 
+## Pick List picking confirmation (Phase 120)
+
+A Pick List drawn from a Sales Order previously delivered its full ordered
+quantity on submit. Phase 120 inserts a picking-confirmation step so a warehouse
+records what it actually picked and short picks ship only that.
+
+- **Confirm picking.** `POST /api/stock/pick-list/:name/confirm-picking`
+  (`PickListService.confirmPicking`) records `picked_qty` per line — defaulting
+  to the full to-pick qty, or a per-item subset in the body to model a short
+  pick — and keeps the list `Picked`. It refuses picking more than a line's
+  to-pick qty.
+- **Delivery gate.** `makeDeliveryNote` now builds the Delivery Note from
+  `picked_qty` (dropping zero-picked lines) and refuses a list with nothing
+  picked — you must confirm picking first.
+- **Report.** A `pick-list-shortfall` report lists, per line, to-pick vs picked
+  qty and the shortfall.
+
+Verified: over-picking (12 of 10) was blocked; a short pick of 7 set the line's
+picked_qty and the report showed to-pick 10 / picked 7 / short 3; delivering
+before confirming was refused; after confirming, the Delivery Note carried the
+picked 7 and the list moved to Delivered.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

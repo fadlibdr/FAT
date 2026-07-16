@@ -6,7 +6,8 @@
   "fields": [
     { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true },
     { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true },
-    { "fieldname": "qty", "label": "Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "qty", "label": "To Pick Qty", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "picked_qty", "label": "Picked Qty", "fieldtype": "Float", "read_only": true, "in_list_view": true },
     { "fieldname": "rate", "label": "Rate", "fieldtype": "Currency" }
   ],
   "permissions": []

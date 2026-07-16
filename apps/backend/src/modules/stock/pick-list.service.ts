@@ -71,6 +71,48 @@ export class PickListService {
     return String(row.warehouse);
   }
 
+  /**
+   * Confirm picking on a submitted Pick List: record the quantity actually picked
+   * per line (defaulting to the full to-pick qty, or a subset supplied per item to
+   * model a short pick) and advance the list to `Picked`. Refuses picking more
+   * than a line's to-pick qty, or re-confirming an already-delivered list.
+   */
+  async confirmPicking(
+    name: string,
+    picks?: Record<string, number>,
+    ctx?: UserContext,
+  ): Promise<{ pick_list: string; status: string; picked: number }> {
+    const pickDt = this.registry.get("Pick List");
+    if (!pickDt) throw new BadRequestException("Pick List not registered");
+    const pick = await this.documents.get(pickDt, name);
+    if ((pick.docstatus ?? 0) !== 1) throw new BadRequestException("Pick List must be submitted");
+    if (String(pick.status) === "Delivered") throw new BadRequestException(`Pick List ${name} is already delivered`);
+
+    let total = 0;
+    for (const row of (pick.locations as Array<Record<string, unknown>>) ?? []) {
+      const item = String(row.item_code ?? "");
+      const toPick = Number(row.qty ?? 0);
+      const picked = picks && item in picks ? Number(picks[item]) : toPick;
+      if (picked < 0) throw new BadRequestException(`Picked qty for ${item} cannot be negative`);
+      if (picked > toPick + 1e-9) {
+        throw new BadRequestException(`Cannot pick ${picked} of ${item} — only ${toPick} to pick`);
+      }
+      total += picked;
+      await this.dataSource.query(
+        `UPDATE ${quoteIdent(tableNameFor("Pick List Item"))} SET ${quoteIdent("picked_qty")} = $1
+         WHERE ${quoteIdent("name")} = $2`,
+        [picked, String(row.name)],
+      );
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Pick List"))} SET ${quoteIdent("status")} = 'Picked'
+       WHERE ${quoteIdent("name")} = $1`,
+      [name],
+    );
+    this.logger.log(`Pick List ${name} picked (${total} unit(s))`);
+    return { pick_list: name, status: "Picked", picked: total };
+  }
+
   async makeDeliveryNote(name: string, ctx?: UserContext): Promise<string> {
     const pickDt = this.registry.get("Pick List");
     const dnDt = this.registry.get("Delivery Note");
@@ -81,12 +123,19 @@ export class PickListService {
     if (!pick.customer) throw new BadRequestException("Pick List has no customer to deliver to");
     if (pick.delivery_note) throw new BadRequestException(`Pick List already delivered via ${pick.delivery_note}`);
 
-    const items = ((pick.locations as Array<Record<string, unknown>>) ?? []).map((r) => ({
-      item_code: r.item_code,
-      qty: r.qty,
-      rate: r.rate ?? 0,
-      warehouse: r.warehouse,
-    }));
+    // Deliver only what was actually picked (short picks ship less; zero-picked
+    // lines are dropped). A list with no confirmed picks cannot be delivered.
+    const items = ((pick.locations as Array<Record<string, unknown>>) ?? [])
+      .map((r) => ({
+        item_code: r.item_code,
+        qty: Number(r.picked_qty ?? 0),
+        rate: r.rate ?? 0,
+        warehouse: r.warehouse,
+      }))
+      .filter((r) => r.qty > 0);
+    if (items.length === 0) {
+      throw new BadRequestException(`Pick List ${name} has nothing picked to deliver — confirm picking first`);
+    }
     const dn = await this.documents.create(dnDt, context, {
       customer: pick.customer,
       posting_date: pick.posting_date,

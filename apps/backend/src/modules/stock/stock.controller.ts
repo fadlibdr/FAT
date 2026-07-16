@@ -71,4 +71,13 @@ export class StockController {
     const pickList = await this.pickList.makeFromSalesOrder(name, user);
     return { pickList };
   }
+
+  @Post("pick-list/:name/confirm-picking")
+  async confirmPicking(
+    @CurrentUser() user: UserContext,
+    @Param("name") name: string,
+    @Body() body: { picks?: Record<string, number> },
+  ) {
+    return this.pickList.confirmPicking(name, body?.picks, user);
+  }
 }

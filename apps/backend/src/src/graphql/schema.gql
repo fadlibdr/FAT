@@ -1,0 +1,18 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""Arbitrary JSON value"""
+scalar JSON
+
+type Mutation {
+  cancelDocument(doctype: String!, name: String!): JSON!
+  deleteDocument(doctype: String!, name: String!): Boolean!
+  saveDocument(data: JSON!, doctype: String!, name: String): JSON!
+  submitDocument(doctype: String!, name: String!): JSON!
+}
+
+type Query {
+  document(doctype: String!, name: String!): JSON
+  documents(doctype: String!, filters: JSON, limit: Int, offset: Int, orderBy: String, orderDir: String): [JSON!]!
+}

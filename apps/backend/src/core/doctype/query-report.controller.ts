@@ -2307,6 +2307,28 @@ const REPORTS: Record<string, QueryReport> = {
           GROUP BY p."name", p."customer", p."sales_order", p."posting_date", p."status", p."delivery_note"
           ORDER BY p."posting_date" DESC, p."name"`,
   },
+  "pick-list-shortfall": {
+    permDoctype: "Pick List",
+    columns: [
+      { key: "pick_list", label: "Pick List" },
+      { key: "item_code", label: "Item" },
+      { key: "to_pick_qty", label: "To Pick" },
+      { key: "picked_qty", label: "Picked" },
+      { key: "shortfall_qty", label: "Short" },
+      { key: "status", label: "Status" },
+    ],
+    // Per pick-list line: quantity to pick vs actually picked and the shortfall
+    // (positive when the warehouse could not fully pick the line).
+    sql: `SELECT p."name" AS "pick_list", l."item_code",
+                 coalesce(l."qty", 0)::float8 AS "to_pick_qty",
+                 coalesce(l."picked_qty", 0)::float8 AS "picked_qty",
+                 (coalesce(l."qty", 0) - coalesce(l."picked_qty", 0))::float8 AS "shortfall_qty",
+                 coalesce(p."status", 'Draft') AS "status"
+          FROM "tabPick List" p
+          JOIN "tabPick List Item" l ON l."parent" = p."name"
+          WHERE p."docstatus" = 1
+          ORDER BY p."name", l."item_code"`,
+  },
   "blanket-order-status": {
     permDoctype: "Blanket Order",
     columns: [
