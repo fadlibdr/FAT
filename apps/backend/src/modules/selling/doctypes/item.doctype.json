@@ -12,6 +12,7 @@
     { "fieldname": "valuation_method", "label": "Valuation Method", "fieldtype": "Select", "options": "Moving Average\nFIFO", "default": "Moving Average" },
     { "fieldname": "has_batch_no", "label": "Has Batch No", "fieldtype": "Check" },
     { "fieldname": "has_serial_no", "label": "Has Serial No", "fieldtype": "Check" },
+    { "fieldname": "warranty_period_days", "label": "Warranty Period (Days)", "fieldtype": "Int", "default": "0" },
     { "fieldname": "is_stock_item", "label": "Maintain Stock", "fieldtype": "Check", "default": "1" },
     { "fieldname": "reorder_level", "label": "Reorder Level", "fieldtype": "Float" },
     { "fieldname": "reorder_qty", "label": "Reorder Qty", "fieldtype": "Float" },

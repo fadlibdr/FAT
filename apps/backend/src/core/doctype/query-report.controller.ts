@@ -2110,6 +2110,21 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "serial-warranty-status": {
+    permDoctype: "Serial No",
+    columns: [
+      { key: "serial_no", label: "Serial No" },
+      { key: "item", label: "Item" },
+      { key: "status", label: "Stock Status" },
+      { key: "warranty_expiry_date", label: "Warranty Expiry" },
+      { key: "warranty_status", label: "Warranty" },
+    ],
+    // Every tracked serial with its warranty expiry and computed warranty state.
+    sql: `SELECT "serial_no", "item", coalesce("status", 'Active') AS "status",
+                 "warranty_expiry_date", coalesce("warranty_status", 'No Warranty') AS "warranty_status"
+          FROM "tabSerial No"
+          ORDER BY "warranty_expiry_date" NULLS LAST, "item", "serial_no"`,
+  },
   "item-price-list": {
     permDoctype: "Item Price",
     columns: [
