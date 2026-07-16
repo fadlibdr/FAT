@@ -2909,6 +2909,30 @@ blocked ("only a Draft offer can be…"); a draft offer to another applicant was
 rejected; the report showed the Accepted offer with its employee and the
 Rejected one.
 
+## Project costing & margin (Phase 139)
+
+Projects rolled up billable revenue from timesheets but tracked no cost, so
+margin was invisible. Timesheets now carry a labour cost that feeds a live
+project margin.
+
+- **Costing + margin rollup.** Timesheet gains `costing_rate` / `costing_amount`
+  (hours × costing rate, on every line regardless of billability). On submit the
+  `ProjectsListener` writes the costing amount onto the timesheet and rolls it
+  into the project's `total_costing_amount`; the project's `gross_margin` =
+  billable − cost is recomputed after each roll, and cancel unwinds the
+  contribution.
+- **Validation gate.** A before_submit gate (`suppressErrors:false`) rejects a
+  timesheet with negative hours, billing rate, or costing rate so the rollups
+  stay sane.
+- **Report.** A `project-margin` report shows per-project hours, billable, cost,
+  gross margin, and margin as a percentage of revenue.
+
+Verified: a 10h billable timesheet (rate 100 / cost 40) put the project at
+billable 1000 / cost 400 / margin 600; a 5h non-billable line (cost 40) took it
+to cost 600 / margin 400 over 15 hours; timesheets with negative hours or a
+negative costing rate were blocked; cancelling the first timesheet recomputed the
+project to billable 0 / cost 200 / margin −200; the margin report reflected it.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

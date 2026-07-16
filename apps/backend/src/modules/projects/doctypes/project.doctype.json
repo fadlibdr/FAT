@@ -10,6 +10,8 @@
     { "fieldname": "expected_end_date", "label": "Expected End Date", "fieldtype": "Date" },
     { "fieldname": "total_hours", "label": "Total Hours", "fieldtype": "Float", "read_only": true, "default": "0", "in_list_view": true },
     { "fieldname": "total_billable_amount", "label": "Billable Amount", "fieldtype": "Currency", "read_only": true, "default": "0", "in_list_view": true },
+    { "fieldname": "total_costing_amount", "label": "Costing Amount", "fieldtype": "Currency", "read_only": true, "default": "0" },
+    { "fieldname": "gross_margin", "label": "Gross Margin", "fieldtype": "Currency", "read_only": true, "default": "0" },
     { "fieldname": "total_billed_amount", "label": "Billed Amount", "fieldtype": "Currency", "read_only": true, "default": "0" },
     { "fieldname": "percent_complete", "label": "% Complete", "fieldtype": "Float", "read_only": true, "default": "0", "in_list_view": true }
   ],
