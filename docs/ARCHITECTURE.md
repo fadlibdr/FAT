@@ -3071,6 +3071,28 @@ were each rejected with 400; cancelling the 700 return removed its GL and revert
 the advance to Paid with `returned_amount` back to 300; the register showed the
 outstanding balance.
 
+## Phase 146 — Vehicle preventive maintenance
+
+Odometer-based service scheduling on top of the fleet running-cost tracker: each
+vehicle carries a service interval, and a performed service re-arms when the next
+one is due.
+
+- **Service interval + re-arm.** A `Vehicle` gains `service_interval` (km) and a
+  read-only `next_service_odometer`; a `Vehicle Log` gains an `is_service` flag.
+  Submitting a log flagged `is_service` sets the vehicle's `next_service_odometer`
+  to `odometer + service_interval` (a fresh service resets the due point). The
+  existing fuel/service-cost rollup and monotonic-odometer gate are unchanged.
+- **Gate.** The `before_submit:Vehicle Log` listener (`suppressErrors:false`) now
+  also rejects a log flagged `is_service` that carries no positive service cost.
+- **Report.** A `vehicles-service-due` report lists vehicles whose odometer has
+  reached or passed `next_service_odometer`, with the overdue distance.
+
+Verified: a service at 5 000 km on a vehicle with a 10 000 km interval set the
+next service to 15 000; a fuel log driving the odometer to 16 000 left it overdue
+by 1 000 (shown by the report); a service log with zero cost was rejected with
+400; a fresh service at 16 500 reset the next service to 26 500 and cleared the
+vehicle from the due list.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
