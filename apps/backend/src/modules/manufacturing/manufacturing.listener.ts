@@ -81,6 +81,42 @@ export class ManufacturingListener {
     data.total_cost = Math.round((rawMaterialCost + operatingCost) * 100) / 100;
   }
 
+  /**
+   * BOM default management. A default BOM must be active, and only one BOM per
+   * item may be the default — marking a new one demotes the rest.
+   * suppressErrors:false so a bad flag combination aborts the save.
+   */
+  @OnEvent("doc.before_save:BOM", { suppressErrors: false })
+  gateBomDefault(payload: BeforeSavePayload): void {
+    const d = payload.data;
+    if (Number(d.is_default ?? 0) === 1 && Number(d.is_active ?? 0) !== 1) {
+      throw new BadRequestException("An inactive BOM cannot be the default for its item");
+    }
+  }
+
+  @OnEvent("doc.after_insert:BOM")
+  async onBomInsert(payload: DocEventPayload): Promise<void> {
+    await this.enforceSingleDefault(payload.doc);
+  }
+
+  @OnEvent("doc.after_update:BOM")
+  async onBomUpdate(payload: DocEventPayload): Promise<void> {
+    await this.enforceSingleDefault(payload.doc);
+  }
+
+  /** Demote every other default BOM for the same item once this one becomes the default. */
+  private async enforceSingleDefault(doc: Record<string, unknown>): Promise<void> {
+    if (Number(doc.is_default ?? 0) !== 1 || Number(doc.is_active ?? 0) !== 1) return;
+    const res = await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("BOM"))} SET ${quoteIdent("is_default")} = 0
+       WHERE ${quoteIdent("item")} = $1 AND ${quoteIdent("name")} <> $2
+         AND coalesce(${quoteIdent("is_default")}, 0) = 1`,
+      [String(doc.item ?? ""), String(doc.name ?? "")],
+    );
+    const demoted = Array.isArray(res) ? res.length : (res?.[1] ?? 0);
+    if (demoted) this.logger.log(`BOM ${doc.name}: became default for ${doc.item}, demoted others`);
+  }
+
   private async setWorkOrder(name: string, fields: Record<string, unknown>): Promise<void> {
     const cols = Object.keys(fields);
     const sets = cols.map((c, i) => `${quoteIdent(c)} = $${i + 1}`).join(", ");
