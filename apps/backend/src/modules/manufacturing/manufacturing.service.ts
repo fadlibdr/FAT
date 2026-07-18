@@ -58,6 +58,26 @@ export class ManufacturingService {
     return { workOrders, skipped };
   }
 
+  /** Parent BOMs that consume `item` as a component (with the parent's produced item). */
+  async whereUsed(item: string): Promise<{ item_code: string; used_in: Array<{ bom: string; produces: string; qty: number; is_active: number }> }> {
+    if (!this.registry.has("BOM Item") || !this.registry.has("BOM")) return { item_code: item, used_in: [] };
+    const rows = await this.dataSource.query(
+      `SELECT bi.${quoteIdent("parent")} AS bom, b.${quoteIdent("item")} AS produces,
+              coalesce(bi.${quoteIdent("qty")}, 0)::float8 AS qty, coalesce(b.${quoteIdent("is_active")}, 0) AS is_active
+       FROM ${quoteIdent(tableNameFor("BOM Item"))} bi
+       JOIN ${quoteIdent(tableNameFor("BOM"))} b ON b.${quoteIdent("name")} = bi.${quoteIdent("parent")}
+       WHERE bi.${quoteIdent("item_code")} = $1
+       ORDER BY bi.${quoteIdent("parent")}`,
+      [item],
+    );
+    return {
+      item_code: item,
+      used_in: (rows as Array<Record<string, unknown>>).map((r) => ({
+        bom: String(r.bom), produces: String(r.produces), qty: Number(r.qty), is_active: Number(r.is_active),
+      })),
+    };
+  }
+
   /** The item's default active BOM, if any. */
   private async defaultBom(item: string): Promise<string | null> {
     if (!this.registry.has("BOM")) return null;

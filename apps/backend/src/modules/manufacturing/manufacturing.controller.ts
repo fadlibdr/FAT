@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ManufacturingService } from "./manufacturing.service";
 import { JobCardService } from "./job-card.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
@@ -15,6 +15,11 @@ export class ManufacturingController {
   @Post("sales-order/:name/make-work-orders")
   async makeWorkOrders(@CurrentUser() user: UserContext, @Param("name") name: string) {
     return this.manufacturing.makeWorkOrders(name, user);
+  }
+
+  @Get("item/:code/where-used")
+  async whereUsed(@Param("code") code: string) {
+    return this.manufacturing.whereUsed(code);
   }
 
   @Post("job-card/:name/start")

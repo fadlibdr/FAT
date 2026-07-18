@@ -2248,6 +2248,23 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "bom-where-used": {
+    permDoctype: "BOM",
+    columns: [
+      { key: "component", label: "Component" },
+      { key: "bom", label: "Used In BOM" },
+      { key: "produces", label: "Produces" },
+      { key: "qty", label: "Qty" },
+      { key: "is_active", label: "Active" },
+    ],
+    // Every component-to-parent-BOM edge: which BOMs consume each component item.
+    sql: `SELECT bi."item_code" AS "component", bi."parent" AS "bom",
+                 b."item" AS "produces", coalesce(bi."qty", 0)::float8 AS "qty",
+                 coalesce(b."is_active", 0) AS "is_active"
+          FROM "tabBOM Item" bi
+          JOIN "tabBOM" b ON b."name" = bi."parent"
+          ORDER BY bi."item_code", bi."parent"`,
+  },
   "vehicles-service-due": {
     permDoctype: "Vehicle",
     columns: [

@@ -3093,6 +3093,27 @@ by 1 000 (shown by the report); a service log with zero cost was rejected with
 400; a fresh service at 16 500 reset the next service to 26 500 and cleared the
 vehicle from the due list.
 
+## Phase 147 — BOM default enforcement & where-used
+
+Keeps an item's bill-of-materials picture consistent: exactly one active default
+BOM per item, and a reverse lookup of every BOM that consumes a given component.
+
+- **Single-default enforcement + where-used.** After a BOM is inserted or
+  updated as the active default for its item, an `after_insert`/`after_update`
+  listener demotes every other default BOM for that same item, so `defaultBom`
+  (used by make-to-order) always resolves one. `GET /api/manufacturing/item/:code/where-used`
+  returns every parent BOM that lists the item as a component, with the parent's
+  produced item, the consumed quantity, and whether that BOM is active.
+- **Gate.** A `before_save:BOM` listener (`suppressErrors:false`) rejects a BOM
+  flagged as default while inactive — an inactive BOM cannot be an item's default.
+- **Report.** A `bom-where-used` report lists every component-to-parent-BOM edge
+  (component, using BOM, produced item, quantity, active flag).
+
+Verified: creating a second active default BOM for an item demoted the first to
+non-default; an inactive-default BOM was rejected with 400; the where-used lookup
+and report both listed all three BOMs consuming the shared component with their
+produced items and quantities.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
