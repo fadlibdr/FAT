@@ -1,0 +1,16 @@
+{
+  "name": "Sales Partner",
+  "module": "Salesteam",
+  "naming_rule": "field:partner_name",
+  "title_field": "partner_name",
+  "fields": [
+    { "fieldname": "partner_name", "label": "Partner Name", "fieldtype": "Data", "reqd": true, "in_list_view": true },
+    { "fieldname": "commission_rate", "label": "Commission Rate (%)", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "total_orders", "label": "Total Order Value", "fieldtype": "Currency", "read_only": true, "default": "0", "in_list_view": true },
+    { "fieldname": "total_commission", "label": "Accrued Commission", "fieldtype": "Currency", "read_only": true, "default": "0", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Sales User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

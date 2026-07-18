@@ -5,13 +5,14 @@ import { BusinessModule } from "../module-base";
 import { SalesteamListener } from "./salesteam.listener";
 import { CommissionPayoutListener } from "./commission-payout.listener";
 import { SalesTargetListener } from "./sales-target.listener";
+import { SalesPartnerListener } from "./sales-partner.listener";
 import { SalesteamService } from "./salesteam.service";
 import { SalesteamController } from "./salesteam.controller";
 
 @Module({
   imports: [CoreModule],
   controllers: [SalesteamController],
-  providers: [SalesteamListener, CommissionPayoutListener, SalesTargetListener, SalesteamService],
+  providers: [SalesteamListener, CommissionPayoutListener, SalesTargetListener, SalesPartnerListener, SalesteamService],
 })
 export class SalesteamModule extends BusinessModule {
   protected readonly baseDir = __dirname;

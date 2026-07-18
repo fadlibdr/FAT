@@ -21,6 +21,13 @@
       "in_standard_filter": true
     },
     {
+      "fieldname": "sales_partner",
+      "label": "Sales Partner",
+      "fieldtype": "Link",
+      "options": "Sales Partner",
+      "in_standard_filter": true
+    },
+    {
       "fieldname": "transaction_date",
       "label": "Date",
       "fieldtype": "Date",
