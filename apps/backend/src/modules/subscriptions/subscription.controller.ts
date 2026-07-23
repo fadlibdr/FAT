@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Post } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Param, Post } from "@nestjs/common";
 import { SubscriptionService } from "./subscription.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
@@ -17,5 +17,11 @@ export class SubscriptionController {
     if (!user.isSuper) throw new ForbiddenException("System Manager access required");
     const generated = await this.subscriptions.generateDueInvoices(body?.as_of);
     return { generated };
+  }
+
+  @Post("cancel/:name")
+  async cancel(@CurrentUser() user: UserContext, @Param("name") name: string) {
+    if (!user.isSuper) throw new ForbiddenException("System Manager access required");
+    return this.subscriptions.cancel(name);
   }
 }

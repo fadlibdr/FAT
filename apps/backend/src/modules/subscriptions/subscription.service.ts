@@ -1,7 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
+import type { BeforeSavePayload } from "../../core/doctype/hooks.service";
 import { DoctypeRegistryService } from "../../core/doctype/doctype-registry.service";
 import { DocumentService } from "../../core/doctype/document.service";
 import { systemContext } from "../../core/permissions/system-context";
@@ -28,6 +30,34 @@ export class SubscriptionService {
   async scheduled(): Promise<void> {
     const n = await this.generateDueInvoices();
     if (n > 0) this.logger.log(`Subscription billing: generated ${n} invoice(s)`);
+  }
+
+  // suppressErrors:false so an inverted date window aborts the save.
+  @OnEvent("doc.before_save:Subscription", { suppressErrors: false })
+  gateDates(payload: BeforeSavePayload): void {
+    const d = payload.data;
+    const start = d.start_date ? String(d.start_date) : "";
+    const end = d.end_date ? String(d.end_date) : "";
+    if (start && end && end < start) {
+      throw new BadRequestException("End Date cannot be before Start Date");
+    }
+  }
+
+  /** Stop a subscription's billing. Only an Active subscription can be cancelled. */
+  async cancel(name: string): Promise<{ subscription: string; status: string }> {
+    const subDt = this.registry.get("Subscription");
+    if (!subDt) throw new BadRequestException("Subscription not registered");
+    const sub = await this.documents.get(subDt, name);
+    if (String(sub.status) !== "Active") {
+      throw new BadRequestException(`Subscription ${name} is ${sub.status}, not Active`);
+    }
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Subscription"))}
+       SET ${quoteIdent("status")} = 'Cancelled' WHERE ${quoteIdent("name")} = $1`,
+      [name],
+    );
+    this.logger.log(`Subscription ${name}: cancelled`);
+    return { subscription: name, status: "Cancelled" };
   }
 
   /** Poll a freshly-created invoice until its derived grand_total is ready. */
@@ -62,7 +92,8 @@ export class SubscriptionService {
       `SELECT ${quoteIdent("name")} AS name FROM ${quoteIdent(tableNameFor("Subscription"))}
        WHERE ${quoteIdent("status")} = 'Active'
          AND ${quoteIdent("next_invoice_date")} IS NOT NULL
-         AND ${quoteIdent("next_invoice_date")} <= $1`,
+         AND ${quoteIdent("next_invoice_date")} <= $1
+         AND (${quoteIdent("end_date")} IS NULL OR ${quoteIdent("next_invoice_date")} <= ${quoteIdent("end_date")})`,
       [today],
     );
 
@@ -92,16 +123,23 @@ export class SubscriptionService {
           String(plan.billing_interval ?? "Month"),
           Number(plan.interval_count ?? 1),
         );
+        const nextStr = next.toISOString().slice(0, 10);
+        // If the next cycle falls beyond the end date, the subscription is done.
+        const endStr = sub.end_date ? new Date(sub.end_date as string).toISOString().slice(0, 10) : "";
+        const completed = endStr && nextStr > endStr;
         await this.dataSource.query(
           `UPDATE ${quoteIdent(tableNameFor("Subscription"))}
            SET ${quoteIdent("next_invoice_date")} = $1,
                ${quoteIdent("invoice_count")} = coalesce(${quoteIdent("invoice_count")},0) + 1,
-               ${quoteIdent("last_invoice")} = $2
+               ${quoteIdent("last_invoice")} = $2,
+               ${quoteIdent("status")} = $4
            WHERE ${quoteIdent("name")} = $3`,
-          [next.toISOString().slice(0, 10), invoice.name, sub.name],
+          [nextStr, invoice.name, sub.name, completed ? "Completed" : "Active"],
         );
         generated += 1;
-        this.logger.log(`Subscription ${sub.name}: invoiced ${invoice.name}, next ${next.toISOString().slice(0, 10)}`);
+        this.logger.log(
+          `Subscription ${sub.name}: invoiced ${invoice.name}, next ${nextStr}${completed ? " (completed)" : ""}`,
+        );
       } catch (err) {
         this.logger.error(`Subscription ${row.name} billing failed: ${(err as Error).message}`);
       }
