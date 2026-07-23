@@ -3114,6 +3114,29 @@ non-default; an inactive-default BOM was rejected with 400; the where-used looku
 and report both listed all three BOMs consuming the shared component with their
 produced items and quantities.
 
+## Phase 148 — Sales Partner commission
+
+External referral partners that earn a percentage on the orders they bring in —
+distinct from the internal sales-team commission (which accrues on invoices).
+
+- **Partner + accrual.** A `Sales Partner` DocType (`partner_name`,
+  `commission_rate`, read-only `total_orders` and `total_commission`), plus a
+  `sales_partner` link on the Sales Order. Submitting an order that names a
+  partner grows that partner's sourced order value and accrued commission
+  (`grand_total × rate`); cancelling unwinds both. The order value is read from
+  the persisted `tabSales Order.grand_total` (the selling module computes it on
+  save, so it is not reliably on the in-memory doc at submit time). Pure
+  event-bus listener — no cross-module service imports.
+- **Gate.** A `before_save:Sales Partner` listener (`suppressErrors:false`)
+  rejects a commission rate outside 0–100.
+- **Report.** A `sales-partner-commission` report lists each partner with its
+  rate, sourced order value, and accrued commission.
+
+Verified: submitting a 1 000 order for a 10 % partner accrued 1 000 sourced and
+100 commission; cancelling returned both to zero; a fresh 500 order accrued 500 /
+50; commission rates of 150 and −5 were rejected with 400; the report showed the
+partner's totals.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers

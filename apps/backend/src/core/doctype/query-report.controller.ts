@@ -2248,6 +2248,22 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "sales-partner-commission": {
+    permDoctype: "Sales Partner",
+    columns: [
+      { key: "partner", label: "Partner" },
+      { key: "commission_rate", label: "Rate (%)" },
+      { key: "total_orders", label: "Order Value Sourced" },
+      { key: "total_commission", label: "Accrued Commission" },
+    ],
+    // Each partner's sourced order value and the commission accrued on it.
+    sql: `SELECT coalesce("partner_name", "name") AS "partner",
+                 coalesce("commission_rate", 0)::float8 AS "commission_rate",
+                 coalesce("total_orders", 0)::float8 AS "total_orders",
+                 coalesce("total_commission", 0)::float8 AS "total_commission"
+          FROM "tabSales Partner"
+          ORDER BY "total_commission" DESC, "partner"`,
+  },
   "bom-where-used": {
     permDoctype: "BOM",
     columns: [
