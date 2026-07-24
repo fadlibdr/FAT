@@ -2248,6 +2248,25 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "subscription-billing-status": {
+    permDoctype: "Subscription",
+    columns: [
+      { key: "subscription", label: "Subscription" },
+      { key: "customer", label: "Customer" },
+      { key: "plan", label: "Plan" },
+      { key: "status", label: "Status" },
+      { key: "next_invoice_date", label: "Next Invoice" },
+      { key: "end_date", label: "End Date" },
+      { key: "invoice_count", label: "Invoices" },
+    ],
+    // Each subscription's lifecycle state and billing progress.
+    sql: `SELECT "name" AS "subscription", "customer", "plan",
+                 coalesce("status", 'Active') AS "status",
+                 "next_invoice_date", "end_date",
+                 coalesce("invoice_count", 0) AS "invoice_count"
+          FROM "tabSubscription"
+          ORDER BY "status", "next_invoice_date", "name"`,
+  },
   "sales-partner-commission": {
     permDoctype: "Sales Partner",
     columns: [

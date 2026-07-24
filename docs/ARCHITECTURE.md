@@ -3137,6 +3137,29 @@ Verified: submitting a 1 000 order for a 10 % partner accrued 1 000 sourced and
 50; commission rates of 150 and −5 were rejected with 400; the report showed the
 partner's totals.
 
+## Phase 149 — Subscription cancellation & end-date
+
+Gives recurring billing a lifecycle: a subscription can be cancelled on demand or
+run to a fixed end date, after which it stops billing on its own.
+
+- **Cancel + end-date expiry.** A `Subscription` gains an `end_date` and a
+  `Completed` status. `POST /api/admin/run-subscriptions/cancel/:name` (System
+  Manager) stops an Active subscription (status → Cancelled). The daily billing
+  run skips any subscription whose next invoice would fall past its end date, and
+  once a billed cycle advances beyond the end date the subscription is marked
+  `Completed` so it never bills again.
+- **Gates.** Cancelling refuses a subscription that is not Active; a
+  `before_save:Subscription` listener (`suppressErrors:false`) rejects an end date
+  earlier than the start date.
+- **Report.** A `subscription-billing-status` report lists each subscription's
+  lifecycle state, next-invoice/end dates, and invoice count.
+
+Verified: cancelling an Active subscription set it Cancelled and a second cancel
+was rejected with 400; an end<start subscription was rejected with 400; a monthly
+subscription with a mid-cycle end date billed once, flipped to Completed, and did
+not bill on a later run; the report showed both the cancelled and completed
+subscriptions.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
