@@ -1,0 +1,20 @@
+# FAT frontend (Next.js). Copy to /etc/systemd/system/fat-web.service,
+# adjust User and the /opt/fat path, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now fat-web
+# NOTE: the frontend must be rebuilt (pnpm --filter @fat/frontend build) whenever
+# NEXT_PUBLIC_API_URL changes — it is baked into the bundle at build time.
+[Unit]
+Description=FAT frontend (Next.js)
+After=network.target fat-api.service
+
+[Service]
+Type=simple
+User=fat
+WorkingDirectory=/opt/fat/apps/frontend
+Environment=PORT=3000
+ExecStart=/usr/bin/pnpm start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

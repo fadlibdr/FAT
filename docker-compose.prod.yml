@@ -1,0 +1,64 @@
+# FAT production stack: Postgres + API + Web (+ optional Redis).
+# nginx/TLS is handled on the host (see deploy/nginx.conf) — api and web are
+# published only on localhost and proxied by nginx.
+#
+#   cp .env.production.example .env.production   # then edit
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   # one-time admin/demo bootstrap:
+#   docker compose -f docker-compose.prod.yml run --rm api pnpm backend:seed
+#
+# Build the web image with your public URL:
+#   NEXT_PUBLIC_API_URL is read from .env.production and passed as a build arg below.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - fat-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional — only needed if REDIS_HOST=redis is set in .env.production.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    profiles: ["redis"]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    restart: unless-stopped
+    env_file: .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Persist uploaded files (attachments, avatars, print assets).
+      - fat-uploads:/app/apps/backend/data
+    ports:
+      - "127.0.0.1:3001:3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:3000:3000"
+
+volumes:
+  fat-pgdata:
+  fat-uploads:

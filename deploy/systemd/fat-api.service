@@ -1,0 +1,19 @@
+# FAT backend (NestJS API). Copy to /etc/systemd/system/fat-api.service,
+# adjust User and the /opt/fat path, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now fat-api
+[Unit]
+Description=FAT backend API
+After=network.target postgresql.service docker.service
+
+[Service]
+Type=simple
+User=fat
+WorkingDirectory=/opt/fat/apps/backend
+# Root .env is auto-loaded by the app; this is a fallback for explicit vars.
+EnvironmentFile=-/opt/fat/.env
+ExecStart=/usr/bin/node dist/main.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
