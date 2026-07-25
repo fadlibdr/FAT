@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
@@ -94,6 +94,82 @@ export class AssetsListener {
        WHERE ${quoteIdent("voucher_type")} = $1 AND ${quoteIdent("voucher_no")} = $2`,
       [voucherType, voucherNo],
     );
+  }
+
+  /** An asset's book value and accumulated depreciation, or null if it doesn't exist. */
+  private async assetValue(name: string): Promise<{ value: number; accumulated: number; docstatus: number } | undefined> {
+    if (!name || !this.registry.has("Asset")) return undefined;
+    const row = (
+      await this.dataSource.query(
+        `SELECT coalesce(${quoteIdent("value_after_depreciation")}, 0) AS value,
+                coalesce(${quoteIdent("accumulated_depreciation")}, 0) AS accumulated,
+                ${quoteIdent("docstatus")} AS docstatus
+         FROM ${quoteIdent(tableNameFor("Asset"))} WHERE ${quoteIdent("name")} = $1`,
+        [name],
+      )
+    )[0];
+    return row ? { value: Number(row.value), accumulated: Number(row.accumulated), docstatus: Number(row.docstatus) } : undefined;
+  }
+
+  /**
+   * Asset Value Adjustment: revalue an asset's book value. A write-down books
+   * Dr Depreciation Expense / Cr Accumulated Depreciation for the reduction (a
+   * write-up reverses that), then sets the asset to the new value and rolls the
+   * reduction onto accumulated depreciation. A pre-submit gate keeps the target a
+   * real, changed, non-negative value; cancel reverses the GL and the asset.
+   */
+  // suppressErrors:false so a bad target value aborts the submit.
+  @OnEvent("doc.before_submit:Asset Value Adjustment", { suppressErrors: false })
+  async gateAdjustment(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const newValue = Number(doc.new_value ?? 0);
+    if (newValue < 0) throw new BadRequestException("New Book Value cannot be negative");
+    const asset = await this.assetValue(String(doc.asset ?? ""));
+    if (!asset) throw new BadRequestException(`Asset ${doc.asset} not found`);
+    if (asset.docstatus !== 1) throw new BadRequestException(`Asset ${doc.asset} is not submitted`);
+    if (Math.abs(newValue - asset.value) < 1e-6) {
+      throw new BadRequestException(`New Book Value equals the current book value (${asset.value})`);
+    }
+  }
+
+  @OnEvent("doc.on_submit:Asset Value Adjustment")
+  async onAdjustmentSubmit(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    const asset = await this.assetValue(String(doc.asset ?? ""));
+    if (!asset) return;
+    const ctx = systemContext(payload.user);
+    const newValue = Number(doc.new_value ?? 0);
+    const reduction = asset.value - newValue; // >0 write-down, <0 write-up
+    const amount = Math.abs(reduction);
+    const lines = reduction > 0
+      ? [{ account: EXPENSE, debit: amount, credit: 0 }, { account: ACCUMULATED, debit: 0, credit: amount }]
+      : [{ account: ACCUMULATED, debit: amount, credit: 0 }, { account: EXPENSE, debit: 0, credit: amount }];
+    await this.postGl(ctx, "Asset Value Adjustment", String(doc.name), doc.adjustment_date, String(doc.asset ?? ""), lines);
+    await this.setAsset(String(doc.asset), {
+      value_after_depreciation: newValue,
+      accumulated_depreciation: asset.accumulated + reduction,
+    });
+    await this.dataSource.query(
+      `UPDATE ${quoteIdent(tableNameFor("Asset Value Adjustment"))}
+       SET ${quoteIdent("current_value")} = $1, ${quoteIdent("difference")} = $2 WHERE ${quoteIdent("name")} = $3`,
+      [asset.value, newValue - asset.value, String(doc.name)],
+    );
+    this.logger.log(`Asset Value Adjustment ${doc.name}: ${doc.asset} ${asset.value} -> ${newValue}`);
+  }
+
+  @OnEvent("doc.on_cancel:Asset Value Adjustment")
+  async onAdjustmentCancel(payload: DocEventPayload): Promise<void> {
+    const doc = payload.doc;
+    await this.reverseGl("Asset Value Adjustment", doc.name);
+    const asset = await this.assetValue(String(doc.asset ?? ""));
+    if (!asset) return;
+    const prior = Number(doc.current_value ?? 0);
+    const reduction = prior - Number(doc.new_value ?? 0);
+    // Restore the pre-adjustment book value and unwind the accumulated reduction.
+    await this.setAsset(String(doc.asset), {
+      value_after_depreciation: prior,
+      accumulated_depreciation: asset.accumulated - reduction,
+    });
   }
 
   /**

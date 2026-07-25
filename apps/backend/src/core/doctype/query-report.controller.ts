@@ -2248,6 +2248,25 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "asset-value-adjustments": {
+    permDoctype: "Asset Value Adjustment",
+    columns: [
+      { key: "adjustment", label: "Adjustment" },
+      { key: "asset", label: "Asset" },
+      { key: "adjustment_date", label: "Date" },
+      { key: "current_value", label: "Old Value" },
+      { key: "new_value", label: "New Value" },
+      { key: "difference", label: "Difference" },
+    ],
+    // Submitted revaluations with the book-value change each applied.
+    sql: `SELECT "name" AS "adjustment", "asset", "adjustment_date",
+                 coalesce("current_value", 0)::float8 AS "current_value",
+                 coalesce("new_value", 0)::float8 AS "new_value",
+                 coalesce("difference", 0)::float8 AS "difference"
+          FROM "tabAsset Value Adjustment"
+          WHERE "docstatus" = 1
+          ORDER BY "adjustment_date" DESC, "name"`,
+  },
   "subscription-billing-status": {
     permDoctype: "Subscription",
     columns: [

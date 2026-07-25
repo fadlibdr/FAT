@@ -3160,6 +3160,31 @@ subscription with a mid-cycle end date billed once, flipped to Completed, and di
 not bill on a later run; the report showed both the cancelled and completed
 subscriptions.
 
+## Phase 150 — Asset Value Adjustment
+
+Manual revaluation of a fixed asset's book value, posting the write-down or
+write-up to the ledger — the counterpart to scheduled depreciation.
+
+- **Adjustment + GL + asset update.** An `Asset Value Adjustment` DocType
+  (submittable: `asset`, `adjustment_date`, `new_value`, read-only
+  `current_value`/`difference`). On submit a write-down books Dr Depreciation
+  Expense / Cr Accumulated Depreciation for the reduction (a write-up reverses
+  that), sets the asset's `value_after_depreciation` to the new value, and rolls
+  the reduction onto its accumulated depreciation. The prior value and difference
+  are stamped on the adjustment. Cancel deletes the GL and restores the asset.
+  Handled on the existing assets event-bus listener — no cross-module imports.
+- **Gate.** A `before_submit:Asset Value Adjustment` listener
+  (`suppressErrors:false`) requires a submitted asset, a non-negative target
+  value, and a value that actually differs from the current book value.
+- **Report.** An `asset-value-adjustments` report lists each submitted revaluation
+  with its old/new value and the difference.
+
+Verified: a 2 000 asset written down to 1 500 booked Dr Depreciation Expense 500 /
+Cr Accumulated Depreciation 500 (asset → 1 500, accumulated → 500); a write-up to
+1 800 reversed the entry (asset → 1 800, accumulated → 200); cancelling the
+write-up restored 1 500 / 500 and removed its GL; a negative target and a no-op
+(unchanged) value were each rejected with 400; the report listed the adjustment.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
