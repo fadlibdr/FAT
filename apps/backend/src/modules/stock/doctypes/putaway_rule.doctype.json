@@ -1,0 +1,16 @@
+{
+  "name": "Putaway Rule",
+  "module": "Stock",
+  "naming_rule": "series:PUTR-.#####",
+  "title_field": "item_code",
+  "fields": [
+    { "fieldname": "item_code", "label": "Item", "fieldtype": "Link", "options": "Item", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Link", "options": "Warehouse", "reqd": true, "in_list_view": true, "in_standard_filter": true },
+    { "fieldname": "capacity", "label": "Capacity", "fieldtype": "Float", "reqd": true, "in_list_view": true },
+    { "fieldname": "priority", "label": "Priority", "fieldtype": "Int", "default": "1", "in_list_view": true }
+  ],
+  "permissions": [
+    { "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1 },
+    { "role": "Stock User", "read": 1, "write": 1, "create": 1, "report": 1 }
+  ]
+}

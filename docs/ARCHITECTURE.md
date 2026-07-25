@@ -3185,6 +3185,28 @@ Cr Accumulated Depreciation 500 (asset → 1 500, accumulated → 500); a write-
 write-up restored 1 500 / 500 and removed its GL; a negative target and a no-op
 (unchanged) value were each rejected with 400; the report listed the adjustment.
 
+## Phase 151 — Putaway Rule
+
+Rules that decide where incoming stock of an item should land, capping how much
+of an item each warehouse may hold and spreading a receipt across them.
+
+- **Rule + suggestion.** A `Putaway Rule` DocType (`item_code`, `warehouse`,
+  `capacity`, `priority`). `GET /api/stock/item/:code/putaway?qty=N` walks the
+  item's rules in priority order and fills each warehouse's free space (rule
+  capacity − current on-hand from `Bin`), returning the per-warehouse assignments
+  and whatever quantity won't fit anywhere (`unassigned`). Pure event-bus + SQL,
+  no cross-module service imports.
+- **Gates.** A `before_save:Putaway Rule` listener (`suppressErrors:false`)
+  rejects a non-positive capacity and a duplicate item+warehouse rule.
+- **Report.** A `putaway-rules` report lists each rule with the warehouse's
+  current on-hand usage of the item and its remaining free space.
+
+Verified: with rules capping an item at 100 (priority 1, 30 already on hand) and
+50 (priority 2) across two warehouses, a putaway of 90 suggested 70 + 20 with none
+unassigned, and a putaway of 200 suggested 70 + 50 leaving 80 unassigned; a
+zero-capacity rule and a duplicate item+warehouse rule were each rejected with
+400; the report showed each warehouse's capacity, on-hand, and free space.
+
 ## Known limitations (still open)
 
 - Multi-currency has a single conversion rate (no revaluation); serial numbers
