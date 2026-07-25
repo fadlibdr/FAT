@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { PickListService } from "./pick-list.service";
 import { PackingService } from "./packing.service";
 import { ShipmentService } from "./shipment.service";
 import { DeliveryTripService } from "./delivery-trip.service";
 import { SerialWarrantyService } from "./serial-warranty.service";
 import { ItemAlternativeService } from "./item-alternative.service";
+import { PutawayRuleService } from "./putaway-rule.service";
 import { CurrentUser } from "../../auth/current-user.decorator";
 import type { UserContext } from "../../core/permissions/permission.service";
 
@@ -18,6 +19,7 @@ export class StockController {
     private readonly deliveryTrip: DeliveryTripService,
     private readonly serialWarranty: SerialWarrantyService,
     private readonly itemAlternatives: ItemAlternativeService,
+    private readonly putawayRules: PutawayRuleService,
   ) {}
 
   @Post("run-serial-warranty")
@@ -29,6 +31,11 @@ export class StockController {
   @Get("item/:code/alternatives")
   async getItemAlternatives(@Param("code") code: string) {
     return this.itemAlternatives.alternativesFor(code);
+  }
+
+  @Get("item/:code/putaway")
+  async suggestPutaway(@Param("code") code: string, @Query("qty") qty?: string) {
+    return this.putawayRules.suggest(code, Number(qty ?? 0));
   }
 
   @Post("make-delivery-trip")

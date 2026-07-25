@@ -2248,6 +2248,30 @@ const REPORTS: Record<string, QueryReport> = {
           FROM "tabSerial No"
           ORDER BY "item", "serial_no"`,
   },
+  "putaway-rules": {
+    permDoctype: "Putaway Rule",
+    columns: [
+      { key: "rule", label: "Rule" },
+      { key: "item_code", label: "Item" },
+      { key: "warehouse", label: "Warehouse" },
+      { key: "capacity", label: "Capacity" },
+      { key: "on_hand", label: "On Hand" },
+      { key: "free", label: "Free" },
+      { key: "priority", label: "Priority" },
+    ],
+    // Each rule with the warehouse's current usage of the item and free space.
+    sql: `SELECT r."name" AS "rule", r."item_code", r."warehouse",
+                 coalesce(r."capacity", 0)::float8 AS "capacity",
+                 coalesce(b."q", 0)::float8 AS "on_hand",
+                 (coalesce(r."capacity", 0) - coalesce(b."q", 0))::float8 AS "free",
+                 coalesce(r."priority", 1) AS "priority"
+          FROM "tabPutaway Rule" r
+          LEFT JOIN (
+            SELECT "item_code", "warehouse", sum("actual_qty") AS "q"
+            FROM "tabBin" GROUP BY "item_code", "warehouse"
+          ) b ON b."item_code" = r."item_code" AND b."warehouse" = r."warehouse"
+          ORDER BY r."item_code", coalesce(r."priority", 1), r."warehouse"`,
+  },
   "asset-value-adjustments": {
     permDoctype: "Asset Value Adjustment",
     columns: [
